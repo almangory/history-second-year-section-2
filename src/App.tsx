@@ -1621,61 +1621,7 @@ export default function App() {
         {/* TAB 1: DASHBOARD / UNITS GRID */}
         {currentTab === "dashboard" && quizMode === "none" && (
           <div className="space-y-8 animate-[fadeIn_0.3s_ease-out]">
-            {/* Quick Hero Banner */}
-            <div className="relative bg-gradient-to-br from-[#1b1236] to-[#2e1d13] rounded-3xl p-6 md:p-10 text-white shadow-xl overflow-hidden border border-indigo-900/50">
-              <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#FFF_1px,transparent_1px)] [background-size:16px_16px]"></div>
-              
-              <div className="relative max-w-2xl space-y-3 text-right">
-                <div className="inline-flex items-center gap-1.5 bg-amber-400/10 border border-amber-500/20 px-3 py-1 rounded-full text-xs font-bold text-amber-300">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>بداية عام دراسي حافل ومتألق!</span>
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold font-serif leading-tight text-amber-400">
-                  أهلاً بك معنا في مغامرة التاريخ يا بطل، {userName}! 🎯
-                </h2>
-                <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-sans">
-                  هذا الموقع التفاعلي يختصر لك كتاب التاريخ للصف السادس الابتدائي بطريقة شيّقة وممتعة بالصور، والخطوط الزمنية التفاعلية، والألعاب وحل الخرائط للتقدم في لوحة الشرف! يمكنك أيضاً الدردشة الفورية مع "المعلم التاريخي الذكي" للإجابة عن أسئلتك.
-                </p>
 
-                <div className="flex flex-wrap gap-2.5 pt-2">
-                  <button
-                    onClick={() => {
-                      handlePlaySound("click");
-                      setCurrentTab("map");
-                    }}
-                    className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 border border-transparent rounded-xl px-4 py-2 text-xs font-extrabold transition shadow flex items-center gap-1.5 cursor-pointer h-10 text-white"
-                  >
-                    <Compass className="w-4 h-4" />
-                    <span>تصفح خريطة المدن</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      handlePlaySound("click");
-                      setCurrentTab("quiz_hub");
-                    }}
-                    className="bg-gradient-to-r from-fuchsia-700 to-fuchsia-800 hover:from-fuchsia-600 hover:to-fuchsia-750 text-slate-100 border border-transparent rounded-xl px-4 py-2 text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer h-10 shadow-sm"
-                  >
-                    <Gamepad2 className="w-4 h-4 text-amber-300 animate-pulse" />
-                    <span>منصة الاختبارات 📝</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      handlePlaySound("click");
-                      setCurrentTab("chat");
-                    }}
-                    className="bg-white/10 hover:bg-white/20 text-slate-100 border border-slate-700/40 rounded-xl px-4 py-2 text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer h-10"
-                  >
-                    <Bot className="w-4 h-4 text-amber-400" />
-                    <span>اسأل المعلم الذكي</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Absolute illustration representing historical scroll */}
-              <div className="absolute left-6 bottom-4 lg:bottom-2 w-32 h-32 md:w-44 md:h-44 opacity-15 lg:opacity-30 hidden md:block text-amber-300 pointer-events-none transform -rotate-12 translate-y-6">
-                <Book className="w-full h-full" />
-              </div>
-            </div>
 
             {/* FAVORITE LESSONS QUICK ACCESS */}
             {favoriteLessons.length > 0 && (
