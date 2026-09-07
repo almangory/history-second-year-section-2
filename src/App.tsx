@@ -18,6 +18,9 @@ import { WorksheetGenerator } from "./components/WorksheetGenerator";
 import { GalleryView } from "./components/GalleryView";
 import { ParentExitLockModal } from "./components/ParentExitLockModal";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import { NavigationDock, ActiveTabType } from "./components/NavigationDock";
+import { TimelineView } from "./views/TimelineView";
+import { speechEngine } from "./utils/speechUtils";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, signInWithGoogle, logoutUser, db } from "./firebase";
@@ -116,8 +119,8 @@ export default function App() {
 
   // Game & User Progression States
   const [useSound, setUseSound] = useState(true);
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    return (localStorage.getItem("sub_historian_theme") as "dark" | "light") || "dark";
+  const [theme, setTheme] = useState<"dark" | "light" | "sepia">(() => {
+    return (localStorage.getItem("sub_historian_theme") as "dark" | "light" | "sepia") || "dark";
   });
   const [userName, setUserName] = useState<string>(() => {
     return localStorage.getItem("sub_historian_name") || "";
@@ -225,8 +228,17 @@ export default function App() {
   }, [userName, userAvatar, score, unlockedBadges, lastQuizResult, currentUser]);
 
   // App Navigation States
-  const [currentTab, setCurrentTab] = useState<"dashboard" | "unit" | "map" | "chat" | "quiz_hub" | "badges" | "worksheets" | "gallery">("dashboard");
+  const [currentTab, setCurrentTab] = useState<"dashboard" | "unit" | "map" | "chat" | "quiz_hub" | "badges" | "worksheets" | "gallery" | "timeline">("dashboard");
   const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+
+  const cycleTheme = () => {
+    handlePlaySound("click");
+    setTheme((prev) => {
+      const next: "dark" | "light" | "sepia" = prev === "dark" ? "light" : prev === "light" ? "sepia" : "dark";
+      localStorage.setItem("sub_historian_theme", next);
+      return next;
+    });
+  };
   
   // Responsive layout detector (Tablets, landscape phones) & Calm BG
   const [isBookWide, setIsBookWide] = useState<boolean>(() => {
@@ -1283,12 +1295,11 @@ export default function App() {
       </div>
     );
   }
-
   // Active student logged in
   const selectedUnit = selectedUnitId ? UNITS.find(u => u.id === selectedUnitId) : null;
 
   return (
-    <div className={`min-h-screen bg-[#09080f] text-slate-150 font-sans flex flex-col ${theme === "light" ? "light-theme" : ""}`}>
+    <div className={`min-h-screen bg-[#09080f] text-slate-150 font-sans flex flex-col pb-mobile-nav ${theme === "light" ? "light-theme" : theme === "sepia" ? "sepia-theme" : ""}`}>
       {/* Visual top bar */}
       <div className="h-1 bg-gradient-to-r from-amber-500 via-indigo-600 to-amber-700 shrink-0"></div>
 
@@ -1296,29 +1307,13 @@ export default function App() {
       <header className="bg-[#121020] border-b border-indigo-950/60 px-4 md:px-8 py-4 sticky top-0 z-40 shadow-md shrink-0">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                requestExitQuiz(() => {
-                  handlePlaySound("click");
-                  setCurrentTab("dashboard");
-                  setSelectedUnitId(null);
-                  setQuizMode("none");
-                });
-              }}
-              className="bg-[#1b1930] hover:bg-[#252244] border border-amber-500/30 p-1.5 rounded-2xl shadow-lg hover:scale-105 transition cursor-pointer flex items-center justify-center shrink-0"
-              title="العودة للرئيسية"
-            >
-              <img 
-                src="/icon.svg" 
-                alt="شعار تاريخ السادس" 
-                className="w-9 h-9 rounded-xl object-contain"
-                referrerPolicy="no-referrer"
-              />
-            </button>
-            <div>
-              <h1 className="text-xl md:text-2xl font-serif font-bold text-amber-400 flex items-center gap-1.5">
-                <span>المُؤرِّخ الصَّغير 🏛️</span>
-                <span className="text-xs md:text-sm bg-[#1e1422] text-amber-400 border border-amber-950 px-2.5 py-0.5 rounded-full font-sans font-bold">الصف السادس</span>
+            <div className="w-12 h-12 rounded-2xl bg-[#1c152a] border border-indigo-900/60 flex items-center justify-center text-amber-400 shadow-inner group cursor-pointer">
+              <Compass className="w-7 h-7 group-hover:rotate-45 transition-transform duration-500" />
+            </div>
+            <div className="text-right">
+              <h1 className="text-xl md:text-2xl font-black font-serif text-amber-400 flex items-center gap-2">
+                <span>المُؤَرِّخُ الصَّغِيرُ</span>
+                <span className="text-[10px] bg-amber-950/80 text-amber-300 font-sans px-2 py-0.5 rounded-full border border-amber-800/40">الصف السادس</span>
               </h1>
               <p className="text-[11px] text-slate-400 font-medium">سافر في التاريخ وعش غمار المغامرة الذكية</p>
             </div>
@@ -1329,16 +1324,28 @@ export default function App() {
             {/* PWA Install Button */}
             <PWAInstallPrompt onPlaySound={handlePlaySound} />
 
-            {/* Theme Toggle */}
+            {/* Theme Toggle (Dark / Light / Sepia Eye-Comfort) */}
             <button
-              onClick={() => {
-                handlePlaySound("click");
-                setTheme(theme === "dark" ? "light" : "dark");
-              }}
-              title={theme === "dark" ? "التحويل للوضع النهاري" : "التحويل للوضع الليلي"}
-              className="p-2.5 rounded-xl border border-indigo-950/60 bg-[#18152c] text-amber-400 hover:scale-105 active:scale-95 transition cursor-pointer shadow-sm flex items-center justify-center"
+              onClick={cycleTheme}
+              title={
+                theme === "dark" 
+                  ? "التحويل للوضع النهاري" 
+                  : theme === "light" 
+                  ? "التحويل لوضع القراءة السيبيا المريح للعين" 
+                  : "التحويل للوضع الليلي"
+              }
+              className="p-2.5 rounded-xl border border-indigo-950/60 bg-[#18152c] text-amber-400 hover:scale-105 active:scale-95 transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
             >
-              {theme === "dark" ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5 text-amber-400" />
+              ) : theme === "light" ? (
+                <BookOpen className="w-5 h-5 text-amber-700" />
+              ) : (
+                <Moon className="w-5 h-5 text-indigo-300" />
+              )}
+              <span className="text-[10px] hidden sm:inline font-bold">
+                {theme === "dark" ? "ليلي" : theme === "light" ? "نهاري" : "سيبيا مريح"}
+              </span>
             </button>
 
             {/* Sound Toggle */}
@@ -1544,6 +1551,25 @@ export default function App() {
             >
               <Compass className="w-4 h-4 text-teal-400 shrink-0" />
               <span>خريطة المعرفة 🗺️</span>
+            </button>
+
+            <button
+              id="nav-timeline"
+              onClick={() => {
+                requestExitQuiz(() => {
+                  handlePlaySound("click");
+                  setCurrentTab("timeline");
+                  setQuizMode("none");
+                });
+              }}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                currentTab === "timeline" && quizMode === "none"
+                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
+                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+              }`}
+            >
+              <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>الخط الزمني ⏳</span>
             </button>
 
             <button
@@ -2099,6 +2125,18 @@ export default function App() {
           </div>
         )}
 
+        {/* TAB TIMELINE: CHRONOLOGICAL HISTORICAL TIMELINE */}
+        {currentTab === "timeline" && quizMode === "none" && (
+          <TimelineView
+            onPlaySound={handlePlaySound}
+            onSelectUnit={(uId) => {
+              handlePlaySound("click");
+              setSelectedUnitId(uId);
+              setCurrentTab("unit");
+            }}
+          />
+        )}
+
         {/* TAB 2: MAP EXPLORER */}
         {currentTab === "map" && quizMode === "none" && (
           <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
@@ -2439,6 +2477,30 @@ export default function App() {
                           </div>
 
                           <div className="flex items-center gap-1.5">
+                            {/* Arabic Audio Reader TTS */}
+                            <button
+                              onClick={() => {
+                                handlePlaySound("click");
+                                if (speechEngine.getStatus().isSpeaking) {
+                                  if (speechEngine.getStatus().isPaused) {
+                                    speechEngine.resume();
+                                  } else {
+                                    speechEngine.pause();
+                                  }
+                                } else {
+                                  const textToRead = `${activeLesson.title}. ${activeLesson.content.join(" ")}. أهم النقاط: ${activeLesson.keyPoints.join(". ")}`;
+                                  speechEngine.speak(textToRead, 0.95, () => {
+                                    handlePlaySound("success");
+                                  });
+                                }
+                              }}
+                              title="استمع لقراءة الدرس بصوت عربي واضح"
+                              className="px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm bg-[#faf6ee] hover:bg-amber-100 text-amber-950 border-[#ebdcb3]"
+                            >
+                              <Volume2 className="w-3.5 h-3.5 text-amber-800" />
+                              <span>اقرأ لي الدرس 🔊</span>
+                            </button>
+
                             {/* Toggle Reading Mode */}
                             <button
                               onClick={() => {
@@ -4144,6 +4206,44 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Mobile-First Persistent Navigation Dock */}
+      <NavigationDock
+        activeTab={
+          currentTab === "dashboard" || currentTab === "unit" ? "dashboard"
+          : currentTab === "quiz_hub" ? "quiz-hub"
+          : currentTab === "worksheets" ? "worksheets"
+          : currentTab === "map" ? "map-explorer"
+          : currentTab === "chat" ? "chat"
+          : currentTab === "badges" ? "badges"
+          : "dashboard"
+        }
+        setActiveTab={(dockTab) => {
+          handlePlaySound("click");
+          if (dockTab === "dashboard") {
+            setCurrentTab("dashboard");
+            setSelectedUnitId(null);
+            setQuizMode("none");
+          } else if (dockTab === "quiz-hub") {
+            setCurrentTab("quiz_hub");
+            setQuizMode("none");
+          } else if (dockTab === "map-explorer") {
+            setCurrentTab("map");
+            setQuizMode("none");
+          } else if (dockTab === "worksheets") {
+            setCurrentTab("worksheets");
+            setQuizMode("none");
+          } else if (dockTab === "chat") {
+            setCurrentTab("chat");
+            setQuizMode("none");
+          } else if (dockTab === "badges") {
+            setCurrentTab("badges");
+            setQuizMode("none");
+          }
+        }}
+        themeMode={theme}
+        onCycleTheme={cycleTheme}
+      />
     </div>
   );
 }

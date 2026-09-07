@@ -12,6 +12,8 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    const { message, history } = req.body || {};
+
     if (!message || typeof message !== "string" || !message.trim()) {
       return res.status(400).json({ error: "الرجاء إدخال نص السؤال." });
     }
