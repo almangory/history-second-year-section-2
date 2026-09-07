@@ -678,53 +678,53 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] text-slate-100 font-sans pb-12">
+    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out] text-slate-800 font-sans pb-12">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#17142b] via-[#1d1633] to-[#251528] rounded-3xl p-6 md:p-8 border border-amber-500/20 shadow-xl relative overflow-hidden text-right">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+      <div className="bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 rounded-3xl p-6 md:p-8 border border-amber-300 shadow-md relative overflow-hidden text-right">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold font-serif">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 border border-amber-300 text-amber-900 text-xs font-bold font-serif shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
               <span>الأطلس التاريخي والمرئي المعتمد</span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-extrabold font-serif text-slate-100 flex items-center gap-3">
+            <h2 className="text-2xl md:text-3xl font-extrabold font-serif text-slate-900 flex items-center gap-3">
               <span>معرض الصور والخرائط والمخططات التاريخية</span>
             </h2>
-            <p className="text-xs md:text-sm text-slate-300 font-sans leading-relaxed">
+            <p className="text-xs md:text-sm text-slate-700 font-sans leading-relaxed">
               استكشف كافة اللوحات الفنية والمخططات الهندسية والخرائط المعتمدة لمنهج التاريخ للصف السادس. انقر على أي لوحة لتكبيرها بدقة فائقة وفحص التفاصيل الأثرية والتاريخية الدقيقة.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-[#110f1e]/80 p-3 rounded-2xl border border-indigo-950/60 shadow shrink-0">
-            <div className="w-12 h-12 rounded-xl bg-amber-600/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+          <div className="flex items-center gap-3 bg-white/90 p-3 rounded-2xl border border-amber-200 shadow-sm shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700">
               <Compass className="w-6 h-6 animate-spin-once" />
             </div>
             <div className="text-right">
-              <span className="text-[11px] text-slate-400 block font-serif">المعروضات المرئية</span>
-              <span className="text-lg font-bold text-amber-300 font-serif">{GALLERY_ITEMS.length} لوحات ومخططات</span>
+              <span className="text-[11px] text-slate-600 block font-serif">المعروضات المرئية</span>
+              <span className="text-lg font-bold text-amber-900 font-serif">{GALLERY_ITEMS.length} لوحات ومخططات</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters and Search Bar */}
-      <div className="bg-[#141224] p-4 md:p-5 rounded-2xl border border-indigo-950/60 space-y-4">
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-amber-200 space-y-4 shadow-sm">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Live Search */}
           <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ابحث عن رسم، خريطة، مدينة، أو حدث..."
-              className="w-full bg-[#0a0913] border border-indigo-950/80 rounded-xl pr-10 pl-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition text-right font-sans"
+              className="w-full bg-amber-50/40 border border-amber-200 rounded-xl pr-10 pl-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition text-right font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 text-xs cursor-pointer"
               >
                 ✕
               </button>
@@ -740,8 +740,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 selectedCategoryFilter === "all"
-                  ? "bg-amber-700 text-white shadow"
-                  : "bg-[#1d1933] text-slate-400 hover:text-slate-200"
+                  ? "bg-amber-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-amber-50 hover:text-amber-900"
               }`}
             >
               جميع المعروضات ({GALLERY_ITEMS.length})
@@ -753,11 +753,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1 cursor-pointer ${
                 selectedCategoryFilter === "map"
-                  ? "bg-amber-700 text-white shadow"
-                  : "bg-[#1d1933] text-slate-400 hover:text-slate-200"
+                  ? "bg-amber-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-amber-50 hover:text-amber-900"
               }`}
             >
-              <MapPin className="w-3.5 h-3.5 text-teal-400" />
+              <MapPin className="w-3.5 h-3.5 text-teal-600" />
               <span>خرائط ومخططات</span>
             </button>
             <button
@@ -767,11 +767,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1 cursor-pointer ${
                 selectedCategoryFilter === "architecture"
-                  ? "bg-amber-700 text-white shadow"
-                  : "bg-[#1d1933] text-slate-400 hover:text-slate-200"
+                  ? "bg-amber-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-amber-50 hover:text-amber-900"
               }`}
             >
-              <Layers className="w-3.5 h-3.5 text-indigo-400" />
+              <Layers className="w-3.5 h-3.5 text-indigo-600" />
               <span>عمارة وصروح</span>
             </button>
             <button
@@ -781,19 +781,19 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1 cursor-pointer ${
                 selectedCategoryFilter === "invention"
-                  ? "bg-amber-700 text-white shadow"
-                  : "bg-[#1d1933] text-slate-400 hover:text-slate-200"
+                  ? "bg-amber-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-amber-50 hover:text-amber-900"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
               <span>مخترعات وآثار</span>
             </button>
           </div>
         </div>
 
         {/* Unit Filter Horizontal Pills */}
-        <div className="border-t border-indigo-950/40 pt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          <span className="text-[11px] text-slate-500 font-bold ml-2 shrink-0 font-serif">الوحدات:</span>
+        <div className="border-t border-amber-100 pt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+          <span className="text-[11px] text-slate-600 font-bold ml-2 shrink-0 font-serif">الوحدات:</span>
           <button
             onClick={() => {
               onPlaySound("click");
@@ -801,8 +801,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             }}
             className={`px-3 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
               selectedUnitFilter === "all"
-                ? "bg-indigo-900/80 text-amber-300 border border-indigo-700/60"
-                : "bg-[#110f1e] text-slate-400 hover:text-slate-200 border border-indigo-950"
+                ? "bg-amber-100 text-amber-900 border border-amber-400 font-bold shadow-xs"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
             }`}
           >
             كافة الوحدات
@@ -816,8 +816,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               }}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 selectedUnitFilter === unit.id
-                  ? "bg-indigo-900/80 text-amber-300 border border-indigo-700/60"
-                : "bg-[#110f1e] text-slate-400 hover:text-slate-200 border border-indigo-950"
+                  ? "bg-amber-100 text-amber-900 border border-amber-400 font-bold shadow-xs"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
               }`}
             >
               {unit.id === 1 && "🇸🇩 الوحدة الأولى (السودان)"}
@@ -832,9 +832,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
       {/* Grid of Gallery Cards */}
       {filteredItems.length === 0 ? (
-        <div className="text-center py-16 bg-[#131122] rounded-3xl border border-indigo-950/60 space-y-3">
-          <Info className="w-10 h-10 text-slate-500 mx-auto" />
-          <h3 className="text-base font-bold font-serif text-slate-300">لم يتم العثور على معروضات مطابقة</h3>
+        <div className="text-center py-16 bg-white rounded-3xl border border-amber-200 space-y-3 shadow-sm">
+          <Info className="w-10 h-10 text-slate-400 mx-auto" />
+          <h3 className="text-base font-bold font-serif text-slate-700">لم يتم العثور على معروضات مطابقة</h3>
           <p className="text-xs text-slate-500 font-sans">جرّب كتابة اسم مدينة أخرى أو تصفير شريط البحث والمرشحات.</p>
           <button
             onClick={() => {
@@ -842,7 +842,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               setSelectedUnitFilter("all");
               setSelectedCategoryFilter("all");
             }}
-            className="bg-amber-700 hover:bg-amber-600 text-white text-xs px-4 py-2 rounded-xl transition font-bold"
+            className="bg-amber-600 hover:bg-amber-500 text-white text-xs px-4 py-2 rounded-xl transition font-bold cursor-pointer"
           >
             إعادة تعيين المرشحات
           </button>
@@ -853,10 +853,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             <div
               key={item.id}
               onClick={() => handleOpenItem(item)}
-              className="group bg-[#151326] hover:bg-[#1b1833] rounded-2xl border border-indigo-950/70 hover:border-amber-500/40 p-4 transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-amber-500/5 cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
+              className="group bg-white hover:bg-amber-50/40 rounded-2xl border border-amber-200/90 hover:border-amber-400 p-4 transition-all duration-300 shadow-sm hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
             >
               {/* Illustration Thumbnail Container */}
-              <div className="relative rounded-xl overflow-hidden bg-[#0c0a17] border border-amber-500/20 group-hover:scale-[1.01] transition-transform duration-300 h-48 flex items-center justify-center">
+              <div className="relative rounded-xl overflow-hidden bg-amber-50/50 border border-amber-200 group-hover:scale-[1.01] transition-transform duration-300 h-48 flex items-center justify-center">
                 {item.image ? (
                   <div className="relative w-full h-full">
                     <img 
@@ -865,7 +865,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       loading="lazy" 
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a17]/90 via-transparent to-transparent opacity-60" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
                   </div>
                 ) : (
                   <div className="p-2 w-full h-full flex items-center justify-center bg-amber-50/90">
@@ -874,16 +874,16 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 )}
 
                 {/* Floating Category Badge */}
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-[#09080f]/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-indigo-900/40 text-[10px] text-amber-300 font-bold font-serif">
-                  {item.category === "map" && <MapPin className="w-3 h-3 text-teal-400" />}
-                  {item.category === "monument" && <Award className="w-3 h-3 text-amber-400" />}
-                  {item.category === "architecture" && <Layers className="w-3 h-3 text-indigo-400" />}
-                  {item.category === "invention" && <Sparkles className="w-3 h-3 text-rose-400" />}
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full border border-amber-200 text-[10px] text-amber-900 font-bold font-serif shadow-xs">
+                  {item.category === "map" && <MapPin className="w-3 h-3 text-teal-600" />}
+                  {item.category === "monument" && <Award className="w-3 h-3 text-amber-600" />}
+                  {item.category === "architecture" && <Layers className="w-3 h-3 text-indigo-600" />}
+                  {item.category === "invention" && <Sparkles className="w-3 h-3 text-rose-600" />}
                   <span>{item.period}</span>
                 </div>
 
                 {/* Zoom Hint Icon */}
-                <div className="absolute bottom-3 left-3 bg-[#09080f]/85 backdrop-blur-md p-2 rounded-xl border border-indigo-900/40 text-amber-300 group-hover:bg-amber-600 group-hover:text-white transition shadow">
+                <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md p-2 rounded-xl border border-amber-200 text-amber-800 group-hover:bg-amber-600 group-hover:text-white transition shadow-sm">
                   <ZoomIn className="w-4 h-4" />
                 </div>
               </div>
@@ -891,29 +891,29 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               {/* Card Meta & Texts */}
               <div className="space-y-2 text-right flex-1 flex flex-col justify-between">
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-serif">
-                    <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-serif">
+                    <span className="text-amber-700 font-bold flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
                       <span>{item.location}</span>
                     </span>
                     <span className="text-slate-500">الوحدة {item.unitId}</span>
                   </div>
 
-                  <h3 className="font-serif font-bold text-base text-slate-100 group-hover:text-amber-300 transition-colors leading-snug">
+                  <h3 className="font-serif font-bold text-base text-slate-800 group-hover:text-amber-800 transition-colors leading-snug">
                     {item.title}
                   </h3>
 
-                  <p className="text-xs text-slate-400 font-sans leading-relaxed line-clamp-2">
+                  <p className="text-xs text-slate-600 font-sans leading-relaxed line-clamp-2">
                     {item.description}
                   </p>
                 </div>
 
                 {/* Card Action footer */}
-                <div className="border-t border-indigo-950/50 pt-3 flex items-center justify-between text-xs text-slate-400">
+                <div className="border-t border-amber-100 pt-3 flex items-center justify-between text-xs text-slate-500">
                   <span className="text-[11px] text-slate-500 font-serif">
                     {item.historicalDetails.length} نقاط تاريخية دقيقة
                   </span>
-                  <span className="text-amber-400 font-bold flex items-center gap-1 group-hover:translate-x-[-4px] transition-transform">
+                  <span className="text-amber-700 font-bold flex items-center gap-1 group-hover:translate-x-[-4px] transition-transform">
                     <span>انقر للتكبير والتفاصيل</span>
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </span>
@@ -929,25 +929,25 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       {/* ========================================================= */}
       {activeItem && (
         <div 
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-[fadeIn_0.2s_ease-out]"
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-[fadeIn_0.2s_ease-out]"
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseItem();
           }}
         >
-          <div className="bg-[#121020] border border-amber-500/30 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative text-right">
+          <div className="bg-white border-2 border-amber-300 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl relative text-right">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-indigo-950/80 bg-[#16142a] flex items-center justify-between gap-4 shrink-0">
+            <div className="p-4 sm:p-5 border-b border-amber-200 bg-[#fffdfa] flex items-center justify-between gap-4 shrink-0">
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleCloseItem}
-                  className="p-2 rounded-xl bg-[#0d0c18] hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 transition border border-indigo-950 cursor-pointer"
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 transition border border-slate-200 cursor-pointer"
                   title="إغلاق المعاينة"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handlePrintArtwork}
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0d0c18] hover:bg-[#1a1730] text-slate-300 hover:text-amber-300 transition border border-indigo-950 text-xs font-bold cursor-pointer"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 transition border border-slate-200 text-xs font-bold cursor-pointer"
                   title="طباعة اللوحة التعليمية"
                 >
                   <Printer className="w-4 h-4" />
@@ -956,10 +956,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               </div>
 
               <div className="text-right flex-1 min-w-0">
-                <span className="text-[11px] text-amber-400 font-bold font-serif block truncate">
+                <span className="text-[11px] text-amber-700 font-bold font-serif block truncate">
                   {activeItem.unitTitle}
                 </span>
-                <h3 className="font-serif font-bold text-base sm:text-lg text-slate-100 truncate">
+                <h3 className="font-serif font-bold text-base sm:text-lg text-slate-900 truncate">
                   {activeItem.title}
                 </h3>
               </div>
@@ -968,32 +968,32 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             {/* Modal Main Body: Zoom Canvas & Details Panel */}
             <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-0">
               {/* Left Column (Canvas & Interactive Zoom View) */}
-              <div className="lg:col-span-7 bg-[#0b0a14] p-4 sm:p-6 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-l border-indigo-950/70 relative select-none min-h-[340px]">
+              <div className="lg:col-span-7 bg-[#faf8f5] p-4 sm:p-6 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-l border-amber-200 relative select-none min-h-[340px]">
                 {/* Floating Zoom Control Bar */}
-                <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-[#17142c]/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-indigo-900/60 shadow-lg">
+                <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-amber-200 shadow-md">
                   <button
                     onClick={handleZoomIn}
                     disabled={zoomLevel >= 3}
-                    className="p-1.5 rounded-lg bg-[#0d0c18] hover:bg-[#201c3d] text-slate-200 hover:text-amber-300 disabled:opacity-40 transition cursor-pointer"
+                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-800 disabled:opacity-40 transition cursor-pointer"
                     title="تكبير (+)"
                   >
                     <ZoomIn className="w-4 h-4" />
                   </button>
-                  <span className="text-xs font-mono font-bold text-amber-300 px-2 min-w-[45px] text-center">
+                  <span className="text-xs font-mono font-bold text-amber-800 px-2 min-w-[45px] text-center">
                     {Math.round(zoomLevel * 100)}%
                   </span>
                   <button
                     onClick={handleZoomOut}
                     disabled={zoomLevel <= 1}
-                    className="p-1.5 rounded-lg bg-[#0d0c18] hover:bg-[#201c3d] text-slate-200 hover:text-amber-300 disabled:opacity-40 transition cursor-pointer"
+                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-800 disabled:opacity-40 transition cursor-pointer"
                     title="تصغير (-)"
                   >
                     <ZoomOut className="w-4 h-4" />
                   </button>
-                  <div className="w-[1px] h-4 bg-indigo-950/80 mx-0.5" />
+                  <div className="w-[1px] h-4 bg-slate-200 mx-0.5" />
                   <button
                     onClick={handleResetZoom}
-                    className="p-1.5 rounded-lg bg-[#0d0c18] hover:bg-[#201c3d] text-slate-200 hover:text-amber-300 transition cursor-pointer"
+                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-800 transition cursor-pointer"
                     title="إعادة ضبط الحجم (100%)"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
@@ -1001,10 +1001,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                   {activeItem.hotspots && (
                     <button
                       onClick={() => setShowHotspots(!showHotspots)}
-                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
                         showHotspots
                           ? "bg-amber-600 text-white"
-                          : "bg-[#0d0c18] text-slate-400 hover:text-slate-200"
+                          : "bg-slate-100 text-slate-600 hover:text-slate-800"
                       }`}
                     >
                       {showHotspots ? "إخفاء المعالم" : "إظهار المعالم"}
@@ -1057,19 +1057,19 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                         {/* Pin Dot with pulsing aura */}
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg transition-transform ${
                           activeHotspot === spot.id
-                            ? "bg-amber-500 text-slate-950 scale-125 ring-4 ring-amber-400/40 animate-pulse"
-                            : "bg-indigo-900 text-amber-300 border border-amber-400/60 hover:scale-110"
+                            ? "bg-amber-600 text-white scale-125 ring-4 ring-amber-400/40 animate-pulse"
+                            : "bg-amber-100 text-amber-900 border border-amber-500 hover:scale-110"
                         }`}>
                           {idx + 1}
                         </div>
 
                         {/* Hover/Active Tooltip */}
                         {(activeHotspot === spot.id) && (
-                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#121020] text-slate-100 p-2.5 rounded-xl border border-amber-500/50 shadow-2xl w-48 text-right z-40 pointer-events-auto animate-[fadeIn_0.15s_ease-out]">
-                            <span className="font-serif font-bold text-amber-300 text-xs block mb-1">
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white text-slate-900 p-2.5 rounded-xl border border-amber-400 shadow-xl w-48 text-right z-40 pointer-events-auto animate-[fadeIn_0.15s_ease-out]">
+                            <span className="font-serif font-bold text-amber-800 text-xs block mb-1">
                               {spot.label}
                             </span>
-                            <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
+                            <p className="text-[11px] text-slate-700 font-sans leading-relaxed">
                               {spot.text}
                             </p>
                           </div>
@@ -1080,7 +1080,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 </div>
 
                 {/* Bottom Canvas Advice */}
-                <span className="text-[11px] text-slate-500 font-sans mt-3">
+                <span className="text-[11px] text-slate-600 font-sans mt-3">
                   {zoomLevel > 1 
                     ? "💡 يمكنك سحب اللوحة بالماوس أو اللمس للتحرك وتفحص التفاصيل الدقيقة." 
                     : "💡 انقر على أزرار التكبير (+) أو أرقام المعالم لاستكشاف الشرح التاريخي."}
@@ -1088,31 +1088,31 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               </div>
 
               {/* Right Column (Historical Deep-Dive & Curriculum Lesson Connection) */}
-              <div className="lg:col-span-5 p-5 sm:p-6 space-y-5 bg-[#141224] text-right overflow-y-auto">
+              <div className="lg:col-span-5 p-5 sm:p-6 space-y-5 bg-white text-right overflow-y-auto">
                 {/* Location & Period metadata */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-[#0b0a14] p-3 rounded-xl border border-indigo-950/60 space-y-1">
-                    <span className="text-[10px] text-slate-500 font-serif block">الحقبة التاريخية:</span>
-                    <span className="text-xs font-bold text-slate-200 block">{activeItem.period}</span>
+                  <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-200 space-y-1">
+                    <span className="text-[10px] text-slate-600 font-serif block">الحقبة التاريخية:</span>
+                    <span className="text-xs font-bold text-slate-800 block">{activeItem.period}</span>
                   </div>
-                  <div className="bg-[#0b0a14] p-3 rounded-xl border border-indigo-950/60 space-y-1">
-                    <span className="text-[10px] text-slate-500 font-serif block">الموقع الجغرافي:</span>
-                    <span className="text-xs font-bold text-amber-400 block truncate">{activeItem.location}</span>
+                  <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-200 space-y-1">
+                    <span className="text-[10px] text-slate-600 font-serif block">الموقع الجغرافي:</span>
+                    <span className="text-xs font-bold text-amber-800 block truncate">{activeItem.location}</span>
                   </div>
                 </div>
 
                 {/* Detailed Overview */}
                 <div className="space-y-1.5">
-                  <h4 className="font-serif font-bold text-sm text-slate-200">نبذة تاريخية شاملة:</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed font-sans bg-[#0b0a14] p-3.5 rounded-xl border border-indigo-950/50">
+                  <h4 className="font-serif font-bold text-sm text-slate-900">نبذة تاريخية شاملة:</h4>
+                  <p className="text-xs text-slate-700 leading-relaxed font-sans bg-amber-50/50 p-3.5 rounded-xl border border-amber-200">
                     {activeItem.description}
                   </p>
                 </div>
 
                 {/* Educational Curriculum Breakdown Points */}
                 <div className="space-y-3">
-                  <h4 className="font-serif font-bold text-sm text-amber-300 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400" />
+                  <h4 className="font-serif font-bold text-sm text-amber-800 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-600" />
                     <span>شواهد وحقائق من صميم المنهج:</span>
                   </h4>
 
@@ -1120,19 +1120,19 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                     {activeItem.historicalDetails.map((detail, idx) => (
                       <div
                         key={idx}
-                        className="bg-[#0b0a14] p-3 rounded-xl border border-indigo-950/60 space-y-1.5"
+                        className="bg-amber-50/40 p-3 rounded-xl border border-amber-200 space-y-1.5"
                       >
-                        <h5 className="font-serif font-bold text-xs text-slate-200 flex items-center gap-1.5">
-                          <span className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 text-[10px] flex items-center justify-center font-bold">
+                        <h5 className="font-serif font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                          <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 text-[10px] flex items-center justify-center font-bold">
                             {idx + 1}
                           </span>
                           <span>{detail.title}</span>
                         </h5>
-                        <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                        <p className="text-xs text-slate-700 font-sans leading-relaxed">
                           {detail.description}
                         </p>
-                        <div className="bg-amber-500/5 p-2 rounded-lg border border-amber-500/15 text-[11px] text-amber-200/90 font-sans">
-                          <span className="font-bold text-amber-400 ml-1 font-serif">المعلومة المقررة:</span>
+                        <div className="bg-amber-100/60 p-2 rounded-lg border border-amber-300 text-[11px] text-amber-900 font-sans">
+                          <span className="font-bold text-amber-800 ml-1 font-serif">المعلومة المقررة:</span>
                           {detail.curriculumFact}
                         </div>
                       </div>
@@ -1141,16 +1141,16 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 </div>
 
                 {/* Call-to-action: Go to Lesson Button */}
-                <div className="border-t border-indigo-950/60 pt-4">
+                <div className="border-t border-amber-100 pt-4">
                   <button
                     onClick={() => handleGoToLesson(activeItem.unitId, activeItem.lessonId)}
-                    className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white p-3 rounded-xl font-bold font-serif text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-amber-400/30"
+                    className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white p-3 rounded-xl font-bold font-serif text-sm transition shadow flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <BookOpen className="w-4 h-4" />
                     <span>الذهاب إلى الدرس في الكتاب المدرسي 📖</span>
                   </button>
                   {activeItem.lessonTitle && (
-                    <span className="text-[11px] text-slate-400 block text-center mt-2 font-serif">
+                    <span className="text-[11px] text-slate-600 block text-center mt-2 font-serif">
                       {activeItem.lessonTitle}
                     </span>
                   )}

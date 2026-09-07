@@ -16,7 +16,6 @@ import { AIChatBot } from "./components/AIChatBot";
 import { SmartScholarSearch } from "./components/SmartScholarSearch";
 import { WorksheetGenerator } from "./components/WorksheetGenerator";
 import { GalleryView } from "./components/GalleryView";
-import { ParentExitLockModal } from "./components/ParentExitLockModal";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { NavigationDock, ActiveTabType } from "./components/NavigationDock";
 import { TimelineView } from "./views/TimelineView";
@@ -85,21 +84,6 @@ export default function App() {
     }
   });
 
-  // Parent Verification and Control panel states
-  const [isParentUnlocked, setIsParentUnlocked] = useState<boolean>(false);
-  const [parentMathQuestion] = useState<{ q: string; a: number }>(() => {
-    const nums = [
-      { q: "6 × 8", a: 48 },
-      { q: "7 × 9", a: 63 },
-      { q: "8 × 8", a: 64 },
-      { q: "5 × 9", a: 45 },
-      { q: "9 × 6", a: 54 }
-    ];
-    return nums[Math.floor(Math.random() * nums.length)];
-  });
-  const [parentAnswerInput, setParentAnswerInput] = useState<string>("");
-  const [parentAnswerError, setParentAnswerError] = useState<string>("");
-
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -119,8 +103,9 @@ export default function App() {
 
   // Game & User Progression States
   const [useSound, setUseSound] = useState(true);
-  const [theme, setTheme] = useState<"dark" | "light" | "sepia">(() => {
-    return (localStorage.getItem("sub_historian_theme") as "dark" | "light" | "sepia") || "light";
+  const [theme, setTheme] = useState<"light" | "sepia">(() => {
+    const saved = localStorage.getItem("sub_historian_theme");
+    return saved === "sepia" ? "sepia" : "light";
   });
   const [userName, setUserName] = useState<string>(() => {
     return localStorage.getItem("sub_historian_name") || "";
@@ -237,20 +222,20 @@ export default function App() {
   const cycleTheme = () => {
     handlePlaySound("click");
     setTheme((prev) => {
-      const next: "dark" | "light" | "sepia" = prev === "dark" ? "light" : prev === "light" ? "sepia" : "dark";
+      const next: "light" | "sepia" = prev === "light" ? "sepia" : "light";
       localStorage.setItem("sub_historian_theme", next);
       return next;
     });
   };
 
   useEffect(() => {
-    document.documentElement.classList.remove("light-theme", "sepia-theme", "dark");
-    if (theme === "light") {
-      document.documentElement.classList.add("light-theme");
-    } else if (theme === "sepia") {
+    document.documentElement.classList.remove("dark");
+    if (theme === "sepia") {
+      document.documentElement.classList.remove("light-theme");
       document.documentElement.classList.add("sepia-theme");
     } else {
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("sepia-theme");
+      document.documentElement.classList.add("light-theme");
     }
   }, [theme]);
   
@@ -615,71 +600,14 @@ export default function App() {
   const [activeSpeedrunStatement, setActiveSpeedrunStatement] = useState<Question | null>(null);
   const [speedrunIntervalId, setSpeedrunIntervalId] = useState<any>(null);
 
-  // Parent Quiz Lock Exit Protection states
-  const [parentQuizPin, setParentQuizPin] = useState<string>(() => {
-    return localStorage.getItem("sub_historian_parent_pin") || "1234";
-  });
-  const [showParentExitModal, setShowParentExitModal] = useState<boolean>(false);
-  const [pendingExitAction, setPendingExitAction] = useState<(() => void) | null>(null);
-  const [parentSettingsNewPin, setParentSettingsNewPin] = useState<string>("");
-  const [parentSettingsPinSuccess, setParentSettingsPinSuccess] = useState<string>("");
   const [isWorksheetSolvingActive, setIsWorksheetSolvingActive] = useState<boolean>(false);
 
-  const handleUpdateParentPin = (newPin: string) => {
-    const clean = newPin.trim();
-    setParentQuizPin(clean);
-    localStorage.setItem("sub_historian_parent_pin", clean);
-    if (currentUser?.uid) {
-      const userDocRef = doc(db, "users", currentUser.uid);
-      setDoc(userDocRef, { parentQuizPin: clean }, { merge: true }).catch((e) => console.warn(e));
-    }
+  const requestExitQuiz = (action?: () => void) => {
+    handlePlaySound("click");
+    setIsWorksheetSolvingActive(false);
+    if (action) action();
+    else setQuizMode("none");
   };
-
-  const requestExitQuiz = (action?: () => void, isForcedCheck?: boolean, customTitle?: string) => {
-    const isQuizActive = quizMode !== "none" && quizIdx < quizQuestions.length;
-    const isWorksheetActive = isWorksheetSolvingActive;
-
-    // If neither quiz nor worksheet is active and forced check is not set, execute directly
-    if (!isForcedCheck && !isQuizActive && !isWorksheetActive) {
-      if (action) action();
-      else setQuizMode("none");
-      return;
-    }
-
-    // Play auditory warning cue when student attempts to exit
-    handlePlaySound("fail");
-
-    if (customTitle) {
-      setQuizTitle(customTitle);
-    } else if (isWorksheetActive) {
-      setQuizTitle("ورقة العمل والتقييم المدرسي");
-    }
-
-    // Intercept with parent exit lock
-    setPendingExitAction(() => () => {
-      setIsWorksheetSolvingActive(false);
-      if (action) action();
-      else setQuizMode("none");
-    });
-    setShowParentExitModal(true);
-  };
-
-  // Prevent accidental page close during active quiz or active worksheet
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      const isQuizActive = quizMode !== "none" && quizIdx < quizQuestions.length;
-      const isWorksheetActive = isWorksheetSolvingActive;
-      if (isQuizActive || isWorksheetActive) {
-        e.preventDefault();
-        e.returnValue = "الاختبار أو ورقة العمل قيد الحل! لا يمكن مغادرة الصفحة دون إذن ولي الأمر.";
-        return e.returnValue;
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [quizMode, quizIdx, quizQuestions.length, isWorksheetSolvingActive]);
 
   // Drag & Match Mini-Game States
   const [matchLeft, setMatchLeft] = useState<{ id: string, text: string }[]>([]);
@@ -1189,9 +1117,9 @@ export default function App() {
   // Loading check
   if (loadingAuth) {
     return (
-      <div className={`min-h-screen bg-[#09080f] flex flex-col items-center justify-center font-serif text-slate-100 gap-3 ${theme === "light" ? "light-theme" : ""}`}>
-        <Sparkles className="w-10 h-10 text-amber-500 animate-spin" />
-        <p className="text-sm font-sans text-slate-400">جاري تحميل سجل البطل...</p>
+      <div className={`min-h-screen bg-[#faf8f5] flex flex-col items-center justify-center font-serif text-slate-800 gap-3 ${theme === "sepia" ? "sepia-theme" : "light-theme"}`}>
+        <Sparkles className="w-10 h-10 text-amber-600 animate-spin" />
+        <p className="text-sm font-sans text-slate-600">جاري تحميل سجل البطل...</p>
       </div>
     );
   }
@@ -1199,52 +1127,53 @@ export default function App() {
   // Logged-out Welcome Parchment Style Form
   if (!userName) {
     return (
-      <div className={`min-h-screen bg-[#09080f] flex items-center justify-center p-4 relative overflow-hidden font-serif ${theme === "light" ? "light-theme" : ""}`}>
+      <div className={`min-h-screen bg-[#faf8f5] flex items-center justify-center p-4 relative overflow-hidden font-serif ${theme === "sepia" ? "sepia-theme" : "light-theme"}`}>
         {/* Floating Theme Switcher on onboarding */}
         <div className="absolute top-4 right-4 z-50">
           <button
-            onClick={() => {
-              playSound("click");
-              setTheme(theme === "dark" ? "light" : "dark");
-            }}
-            title={theme === "dark" ? "التحويل للوضع النهاري" : "التحويل للوضع الليلي"}
-            className="p-2.5 rounded-xl border border-indigo-950 bg-[#18152c] text-amber-400 hover:scale-110 active:scale-95 transition cursor-pointer shadow-md"
+            onClick={cycleTheme}
+            title={theme === "sepia" ? "التحويل للوضع المشرق" : "التحويل لوضع القراءة السيبيا"}
+            className="p-2.5 rounded-xl border border-amber-300 bg-white text-amber-700 hover:scale-110 active:scale-95 transition cursor-pointer shadow-md"
           >
-            {theme === "dark" ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+            {theme === "sepia" ? <BookOpen className="w-5 h-5 text-amber-800" /> : <Sun className="w-5 h-5 text-amber-600" />}
           </button>
         </div>
 
         {/* Animated Background Ornaments */}
-        <div className="absolute top-10 left-10 w-48 h-48 bg-indigo-900/30 rounded-full filter blur-3xl opacity-50 animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-64 h-64 bg-amber-900/10 rounded-full filter blur-2xl opacity-40 animate-pulse"></div>
+        <div className="absolute top-10 left-10 w-48 h-48 bg-amber-100/50 rounded-full filter blur-3xl opacity-50 animate-pulse"></div>
+        <div className="absolute bottom-10 right-10 w-64 h-64 bg-orange-100/40 rounded-full filter blur-2xl opacity-40 animate-pulse"></div>
 
-        <div className="bg-[#121020] border border-slate-800/50 max-w-xl w-full rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] p-8 md:p-12 relative text-right">
+        <div className="bg-white border border-amber-200 max-w-xl w-full rounded-3xl shadow-xl p-8 md:p-12 relative text-right">
           {/* Internal Vintage Border */}
-          <div className="absolute inset-3 border border-slate-800/30 rounded-2xl pointer-events-none"></div>
+          <div className="absolute inset-3 border border-amber-200/50 rounded-2xl pointer-events-none"></div>
 
           <div className="text-center space-y-6 relative">
-            {/* Header Stamp */}
-            <div className="mx-auto w-16 h-16 bg-[#1b192e] text-amber-400 rounded-full flex items-center justify-center shadow-lg border border-slate-700/50">
-              <Compass className="w-9 h-9 animate-[spin_120s_linear_infinite]" />
+            {/* Header Stamp / Brand Logo */}
+            <div className="mx-auto flex justify-center pb-1">
+              <img
+                src="/logo.png"
+                alt="منصة نقلة لتاريخ المناهج التفاعلية"
+                className="h-20 md:h-24 w-auto object-contain drop-shadow-sm"
+              />
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-amber-400 font-serif leading-tight">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-amber-800 font-serif leading-tight">
                 المُؤرِّخ الصَّغير التفاعلي
               </h1>
-              <p className="text-slate-300 text-sm md:text-base font-sans">
+              <p className="text-slate-600 text-sm md:text-base font-sans">
                 باصِرة رقمية ذكية لكتاب التاريخ المعتمد للصف السادس الابتدائي
               </p>
             </div>
 
             {/* Google Sign-In Wall Option */}
-            <div className="bg-[#18152c]/90 border border-indigo-950 rounded-2xl p-6 text-center space-y-4">
-              <div className="flex items-center justify-center gap-2 text-amber-400">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-6 text-center space-y-4">
+              <div className="flex items-center justify-center gap-2 text-amber-800">
+                <Sparkles className="w-5 h-5 text-amber-600" />
                 <span className="font-bold text-sm font-sans">التسجيل السحابي والذكاء الاصطناعي</span>
               </div>
-              <p className="text-xs text-slate-300 font-sans leading-relaxed">
-                سجل دخولك باستخدام Google لحفظ نقاط وتقدم دراستك في السحاب ولتفعيل حوار المعلم التاريخي الذكي فورا!
+              <p className="text-xs text-slate-600 font-sans leading-relaxed">
+                سجل دخولك باستخدام Google لحفظ نقاط وتقدم دراستك في السحاب ولتفعيل حوار المعلم التاريخي الذكي فوراً!
               </p>
               <button
                 type="button"
@@ -1256,7 +1185,7 @@ export default function App() {
                     console.error("Popup Sign in fail", e);
                   }
                 }}
-                className="mx-auto w-fit bg-white hover:bg-slate-100 text-slate-900 font-sans font-bold text-xs py-3 px-6 rounded-xl flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer shadow-md"
+                className="mx-auto w-fit bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-sans font-bold text-xs py-3 px-6 rounded-xl flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer shadow-sm"
               >
                 {/* Google Logo SVG */}
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -1270,14 +1199,14 @@ export default function App() {
             </div>
 
             <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-slate-800/40"></div>
+              <div className="flex-grow border-t border-slate-200"></div>
               <span className="flex-shrink mx-4 text-xs text-slate-500 font-sans">أو الاستمرار كضيف دون مزايا الذكاء الاصطناعي</span>
-              <div className="flex-grow border-t border-slate-800/40"></div>
+              <div className="flex-grow border-t border-slate-200"></div>
             </div>
 
             <form onSubmit={handleStartGame} className="space-y-6">
               <div className="space-y-2 text-right">
-                <label className="block text-sm font-bold text-slate-200 pr-1">
+                <label className="block text-sm font-bold text-slate-700 pr-1">
                   مرحباً بك يا بطل! ما هو اسمك الكريم؟
                 </label>
                 <input
@@ -1286,13 +1215,13 @@ export default function App() {
                   value={inputName}
                   onChange={(e) => setInputName(e.target.value)}
                   placeholder="أدخل اسمك الكريم هنا لتبدأ المغامرة..."
-                  className="w-full bg-[#18162b] hover:bg-[#1a1833] border-2 border-indigo-950 rounded-xl px-4 py-3.5 text-center text-slate-100 text-base placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:bg-[#1a1833] transition font-sans"
+                  className="w-full bg-amber-50/50 hover:bg-amber-50 border-2 border-amber-200 rounded-xl px-4 py-3.5 text-center text-slate-900 text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition font-sans"
                 />
               </div>
 
               {/* Avatar Selector */}
               <div className="space-y-3">
-                <span className="block text-sm font-bold text-slate-200 text-right pr-1">
+                <span className="block text-sm font-bold text-slate-700 text-right pr-1">
                   اختر رمز شخصية بطل التاريخ الخاص بك:
                 </span>
                 <div className="grid grid-cols-4 gap-3">
@@ -1309,10 +1238,10 @@ export default function App() {
                         handlePlaySound("click");
                         setSelectedAvatarDraft(av.id);
                       }}
-                      className={`p-3.5 rounded-xl border-2 flex flex-col items-center gap-1.5 transition ${
+                      className={`p-3.5 rounded-xl border-2 flex flex-col items-center gap-1.5 transition cursor-pointer ${
                         selectedAvatarDraft === av.id
-                          ? "bg-amber-800/80 text-white border-amber-500/60 shadow-[0_0_15px_rgba(245,158,11,0.25)] scale-105"
-                          : "bg-[#18152c]/50 border-indigo-950 hover:bg-[#1f1b3d] text-slate-300"
+                          ? "bg-amber-600 text-white border-amber-600 shadow-md scale-105"
+                          : "bg-amber-50/70 border-amber-200 hover:bg-amber-100 text-slate-700"
                       }`}
                     >
                       <span className="text-3xl">{av.emoji}</span>
@@ -1324,13 +1253,13 @@ export default function App() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-serif font-bold text-lg py-4 rounded-xl shadow-lg border border-transparent hover:scale-[1.01] active:scale-[0.99] transition duration-200 cursor-pointer"
+                className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-serif font-bold text-lg py-4 rounded-xl shadow-md transition duration-200 cursor-pointer"
               >
                 انطلاق في رحلة التاريخ الممتعة 🚀
               </button>
             </form>
 
-            <p className="text-[11px] text-slate-400 font-sans pt-2 leading-relaxed">
+            <p className="text-[11px] text-slate-500 font-sans pt-2 leading-relaxed">
               استكشف بوابات التاريخ الإسلامي وعصر السودان الذهبي، أحدث التغييرات بالألغاز والألعاب مع نقاط المعرفة!
             </p>
           </div>
@@ -1342,23 +1271,31 @@ export default function App() {
   const selectedUnit = selectedUnitId ? UNITS.find(u => u.id === selectedUnitId) : null;
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#09080f] text-slate-900 dark:text-slate-100 font-sans flex flex-col pb-mobile-nav transition-colors duration-200 ${theme === "light" ? "light-theme" : theme === "sepia" ? "sepia-theme" : ""}`}>
+    <div className={`min-h-screen bg-[#faf8f5] text-slate-900 font-sans flex flex-col pb-mobile-nav transition-colors duration-200 ${theme === "sepia" ? "sepia-theme" : "light-theme"}`}>
       {/* Visual top bar */}
-      <div className="h-1 bg-gradient-to-r from-amber-500 via-indigo-600 to-amber-700 shrink-0"></div>
+      <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 shrink-0"></div>
 
       {/* Main Top Header Navigation */}
-      <header className="bg-white/95 dark:bg-[#121020]/95 backdrop-blur-md border-b border-slate-200 dark:border-indigo-950/60 px-4 md:px-8 py-3.5 sticky top-0 z-40 shadow-sm shrink-0 transition-colors duration-200">
+      <header className="bg-white/95 backdrop-blur-md border-b border-amber-200/80 px-4 md:px-8 py-3.5 sticky top-0 z-40 shadow-xs shrink-0 transition-colors duration-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-[#1c152a] border border-amber-500/30 dark:border-indigo-900/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-inner group cursor-pointer">
-              <Compass className="w-7 h-7 group-hover:rotate-45 transition-transform duration-500" />
-            </div>
-            <div className="text-right">
-              <h1 className="text-xl md:text-2xl font-black font-serif text-amber-600 dark:text-amber-400 flex items-center gap-2">
+            <img
+              src="/logo.png"
+              alt="شعار منصة نقلة - تاريخ المناهج التفاعلية"
+              className="h-12 md:h-14 w-auto object-contain cursor-pointer transition hover:scale-105 drop-shadow-xs"
+              onClick={() => {
+                handlePlaySound("click");
+                setCurrentTab("dashboard");
+                setSelectedUnitId(null);
+                setQuizMode("none");
+              }}
+            />
+            <div className="text-right hidden sm:block">
+              <h1 className="text-lg md:text-xl font-black font-serif text-amber-900 flex items-center gap-2">
                 <span>المُؤَرِّخُ الصَّغِيرُ</span>
-                <span className="text-[10px] bg-amber-500/15 text-amber-800 dark:text-amber-300 font-sans px-2 py-0.5 rounded-full border border-amber-500/30 dark:border-amber-800/40 font-bold">الصف السادس</span>
+                <span className="text-[10px] bg-amber-100 text-amber-900 font-sans px-2 py-0.5 rounded-full border border-amber-300 font-bold">الصف السادس</span>
               </h1>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">سافر في التاريخ وعش غمار المغامرة الذكية</p>
+              <p className="text-[10px] text-slate-600 font-medium">منصة تاريخ المناهج التفاعلية • بخت الرضا</p>
             </div>
           </div>
 
@@ -1367,33 +1304,27 @@ export default function App() {
             {/* PWA Install Button */}
             <PWAInstallPrompt onPlaySound={handlePlaySound} />
 
-            {/* Theme Toggle (Dark / Light / Sepia Eye-Comfort) */}
+            {/* Theme Toggle (Light / Sepia Eye-Comfort) */}
             <button
               onClick={cycleTheme}
               title={
-                theme === "dark" 
-                  ? "التحويل للوضع النهاري المريح" 
-                  : theme === "light" 
+                theme === "light" 
                   ? "التحويل لوضع القراءة السيبيا المريح للعين" 
-                  : "التحويل للوضع الليلي"
+                  : "التحويل للوضع المشرق"
               }
-              className={`px-3 py-2 rounded-xl border transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5 ${
+              className={`px-3 py-2 rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5 ${
                 theme === "light"
                   ? "bg-amber-100/90 border-amber-300 text-amber-900 hover:bg-amber-200"
-                  : theme === "sepia"
-                  ? "bg-[#ebdcb4] border-[#d8c395] text-[#4a3520] hover:bg-[#e4d3a6]"
-                  : "bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700"
+                  : "bg-[#ebdcb4] border-[#d8c395] text-[#4a3520] hover:bg-[#e4d3a6]"
               }`}
             >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 text-amber-400 shrink-0" />
-              ) : theme === "light" ? (
+              {theme === "light" ? (
                 <Sun className="w-4 h-4 text-amber-700 shrink-0" />
               ) : (
                 <BookOpen className="w-4 h-4 text-amber-800 shrink-0" />
               )}
               <span className="text-xs hidden sm:inline font-bold">
-                {theme === "dark" ? "الوضع الليلي" : theme === "light" ? "الوضع النهاري" : "ورق سيبيا"}
+                {theme === "light" ? "الوضع المشرق" : "ورق سيبيا"}
               </span>
             </button>
 
@@ -1401,13 +1332,13 @@ export default function App() {
             <button
               onClick={() => setUseSound(!useSound)}
               title={useSound ? "كتم المؤثرات الصوتية" : "تفعيل المؤثرات الصوتية"}
-              className={`p-2 rounded-xl border transition cursor-pointer flex items-center justify-center shadow-sm ${
+              className={`p-2 rounded-xl border transition cursor-pointer flex items-center justify-center shadow-xs ${
                 useSound 
-                  ? "bg-amber-100 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-200" 
-                  : "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200"
+                  ? "bg-amber-100 border-amber-300 text-amber-800 hover:bg-amber-200" 
+                  : "bg-slate-100 border-slate-300 text-slate-500 hover:bg-slate-200"
               }`}
             >
-              {useSound ? <Volume2 className="w-5 h-5 text-amber-600 dark:text-amber-400" /> : <VolumeX className="w-5 h-5 text-slate-500 dark:text-slate-400" />}
+              {useSound ? <Volume2 className="w-5 h-5 text-amber-700" /> : <VolumeX className="w-5 h-5 text-slate-500" />}
             </button>
 
             {/* Network Status Badge Button */}
@@ -1421,10 +1352,10 @@ export default function App() {
                   ? "متصل بالإنترنت وحفظ سحابي نشط (انقر لتجربة وضع عدم الاتصال)" 
                   : "وضع العمل المحلي دون اتصال بالإنترنت (انقر لإعادة الاتصال)"
               }
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-bold transition cursor-pointer select-none shadow-sm ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-bold transition cursor-pointer select-none shadow-xs ${
                 isOnline && !offlineModeSimulated 
-                  ? "bg-emerald-100/90 border-emerald-400 text-emerald-800 dark:bg-emerald-950/50 dark:border-emerald-700 dark:text-emerald-300" 
-                  : "bg-rose-100/90 border-rose-400 text-rose-800 dark:bg-rose-950/50 dark:border-rose-700 dark:text-rose-300"
+                  ? "bg-emerald-100 border-emerald-300 text-emerald-800" 
+                  : "bg-rose-100 border-rose-300 text-rose-800"
               }`}
             >
               <span className={`w-2.5 h-2.5 rounded-full ${isOnline && !offlineModeSimulated ? "bg-emerald-600 animate-pulse" : "bg-rose-600"}`} />
@@ -1439,37 +1370,37 @@ export default function App() {
                 handlePlaySound("click");
                 setCurrentTab("badges");
               }}
-              className="bg-amber-50 hover:bg-amber-100/80 dark:bg-slate-800 dark:hover:bg-slate-700 border border-amber-300 dark:border-slate-700 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition text-amber-800 dark:text-yellow-300 cursor-pointer shadow-sm"
+              className="bg-amber-50 hover:bg-amber-100/80 border border-amber-300 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition text-amber-900 cursor-pointer shadow-xs"
             >
-              <Trophy className="w-5 h-5 text-amber-500 dark:text-yellow-400 shrink-0" />
+              <Trophy className="w-5 h-5 text-amber-600 shrink-0" />
               <div className="text-right">
-                <div className="text-[10px] font-bold text-amber-700 dark:text-yellow-500 leading-none">الأوسمة</div>
-                <div className="text-xs font-bold font-serif text-slate-800 dark:text-slate-100">{unlockedBadges.length} / {BADGES_LIST.length}</div>
+                <div className="text-[10px] font-bold text-amber-700 leading-none">الأوسمة</div>
+                <div className="text-xs font-bold font-serif text-slate-800">{unlockedBadges.length} / {BADGES_LIST.length}</div>
               </div>
             </button>
 
             {/* Knowledge points total badge */}
-            <div className="bg-amber-100/70 dark:bg-slate-800 border border-amber-300/80 dark:border-slate-700 rounded-xl px-3.5 py-1.5 flex items-center gap-2 shadow-sm">
-              <Star className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 fill-amber-500" />
+            <div className="bg-amber-100/70 border border-amber-300/80 rounded-xl px-3.5 py-1.5 flex items-center gap-2 shadow-xs">
+              <Star className="w-5 h-5 text-amber-600 shrink-0 fill-amber-500" />
               <div className="text-right">
-                <div className="text-[10px] text-amber-800 dark:text-amber-400 font-bold leading-none">نقاط المعرفة</div>
-                <div className="text-sm font-bold font-serif text-slate-900 dark:text-slate-50">{score}</div>
+                <div className="text-[10px] text-amber-800 font-bold leading-none">نقاط المعرفة</div>
+                <div className="text-sm font-bold font-serif text-slate-900">{score}</div>
               </div>
             </div>
 
             {/* Avatar display with Google status & log-out */}
-            <div className="flex items-center gap-2 border-r pr-3 border-indigo-950/60 mr-1">
+            <div className="flex items-center gap-2 border-r pr-3 border-amber-200 mr-1">
               {renderAvatar(userAvatar, "w-10 h-10")}
               <div className="text-right hidden sm:block">
-                <div className="text-[11px] font-bold text-slate-200 flex items-center gap-1 justify-end">
+                <div className="text-[11px] font-bold text-slate-800 flex items-center gap-1 justify-end">
                   {currentUser && (
-                    <span className="bg-amber-400/15 text-amber-300 text-[9px] px-1.5 py-0.5 rounded font-sans scale-90 order-last">
+                    <span className="bg-amber-100 text-amber-900 text-[9px] px-1.5 py-0.5 rounded font-sans scale-90 order-last border border-amber-300">
                       جوجل
                     </span>
                   )}
                   <span>{userName}</span>
                 </div>
-                <div className="text-[10px] text-slate-400 flex items-center justify-end gap-2">
+                <div className="text-[10px] text-slate-500 flex items-center justify-end gap-2">
                   {currentUser && (
                     <button
                       onClick={async () => {
@@ -1478,7 +1409,7 @@ export default function App() {
                         setUserName("");
                         localStorage.removeItem("sub_historian_name");
                       }}
-                      className="text-red-400 hover:text-red-300 underline font-bold cursor-pointer transition text-[9px]"
+                      className="text-red-600 hover:text-red-700 underline font-bold cursor-pointer transition text-[9px]"
                     >
                       خروج
                     </button>
@@ -1492,7 +1423,7 @@ export default function App() {
       </header>
 
       {/* Real-time Global Navigation Tabs (Hidden on mobile devices, use bottom dock instead) */}
-      <div className="hidden md:block bg-white/95 dark:bg-[#121020]/95 border-b border-slate-200 dark:border-indigo-950/60 sticky top-[73px] z-30 backdrop-blur-md px-4 shrink-0 transition select-none shadow-sm">
+      <div className="hidden md:block bg-white/95 border-b border-amber-200/80 sticky top-[73px] z-30 backdrop-blur-md px-4 shrink-0 transition select-none shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between overflow-x-auto no-scrollbar py-2.5 gap-4">
           <div className="flex items-center gap-1.5 md:gap-2.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 scrollbar-none">
             <button
@@ -1507,11 +1438,11 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 (currentTab === "dashboard" || currentTab === "unit") && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <BookOpen className={`w-4 h-4 shrink-0 ${(currentTab === "dashboard" || currentTab === "unit") && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
+              <BookOpen className={`w-4 h-4 shrink-0 ${(currentTab === "dashboard" || currentTab === "unit") && quizMode === "none" ? "text-white" : "text-amber-600"}`} />
               <span>المنهج والوحدات</span>
             </button>
 
@@ -1526,11 +1457,11 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "quiz_hub" && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <Gamepad2 className={`w-4 h-4 shrink-0 ${currentTab === "quiz_hub" && quizMode === "none" ? "text-white" : "text-orange-600 dark:text-orange-400"}`} />
+              <Gamepad2 className={`w-4 h-4 shrink-0 ${currentTab === "quiz_hub" && quizMode === "none" ? "text-white" : "text-orange-600"}`} />
               <span>منصة الاختبارات</span>
             </button>
 
@@ -1545,11 +1476,11 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "worksheets" && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <FileText className={`w-4 h-4 shrink-0 ${currentTab === "worksheets" && quizMode === "none" ? "text-white" : "text-blue-600 dark:text-blue-400"}`} />
+              <FileText className={`w-4 h-4 shrink-0 ${currentTab === "worksheets" && quizMode === "none" ? "text-white" : "text-blue-600"}`} />
               <span>أوراق العمل والطباعة</span>
             </button>
 
@@ -1564,11 +1495,11 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "gallery" && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <Image className={`w-4 h-4 shrink-0 ${currentTab === "gallery" && quizMode === "none" ? "text-white" : "text-emerald-600 dark:text-emerald-400"}`} />
+              <Image className={`w-4 h-4 shrink-0 ${currentTab === "gallery" && quizMode === "none" ? "text-white" : "text-emerald-600"}`} />
               <span>معرض الصور والخرائط</span>
             </button>
 
@@ -1583,11 +1514,11 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "map" && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <Compass className={`w-4 h-4 shrink-0 ${currentTab === "map" && quizMode === "none" ? "text-white" : "text-teal-600 dark:text-teal-400"}`} />
+              <Compass className={`w-4 h-4 shrink-0 ${currentTab === "map" && quizMode === "none" ? "text-white" : "text-teal-600"}`} />
               <span>خريطة المعرفة</span>
             </button>
 
@@ -1602,11 +1533,11 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "timeline" && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <Clock className={`w-4 h-4 shrink-0 ${currentTab === "timeline" && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
+              <Clock className={`w-4 h-4 shrink-0 ${currentTab === "timeline" && quizMode === "none" ? "text-white" : "text-amber-600"}`} />
               <span>الخط الزمني</span>
             </button>
 
@@ -1621,11 +1552,11 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "chat" && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <Bot className={`w-4 h-4 shrink-0 ${currentTab === "chat" && quizMode === "none" ? "text-white" : "text-purple-600 dark:text-purple-400"}`} />
+              <Bot className={`w-4 h-4 shrink-0 ${currentTab === "chat" && quizMode === "none" ? "text-white" : "text-purple-600"}`} />
               <span>المعلم الذكي</span>
             </button>
 
@@ -1640,17 +1571,17 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "badges" && quizMode === "none"
-                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
-                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
+                  ? "bg-amber-600 text-white shadow-xs border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200"
               }`}
             >
-              <Trophy className={`w-4 h-4 shrink-0 ${currentTab === "badges" && quizMode === "none" ? "text-white" : "text-yellow-600 dark:text-yellow-400"}`} />
+              <Trophy className={`w-4 h-4 shrink-0 ${currentTab === "badges" && quizMode === "none" ? "text-white" : "text-yellow-600"}`} />
               <span>لوحة الأوسمة</span>
             </button>
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
-            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold bg-amber-50 dark:bg-slate-800 py-1.5 px-3 rounded-xl border border-amber-200 dark:border-slate-700 shadow-sm flex items-center gap-1.5">
+            <span className="text-[11px] text-amber-900 font-bold bg-amber-50 py-1.5 px-3 rounded-xl border border-amber-300 shadow-xs flex items-center gap-1.5">
               <span>رصيد الأسئلة: {QUESTIONS.length} سؤال وبطاقة 📚</span>
             </span>
           </div>
@@ -1666,8 +1597,8 @@ export default function App() {
 
             {/* FAVORITE LESSONS QUICK ACCESS */}
             {favoriteLessons.length > 0 && (
-              <div className="bg-[#15122b]/40 rounded-2xl border border-indigo-950/60 p-5 space-y-3">
-                <h4 className="text-sm font-sans font-extrabold text-amber-400 flex items-center gap-1.5 border-b border-indigo-950/30 pb-2">
+              <div className="bg-white rounded-2xl border border-amber-200/90 shadow-sm p-5 space-y-3">
+                <h4 className="text-sm font-sans font-extrabold text-amber-800 flex items-center gap-1.5 border-b border-amber-200/60 pb-2">
                   <Heart className="w-4 h-4 text-red-500 fill-red-500 shrink-0" />
                   <span>فهرس الدروس والوحدات المفضلة لديك ({favoriteLessons.length}) ⭐</span>
                 </h4>
@@ -1688,9 +1619,9 @@ export default function App() {
                               setCurrentTab("unit");
                             }
                           }}
-                          className="bg-[#18152c] hover:bg-[#201c3e] border border-indigo-950 px-3 py-2 rounded-xl text-xs text-slate-200 transition flex items-center gap-1.5 cursor-pointer max-w-xs truncate"
+                          className="bg-amber-50/70 hover:bg-amber-100 border border-amber-300/80 px-3 py-2 rounded-xl text-xs text-slate-800 transition flex items-center gap-1.5 cursor-pointer max-w-xs truncate shadow-xs"
                         >
-                          <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded leading-none">
+                          <span className="text-[10px] bg-amber-500/15 text-amber-800 px-1.5 py-0.5 rounded leading-none font-bold">
                             الوحدة {unit?.id || "6"}
                           </span>
                           <span className="font-serif font-semibold truncate text-[11px]">{l.title}</span>
@@ -1703,12 +1634,12 @@ export default function App() {
 
             {/* Lessons Curriculum Units Section */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-indigo-950/60 pb-2">
-                <h3 className="text-xl md:text-2xl font-serif font-bold text-slate-100 flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-amber-400" />
+              <div className="flex items-center justify-between border-b border-amber-200/80 pb-2">
+                <h3 className="text-xl md:text-2xl font-serif font-bold text-slate-900 flex items-center gap-2">
+                  <BookOpen className="w-6 h-6 text-amber-600" />
                   منهج التاريخ التفاعلي (5 وحدات كاملة)
                 </h3>
-                <span className="text-xs text-slate-400 font-medium font-sans">اختر وحدة لتقرأ دروسها وتخوض اختباراتها وتجني الأوسمة</span>
+                <span className="text-xs text-slate-600 font-medium font-sans">اختر وحدة لتقرأ دروسها وتخوض اختباراتها وتجني الأوسمة</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1719,7 +1650,7 @@ export default function App() {
                     <div
                       key={unit.id}
                       onClick={() => handleUnitSelect(unit)}
-                      className="group bg-[#121020] rounded-2xl border border-indigo-950/80 shadow-[0_4px_15px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_30px_rgba(245,158,11,0.12)] hover:scale-[1.01] hover:border-amber-500/40 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full relative"
+                      className="group bg-white rounded-2xl border border-amber-200/90 shadow-sm hover:shadow-md hover:scale-[1.01] hover:border-amber-400 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full relative"
                     >
                       {/* Accent color bar */}
                       <div className={`h-1.5 w-full bg-${unit.themeColor}-600/70`}></div>
@@ -1728,16 +1659,16 @@ export default function App() {
                         <div className="space-y-3">
                           {/* Unit Title & Icon */}
                           <div className="flex items-center justify-between">
-                            <div className="p-3 rounded-xl bg-[#17142d] text-amber-400 border border-slate-800/60 group-hover:scale-105 transition">
+                            <div className="p-3 rounded-xl bg-amber-50 text-amber-800 border border-amber-300/80 group-hover:scale-105 transition shadow-xs">
                               {renderUnitIcon(unit.icon)}
                             </div>
                             {unitBadgeUnlocked ? (
-                              <span className="bg-emerald-950/60 text-emerald-400 border border-emerald-900/40 text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 shadow-sm font-sans">
-                                <Award className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
+                              <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 shadow-xs font-sans">
+                                <Award className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
                                 <span>تم فتح الوسام</span>
                               </span>
                             ) : (
-                              <span className="bg-slate-900/60 text-slate-400 border border-slate-800/40 text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 font-sans">
+                              <span className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 font-sans">
                                 <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
                                 <span>الوسام مغلق</span>
                               </span>
@@ -1745,26 +1676,26 @@ export default function App() {
                           </div>
 
                           <div className="space-y-1 text-right">
-                            <span className="text-[11px] text-amber-500/80 font-bold uppercase tracking-wider font-sans">الوحدة {unit.id}</span>
-                            <h4 className="text-xl font-bold font-serif text-slate-100 leading-snug group-hover:text-amber-400 transition">
+                            <span className="text-[11px] text-amber-800 font-bold uppercase tracking-wider font-sans">الوحدة {unit.id}</span>
+                            <h4 className="text-xl font-bold font-serif text-slate-900 leading-snug group-hover:text-amber-800 transition">
                               {unit.title}
                             </h4>
-                            <p className="text-xs text-slate-400 leading-none">
+                            <p className="text-xs text-slate-600 leading-none">
                               {unit.subtitle}
                             </p>
                           </div>
 
-                          <p className="text-xs text-slate-300 font-serif leading-relaxed line-clamp-2">
+                          <p className="text-xs text-slate-700 font-serif leading-relaxed line-clamp-2">
                             {unit.description}
                           </p>
                         </div>
 
                         {/* Extra indicators */}
-                        <div className="pt-3 border-t border-indigo-950/40 flex items-center justify-between text-xs font-medium text-slate-300">
-                          <span className="font-sans text-slate-400">الدروس: {unit.lessons.length}</span>
-                          <span className="font-sans flex items-center gap-1 text-slate-200 font-bold group-hover:translate-x-[-4px] transition duration-200">
+                        <div className="pt-3 border-t border-amber-100 flex items-center justify-between text-xs font-medium text-slate-600">
+                          <span className="font-sans text-slate-500">الدروس: {unit.lessons.length}</span>
+                          <span className="font-sans flex items-center gap-1 text-slate-800 font-bold group-hover:translate-x-[-4px] transition duration-200">
                             <span>تصحف تفاعلياً</span>
-                            <ArrowRight className="w-3.5 h-3.5 transform rotate-180" />
+                            <ArrowRight className="w-3.5 h-3.5 transform rotate-180 text-amber-700" />
                           </span>
                         </div>
                       </div>
@@ -1777,13 +1708,13 @@ export default function App() {
             {/* Quick Play options / Mini games */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Box 1: Interactive Map preview card */}
-              <div className="bg-[#14122d]/60 border border-indigo-950/80 rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center justify-between">
+              <div className="bg-white border border-amber-200/90 shadow-sm rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center justify-between">
                 <div className="space-y-2 text-right">
-                  <h4 className="text-lg font-bold font-serif text-amber-400 flex items-center gap-1.5 justify-end">
+                  <h4 className="text-lg font-bold font-serif text-amber-800 flex items-center gap-1.5 justify-end">
                     <span>البوصلة التفاعلية: خريطة الممالك والمدن</span>
-                    <Compass className="w-5 h-5 text-amber-400" />
+                    <Compass className="w-5 h-5 text-amber-600" />
                   </h4>
-                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                  <p className="text-xs text-slate-700 leading-relaxed font-sans">
                     هل ترغب في السفر عبر الزمان إلى سنار عاصمة الفونج، أو بغداد الدائرية، أو تيمبكتو عاصمة العلم، أو صقلية الأغالبة؟ انقر وحل اختبارات المدن لتجني نقاطاً إضافية!
                   </p>
                   <button
@@ -1796,19 +1727,19 @@ export default function App() {
                     <span>افتح البوصلة التاريخية والخرائط</span>
                   </button>
                 </div>
-                <div className="w-24 h-24 stroke-amber-500 text-amber-400 shrink-0">
-                  <Compass className="w-full h-full opacity-40 animate-[spin_180s_linear_infinite]" />
+                <div className="w-24 h-24 stroke-amber-500 text-amber-500 shrink-0">
+                  <Compass className="w-full h-full opacity-30 animate-[spin_180s_linear_infinite]" />
                 </div>
               </div>
 
               {/* Box 2: Smart Chatbot helper */}
-              <div className="bg-[#1a1226]/60 border border-indigo-950/80 rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center justify-between">
+              <div className="bg-white border border-amber-200/90 shadow-sm rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center justify-between">
                 <div className="space-y-2 text-right">
-                  <h4 className="text-lg font-bold font-serif text-amber-400 flex items-center gap-1.5 justify-end">
+                  <h4 className="text-lg font-bold font-serif text-amber-800 flex items-center gap-1.5 justify-end">
                     <span>احصل على إجابات ذكية فورية!</span>
-                    <Bot className="w-5 h-5 text-amber-400" strokeWidth="2.5" />
+                    <Bot className="w-5 h-5 text-amber-600" strokeWidth="2.5" />
                   </h4>
-                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                  <p className="text-xs text-slate-700 leading-relaxed font-sans">
                     سواء كنت مندهشاً من حرق إسماعيل باشا في شندي، أو متشوّقاً لقصة بناء بغداد الدائرية، أو تريد معرفة فتون الفاطميين وقنوات النهضة، فإن المعلم الذكي هنا للإجابة عليك فوراً وتوضيح المنهج بشكل بسيط!
                   </p>
                   <button
@@ -1821,290 +1752,10 @@ export default function App() {
                     <span>دردش مع أستاذ التاريخ الذكي</span>
                   </button>
                 </div>
-                <div className="w-24 h-24 stroke-amber-500 text-amber-400 shrink-0 flex items-center justify-center">
-                  <Bot className="w-20 h-20 opacity-40 text-amber-400 animate-pulse" />
+                <div className="w-24 h-24 stroke-amber-500 text-amber-600 shrink-0 flex items-center justify-center">
+                  <Bot className="w-20 h-20 opacity-30 text-amber-600 animate-pulse" />
                 </div>
               </div>
-            </div>
-
-            {/* PARENTS INSPECTION CORNER */}
-            <div className="bg-[#121020] rounded-3xl border border-indigo-950/80 shadow-[0_4px_25px_rgba(0,0,0,0.3)] mt-8 overflow-hidden text-right">
-              {/* Header section with family icon */}
-              <div className="bg-gradient-to-r from-amber-950/35 to-indigo-950/40 p-5 md:p-6 border-b border-indigo-950/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h3 className="text-lg md:text-xl font-serif font-black text-amber-400 flex items-center gap-2 justify-end sm:justify-start">
-                    <span>ركن ولي الأمر والمتابعة الأسرية 👨‍👩‍👦</span>
-                    <Users className="w-5 h-5 text-amber-400 shrink-0" />
-                  </h3>
-                  <p className="text-xs text-slate-400 font-sans">
-                    مساحة آمنة مخصصة لآباء وأمهات الأبطال لمراجعة إجابات الامتحانات وقياس نتائج الاستيعاب الفعلي للمنهج.
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <span className="text-xs font-bold px-3 py-1 bg-amber-400/10 border border-amber-500/20 text-amber-300 rounded-full font-serif shrink-0">
-                    آخر اختبار ونتائجه 📝
-                  </span>
-                </div>
-              </div>
-
-              {/* Security unlock guard */}
-              {!isParentUnlocked ? (
-                <div className="p-6 md:p-8 flex flex-col items-center justify-center text-center space-y-4 max-w-lg mx-auto">
-                  <div className="p-4 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                    <Lock className="w-6 h-6 animate-pulse" />
-                  </div>
-                  <div className="space-y-1.5 md:space-y-2">
-                    <h4 className="text-sm md:text-md font-serif font-bold text-slate-100">بوابة التحقق الأمني لولي الأمر</h4>
-                    <p className="text-xs text-slate-400 max-w-sm leading-relaxed font-sans">
-                      لحماية خصوصية الطالب ومطالعة نتائج الامتحانات التفصيلية، يرجى حل سؤال التحقق الحسابي السريع التالي لفك شفرة القفل:
-                    </p>
-                  </div>
-
-                  <div className="bg-[#0e0c18] border border-indigo-950 rounded-2xl p-4 w-full flex items-center justify-between gap-3 font-sans">
-                    <span className="text-sm font-bold text-amber-300 font-serif">ما حاصل ضرب {parentMathQuestion.q}؟</span>
-                    
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={parentAnswerInput}
-                        onChange={(e) => {
-                          setParentAnswerInput(e.target.value);
-                          setParentAnswerError("");
-                        }}
-                        placeholder="النتيجة"
-                        className="w-20 p-2 text-center rounded-xl bg-[#1b1932] border border-indigo-900 focus:border-amber-500 text-white font-bold font-serif focus:outline-none outline-none text-xs"
-                      />
-                      <button
-                        onClick={() => {
-                          handlePlaySound("click");
-                          const answer = parseInt(parentAnswerInput, 10);
-                          if (answer === parentMathQuestion.a) {
-                            setIsParentUnlocked(true);
-                            handlePlaySound("success");
-                          } else {
-                            setParentAnswerError("إجابة حسابية غير صحيحة، حاول مجدداً لطفاً!");
-                            handlePlaySound("fail");
-                          }
-                        }}
-                        className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl transition text-xs cursor-pointer text-center"
-                      >
-                        فك القفل 🔓
-                      </button>
-                    </div>
-                  </div>
-                  {parentAnswerError && (
-                    <p className="text-[11px] text-red-400 font-sans font-bold">{parentAnswerError}</p>
-                  )}
-                </div>
-              ) : (
-                // Full Inspection dashboard unlocked
-                <div className="p-6 md:p-8 space-y-6">
-                  {/* Option to re-lock */}
-                  <div className="flex justify-between items-center border-b border-indigo-950/40 pb-3">
-                    <button
-                      onClick={() => {
-                        handlePlaySound("click");
-                        setIsParentUnlocked(false);
-                        setParentAnswerInput("");
-                      }}
-                      className="text-xs bg-[#19152b] hover:bg-rose-950/30 text-slate-400 hover:text-rose-300 border border-indigo-900 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1 font-sans"
-                    >
-                      <Unlock className="w-3.5 h-3.5" />
-                      <span>قفل بوابة المتابعة</span>
-                    </button>
-                    <span className="text-xs text-slate-450 font-sans">تم تسجيل الدخول لولي الأمر بنجاح ✅</span>
-                  </div>
-
-                  {/* Parent Quiz Exit PIN Management Card */}
-                  <div className="bg-[#100c1e] border border-amber-500/30 rounded-2xl p-4 md:p-5 space-y-3 text-right">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-indigo-950/60 pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-amber-400 shrink-0" />
-                        <h5 className="font-serif font-bold text-xs sm:text-sm text-slate-100">
-                          كلمة مرور قفل الاختبارات (Parent PIN) 🔒
-                        </h5>
-                      </div>
-                      <span className="text-[11px] text-amber-400 font-mono bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                        الكلمة الحالية: {parentQuizPin}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                      تُستخدم هذه الكلمة لمنع الطالب من الخروج أو مغادرة شاشة الامتحانات والاختبارات قبل إنهاء الحل. يمكنك تحديثها أو إنشاء كلمة جديدة متى شئت:
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
-                      <input
-                        type="text"
-                        value={parentSettingsNewPin}
-                        onChange={(e) => {
-                          setParentSettingsNewPin(e.target.value);
-                          setParentSettingsPinSuccess("");
-                        }}
-                        placeholder="أدخل كلمة مرور جديدة (مثال: 7788 أو dad2026)"
-                        className="w-full sm:flex-1 p-2.5 rounded-xl bg-[#18132d] border border-indigo-900 text-white font-mono text-center text-xs focus:outline-none focus:border-amber-400"
-                      />
-                      <button
-                        onClick={() => {
-                          if (parentSettingsNewPin.trim().length >= 3) {
-                            handleUpdateParentPin(parentSettingsNewPin.trim());
-                            handlePlaySound("levelup");
-                            setParentSettingsPinSuccess("تم تحديث كلمة مرور ولي الأمر بنجاح!");
-                            setParentSettingsNewPin("");
-                            setTimeout(() => setParentSettingsPinSuccess(""), 3000);
-                          } else {
-                            handlePlaySound("fail");
-                          }
-                        }}
-                        className="w-full sm:w-auto bg-amber-700 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>حفظ الكلمة الجديدة</span>
-                      </button>
-                    </div>
-
-                    {parentSettingsPinSuccess && (
-                      <p className="text-xs text-emerald-400 font-bold animate-[fadeIn_0.2s_ease-out]">
-                        ✅ {parentSettingsPinSuccess}
-                      </p>
-                    )}
-                  </div>
-
-                  {!lastQuizResult ? (
-                    // Welcoming placeholder when no quizzes have been logged
-                    <div className="text-center py-10 space-y-3 max-w-sm mx-auto">
-                      <div className="p-4 rounded-full bg-indigo-950/40 border border-indigo-900/30 text-amber-500/80 inline-block">
-                        <FileText className="w-8 h-8" />
-                      </div>
-                      <h4 className="text-sm font-serif font-bold text-slate-200">لا توجد اختبارات مسجلة حتى الآن</h4>
-                      <p className="text-xs text-slate-400 leading-relaxed font-sans text-center">
-                        لم يخض الطالب أي اختبار مدرسي في هذا الجهاز حتى الآن. اطلب منه فتح "منصة الاختبارات" أو مراجعة وحدة من المنهج وحل أسئلتها لتشاهد تقرير الأداء هنا تفصيلاً!
-                      </p>
-                    </div>
-                  ) : (
-                    // Detailed Report UI
-                    <div className="space-y-6">
-                      {/* Summary Score Card */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Score Circle Widget */}
-                        <div className="bg-[#18152c] border border-indigo-950 p-5 rounded-2xl flex flex-col items-center justify-center text-center space-y-2 relative">
-                          <span className="text-[10px] text-slate-400 leading-none">نسبة التحصيل والنجاح</span>
-                          <div className="relative flex items-center justify-center py-2">
-                            {/* Visual glowing ring around score */}
-                            <div className="w-20 h-20 rounded-full border-4 border-amber-550/25 flex flex-col items-center justify-center bg-[#131124]">
-                              <span className="text-xl font-black text-amber-400 font-serif leading-none">%{lastQuizResult.percentage}</span>
-                            </div>
-                          </div>
-                          <span className={`text-xs font-serif font-black ${
-                            lastQuizResult.percentage >= 80 ? "text-emerald-400" : lastQuizResult.percentage >= 50 ? "text-amber-400" : "text-rose-455"
-                          }`}>
-                            {lastQuizResult.percentage >= 90 ? "تحصيل تفوق متميز 🌟" : lastQuizResult.percentage >= 80 ? "ممتاز وجيد جداً 👍" : lastQuizResult.percentage >= 50 ? "مستواه مقبول ويحتاج لمراجعة 📚" : "يحتاج لدعم ومثابرة إضافية 📖"}
-                          </span>
-                        </div>
-
-                        {/* Metadata card */}
-                        <div className="bg-[#18152c] border border-indigo-950 p-5 rounded-2xl space-y-3 text-right col-span-2 flex flex-col justify-between">
-                          <div className="space-y-1">
-                            <h4 className="text-md font-serif font-semibold text-slate-100 flex items-center gap-1.5 justify-end">
-                              <span>موضوع الاختبار: {lastQuizResult.quizTitle}</span>
-                            </h4>
-                            <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                              نوع التقييم الأكاديمي:{" "}
-                              <span className="text-amber-300 font-bold">
-                                {lastQuizResult.quizType === "comprehensive" ? "امتحان شامل لكتاب التاريخ" : lastQuizResult.quizType === "unit" ? "اختبار الوحدة الدراسية" : "اختبار الدرس التفصيلي"}
-                              </span>
-                            </p>
-                            <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                              تاريخ ووقت حل الاختبار: <span className="text-amber-200 font-bold">{lastQuizResult.timestamp}</span>
-                            </p>
-                          </div>
-
-                          <div className="flex items-center justify-between border-t border-indigo-900/30 pt-3 flex-wrap gap-2 text-right">
-                            <span className="text-xs text-slate-300 font-sans">
-                              الإجابات الصحيحة: <span className="text-emerald-400 font-bold text-sm font-serif">{lastQuizResult.score}</span> من أصل <span className="text-slate-100 font-bold font-serif">{lastQuizResult.total}</span>
-                            </span>
-                            
-                            {/* Copy WhatsApp / Telegram button */}
-                            <button
-                              onClick={() => {
-                                handlePlaySound("click");
-                                const summaryText = `*تقرير المتابعة الدراسية لم مادة التاريخ الصف السادس* 🇸🇩\n\nأتم التلميذ(ة) اختبار: (${lastQuizResult.quizTitle})\nنوع التقييم الدراسي: ${lastQuizResult.quizType === "comprehensive" ? "امتحان شامل" : lastQuizResult.quizType === "unit" ? "اختبار وحدة" : "اختبار درس"}\nتوقيت الامتحان: ${lastQuizResult.timestamp}\n\n*النتيجة والتقدير:*\nالتحصيل العام للدرجة: %${lastQuizResult.percentage}\nصواب الإجابات: ${lastQuizResult.score} من ${lastQuizResult.total} أسئلة.\n\nتاريخنا عريق، ومستقبلنا باهر! ✨`;
-                                navigator.clipboard.writeText(summaryText);
-                                alert("تم نسخ تقرير الأداء وصياغته لحافظتك بنجاح! يمكنك الآن لصقه ومشاركته مع العائلة فورا عبر الواتساب أو تيليجرام 📲");
-                              }}
-                              className="bg-indigo-900/60 hover:bg-amber-600 hover:text-white text-amber-250 border border-amber-500/10 rounded-xl px-3 py-1.5 text-[10px] font-bold transition flex items-center gap-1 cursor-pointer font-sans"
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                              <span>مشاركة النتيجة بالواتس آب 🔗</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Question-By-Question Inspection List */}
-                      <div className="space-y-3.5">
-                        <h4 className="text-sm font-serif font-bold text-slate-300 flex items-center gap-1.5 justify-end">
-                          <span>سجل الإجابات التفصيلي والدرجات لكل سؤال 🔍</span>
-                        </h4>
-
-                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                          {lastQuizResult.questions.map((q: any, qIdx: number) => (
-                            <div 
-                              key={q.id || qIdx} 
-                              className={`rounded-2xl p-4 border text-right space-y-2.5 transition duration-200 ${
-                                q.isCorrect 
-                                  ? "bg-emerald-950/15 border-emerald-900/40 hover:border-emerald-555/40" 
-                                  : "bg-rose-950/15 border-rose-900/40 hover:border-rose-555/40"
-                              }`}
-                            >
-                              {/* Questions Heading */}
-                              <div className="flex items-start justify-between gap-3 flex-row-reverse">
-                                <div className="flex gap-2 items-center flex-row-reverse">
-                                  <span className="text-[10px] bg-[#17142d] border border-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-serif font-bold">السؤال {qIdx + 1}</span>
-                                  <h5 className="text-xs md:text-sm font-bold text-slate-100 font-serif leading-relaxed">{q.text}</h5>
-                                </div>
-                                
-                                {q.isCorrect ? (
-                                  <span className="bg-emerald-950/60 text-emerald-400 border border-emerald-900/40 text-[10px] px-2.5 py-0.5 rounded-full font-sans font-bold flex items-center gap-1 shrink-0">
-                                    <Check className="w-3 h-3" />
-                                    <span>صحيحة</span>
-                                  </span>
-                                ) : (
-                                  <span className="bg-rose-950/60 text-rose-400 border border-rose-900/40 text-[10px] px-2.5 py-0.5 rounded-full font-sans font-bold flex items-center gap-1 shrink-0">
-                                    <span className="text-rose-400 text-xs">⚠️</span>
-                                    <span>بحاجة لمراجعة</span>
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Student's vs correct answers block */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs border-t border-indigo-950/30 pt-2.5 font-sans text-right">
-                                <div className="p-2.5 rounded-xl bg-[#09080f]/45 space-y-1">
-                                  <span className="text-[10px] text-slate-500 block leading-none font-serif">إجابة الطالب:</span>
-                                  <p className={`font-bold leading-relaxed font-serif ${q.isCorrect ? "text-emerald-400" : "text-rose-400"}`}>{q.userAnswer}</p>
-                                </div>
-                                <div className="p-2.5 rounded-xl bg-[#09080f]/45 space-y-1">
-                                  <span className="text-[10px] text-slate-500 block leading-none font-serif">الإجابة الصحيحة المقررة:</span>
-                                  <p className="font-bold text-amber-300 leading-relaxed font-serif">{q.correctAnswer}</p>
-                                </div>
-                              </div>
-
-                              {/* Corrective advice explanation */}
-                              {q.explanation && (
-                                <p className="text-[11px] text-slate-300 leading-relaxed font-sans bg-amber-500/5 p-2 rounded-xl text-right border border-amber-500/10">
-                                  <span className="font-bold text-amber-400 block mb-0.5 font-serif">التحليل التعليمي للفقرة:</span>
-                                  {q.explanation}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -3262,22 +2913,22 @@ export default function App() {
                   className={`p-5 rounded-2xl border text-right transition-all flex flex-col justify-between gap-3 shadow-sm cursor-pointer ${
                     qhCategory === "comprehensive"
                       ? "bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/40 shadow-md"
-                      : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-amber-400"
+                      : "bg-white border-slate-200 hover:border-amber-400 hover:bg-amber-50/40"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-3xl">🏆</span>
                     {qhCategory === "comprehensive" && (
-                      <span className="text-xs font-black text-amber-800 dark:text-amber-300 bg-amber-500/25 px-2.5 py-0.5 rounded-full border border-amber-500/40">
+                      <span className="text-xs font-black text-amber-800 bg-amber-500/25 px-2.5 py-0.5 rounded-full border border-amber-500/40">
                         تم الاختيار ✓
                       </span>
                     )}
                   </div>
                   <div>
-                    <h4 className="font-bold text-base text-slate-900 dark:text-slate-100">
+                    <h4 className="font-bold text-base text-slate-900">
                       امتحان شامل لكل المنهج
                     </h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                       أسئلة من كافة الوحدات الخمس للتحدي الأكبر!
                     </p>
                   </div>
@@ -3304,21 +2955,21 @@ export default function App() {
                       }}
                       className={`p-5 rounded-2xl border text-right transition-all flex flex-col justify-between gap-3 shadow-sm cursor-pointer ${
                         isSelected
-                          ? "bg-blue-500/15 border-blue-500 ring-2 ring-blue-500/40 shadow-md"
-                          : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-blue-400"
+                          ? "bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/40 shadow-md"
+                          : "bg-white border-slate-200 hover:border-amber-400 hover:bg-amber-50/40"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-3xl">{unitIcons[u.id] || "📖"}</span>
-                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/80">
                           الوحدة {u.id}
                         </span>
                       </div>
                       <div>
-                        <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 line-clamp-1">
+                        <h4 className="font-bold text-sm sm:text-base text-slate-900 line-clamp-1">
                           {u.title}
                         </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
                           {u.subtitle}
                         </p>
                       </div>
@@ -3330,8 +2981,8 @@ export default function App() {
 
             {/* Step 2: Pick Size */}
             <div className="space-y-3 pt-3">
-              <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-base">
-                <span className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black shadow-sm">٢</span>
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
+                <span className="w-7 h-7 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs font-black shadow-sm">٢</span>
                 <h3 className="text-base sm:text-lg">اختر طول الاختبار:</h3>
               </div>
 
@@ -3350,13 +3001,13 @@ export default function App() {
                     }}
                     className={`p-4 sm:p-5 rounded-2xl border text-center transition-all shadow-sm cursor-pointer ${
                       qhSize === item.count
-                        ? "bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/40 text-amber-900 dark:text-amber-300 font-black"
-                        : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                        ? "bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/40 text-amber-900 font-black"
+                        : "bg-white border-slate-200 hover:bg-amber-50/40 hover:border-amber-300 text-slate-800"
                     }`}
                   >
                     <span className="text-2xl block mb-1.5">{item.icon}</span>
                     <span className="text-sm sm:text-base font-bold block">{item.label}</span>
-                    <span className="text-xs opacity-75 hidden sm:block mt-1">{item.sub}</span>
+                    <span className="text-xs opacity-75 hidden sm:block mt-1 text-slate-500">{item.sub}</span>
                   </button>
                 ))}
               </div>
@@ -3382,7 +3033,7 @@ export default function App() {
                 <span>ابدأ التحدي والامتحان الآن 🚀 (+{qhSize * 10} نقطة)</span>
               </button>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500">
                 💡 جميع الأسئلة مأخوذة ومطابقة 100% لكتاب التاريخ والتربية الوطنية للصف السادس
               </p>
             </div>
@@ -3390,17 +3041,17 @@ export default function App() {
         )}
 
         {quizMode !== "none" && (
-          <div className="flex items-center justify-between border-b border-indigo-950/60 pb-3 mb-6 animate-[fadeIn_0.3s_ease-out]">
+          <div className="flex items-center justify-between border-b border-amber-200/80 pb-3 mb-6 animate-[fadeIn_0.3s_ease-out]">
             <button
               onClick={() => {
                 requestExitQuiz(() => setQuizMode("none"));
               }}
-              className="bg-[#1b1930] hover:bg-[#252244] text-slate-100 text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 border border-indigo-950/75 cursor-pointer shadow-sm"
+              className="bg-white hover:bg-slate-50 text-slate-800 text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 border border-slate-200 cursor-pointer shadow-xs"
             >
-              <ArrowRight className="w-4 h-4 transform rotate-180 text-amber-500" />
+              <ArrowRight className="w-4 h-4 transform rotate-180 text-amber-600" />
               <span>الخروج من الاختبار والعودة ↩</span>
             </button>
-            <div className="text-left font-serif text-[11px] text-amber-500 font-bold bg-[#141221] py-1.5 px-4 rounded-full border border-indigo-950/80 shadow-inner">
+            <div className="text-left font-serif text-[11px] text-amber-900 font-bold bg-amber-50 py-1.5 px-4 rounded-full border border-amber-300 shadow-xs">
               {quizTitle || "اختبار تفاعلي"}
             </div>
           </div>
@@ -3408,30 +3059,30 @@ export default function App() {
 
             {/* CURRICULUM LIVE CHALLENGES: A) MCQ & True-False QUIZ */}
             {quizMode === "curriculum" && (
-              <div className="bg-[#121020] rounded-2xl border border-indigo-950/80 shadow p-6 md:p-8 space-y-6">
+              <div className="bg-white rounded-2xl border border-amber-200/90 shadow-sm p-6 md:p-8 space-y-6 text-slate-900">
                 {quizIdx < quizQuestions.length ? (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between border-b border-indigo-950 pb-4">
+                    <div className="flex items-center justify-between border-b border-amber-100 pb-4">
                       <div>
-                        <h4 className="text-lg font-bold font-serif text-slate-100">{quizTitle || "اختبار المنهج"}</h4>
-                        <p className="text-xs text-slate-400 mt-1 font-sans">السؤال {quizIdx + 1} من {quizQuestions.length}</p>
+                        <h4 className="text-lg font-bold font-serif text-slate-900">{quizTitle || "اختبار المنهج"}</h4>
+                        <p className="text-xs text-slate-600 mt-1 font-sans">السؤال {quizIdx + 1} من {quizQuestions.length}</p>
                       </div>
-                      <span className="bg-amber-900 text-white font-sans text-xs px-2.5 py-1 rounded border border-amber-600/30">المرحلة {quizIdx + 1}</span>
+                      <span className="bg-amber-100 text-amber-900 font-sans text-xs px-2.5 py-1 rounded-md border border-amber-300 font-bold">المرحلة {quizIdx + 1}</span>
                     </div>
 
-                    <p className="text-lg md:text-xl font-bold font-serif text-slate-200 leading-relaxed text-right">
+                    <p className="text-lg md:text-xl font-bold font-serif text-slate-900 leading-relaxed text-right">
                       {quizQuestions[quizIdx].text}
                     </p>
 
                     {quizQuestions[quizIdx].type === QuestionType.ESSAY ? (
                       <div className="w-full text-right space-y-4">
-                        <label className="text-sm text-slate-300 font-serif block">صياغتك للموضوع (مقال تاريخي مبسط):</label>
+                        <label className="text-sm text-slate-700 font-serif block">صياغتك للموضوع (مقال تاريخي مبسط):</label>
                         <textarea
                           disabled={essayChecked}
                           value={essayAnswerText}
                           onChange={(e) => setEssayAnswerText(e.target.value)}
                           placeholder="ابدأ في تدوين مقالتك التاريخية وصياغة الحقائق بأسلوبك لتنمي كفاءتك (مثال: قادة الحملة، موقع المعركة، تتابع الأحداث والأصداء)..."
-                          className="w-full h-40 p-4 rounded-xl bg-[#18152c] border border-indigo-950 text-slate-100 text-right focus:outline-none focus:border-amber-500 leading-relaxed text-sm font-serif outline-none"
+                          className="w-full h-40 p-4 rounded-xl bg-amber-50/40 border border-amber-200 text-slate-900 text-right focus:outline-none focus:border-amber-500 leading-relaxed text-sm font-serif outline-none"
                         />
                         
                         {!essayChecked ? (
@@ -3453,16 +3104,16 @@ export default function App() {
                             <span>تأكيد وإظهار المقارنة النموذجية 🔍</span>
                           </button>
                         ) : (
-                          <div className="space-y-3 bg-[#110e1d] p-4 rounded-xl border border-amber-900/35 leading-relaxed text-right animate-[fadeIn_0.5s_ease-out]">
-                            <h5 className="text-sm font-bold text-amber-400 font-serif border-b border-amber-950 pb-1.5 flex items-center gap-1.5 justify-end">
+                          <div className="space-y-3 bg-amber-50/70 p-4 rounded-xl border border-amber-200 leading-relaxed text-right animate-[fadeIn_0.5s_ease-out]">
+                            <h5 className="text-sm font-bold text-amber-900 font-serif border-b border-amber-200 pb-1.5 flex items-center gap-1.5 justify-end">
                               <span>الإجابة المقالية النموذجية المعتمدة 📜</span>
                             </h5>
                             
-                            <p className="text-[13px] text-slate-200 whitespace-pre-wrap font-serif leading-relaxed">
+                            <p className="text-[13px] text-slate-800 whitespace-pre-wrap font-serif leading-relaxed">
                               {quizQuestions[quizIdx].correctAnswer}
                             </p>
                             
-                            <div className="bg-[#1b251d] text-emerald-300 text-xs p-3 rounded-lg border border-emerald-900 leading-snug flex items-center gap-2 justify-end">
+                            <div className="bg-emerald-50 text-emerald-800 text-xs p-3 rounded-lg border border-emerald-200 leading-snug flex items-center gap-2 justify-end">
                               <span>لقد أحرزت نقاطاً تقديراً لمحاولتك التاريخية والإنتاج الكتابي المدرسي! 🌟</span>
                             </div>
                           </div>
@@ -3470,7 +3121,7 @@ export default function App() {
                       </div>
                     ) : quizQuestions[quizIdx].type === QuestionType.FILL_BLANK ? (
                       <div className="w-full text-right space-y-4">
-                        <label className="text-sm text-slate-300 font-serif block">اكتب الكلمة أو العبارة التاريخية الناقصة:</label>
+                        <label className="text-sm text-slate-700 font-serif block">اكتب الكلمة أو العبارة التاريخية الناقصة:</label>
                         <div className="flex gap-2">
                           <input
                             type="text"
@@ -3478,7 +3129,7 @@ export default function App() {
                             value={essayAnswerText}
                             onChange={(e) => setEssayAnswerText(e.target.value)}
                             placeholder="اكتب الإجابة هنا..."
-                            className="flex-1 p-3.5 rounded-xl bg-[#18152c] border border-indigo-950 text-slate-100 text-right focus:outline-none focus:border-amber-500 font-serif outline-none"
+                            className="flex-1 p-3.5 rounded-xl bg-amber-50/40 border border-amber-200 text-slate-900 text-right focus:outline-none focus:border-amber-500 font-serif outline-none"
                           />
                           <button
                             disabled={!essayAnswerText.trim() || !!selectedOption}
@@ -3506,8 +3157,8 @@ export default function App() {
                         {selectedOption && (
                           <div className={`p-3.5 rounded-xl border font-serif text-sm ${
                             selectedOption.trim() === quizQuestions[quizIdx].correctAnswer.trim()
-                              ? "bg-emerald-950/40 border-emerald-500 text-emerald-350"
-                              : "bg-red-950/40 border-red-500 text-red-350"
+                              ? "bg-emerald-50 border-emerald-400 text-emerald-900"
+                              : "bg-rose-50 border-rose-400 text-rose-900"
                           }`}>
                             <p>إجابتك: {selectedOption}</p>
                             <p className="mt-1 font-bold">الإجابة الصحيحة المقررة: {quizQuestions[quizIdx].correctAnswer}</p>
@@ -3521,14 +3172,14 @@ export default function App() {
                           const isSelected = selectedOption === option;
                           const isCorrectAnswer = option === quizQuestions[quizIdx].correctAnswer;
                           
-                          let optStyle = "bg-[#18152c] hover:bg-[#221e3f] border-indigo-950 text-slate-200 hover:scale-[1.01] cursor-pointer";
+                          let optStyle = "bg-amber-50/60 hover:bg-amber-100 border-amber-200 text-slate-800 hover:scale-[1.01] cursor-pointer shadow-xs";
                           if (selectedOption) {
                             if (isCorrectAnswer) {
-                              optStyle = "bg-emerald-950/80 border-emerald-500 text-emerald-300 scale-[1.01] font-bold";
+                              optStyle = "bg-emerald-50 border-emerald-500 text-emerald-900 scale-[1.01] font-bold shadow-xs";
                             } else if (isSelected) {
-                              optStyle = "bg-red-950/80 border-red-500 text-red-350";
+                              optStyle = "bg-rose-50 border-rose-500 text-rose-900 shadow-xs";
                             } else {
-                              optStyle = "bg-[#121020] border-indigo-950/20 text-slate-400/80 opacity-70 cursor-not-allowed";
+                              optStyle = "bg-slate-50 border-slate-200 text-slate-400 opacity-60 cursor-not-allowed";
                             }
                           }
 
@@ -3540,8 +3191,8 @@ export default function App() {
                               className={`w-full text-right p-4 rounded-xl border text-sm font-bold transition flex items-center justify-between ${optStyle}`}
                             >
                               <span>{option}</span>
-                              {selectedOption && isCorrectAnswer && <span className="text-emerald-400 text-xs font-semibold">✔ صواب</span>}
-                              {selectedOption && isSelected && !isCorrectAnswer && <span className="text-red-400 text-xs font-semibold">✘ خطأ</span>}
+                              {selectedOption && isCorrectAnswer && <span className="text-emerald-700 text-xs font-bold">✔ صواب</span>}
+                              {selectedOption && isSelected && !isCorrectAnswer && <span className="text-rose-700 text-xs font-bold">✘ خطأ</span>}
                             </button>
                           );
                         })}
@@ -3549,9 +3200,9 @@ export default function App() {
                     )}
 
                     {selectedOption && quizQuestions[quizIdx].type !== QuestionType.ESSAY && quizQuestions[quizIdx].type !== QuestionType.FILL_BLANK && (
-                      <div className="bg-[#171120] p-4 rounded-xl border border-indigo-950/65 animate-[fadeIn_0.5s_ease-out] text-right space-y-1.5 shrink-0 font-serif">
-                        <span className="text-amber-400 font-bold block text-sm">💡 الشرح والتبسيط من منهج الصف السَّادس:</span>
-                        <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
+                      <div className="bg-amber-50/80 p-4 rounded-xl border border-amber-200 animate-[fadeIn_0.5s_ease-out] text-right space-y-1.5 shrink-0 font-serif shadow-xs">
+                        <span className="text-amber-900 font-bold block text-sm">💡 الشرح والتبسيط من منهج الصف السَّادس:</span>
+                        <p className="text-xs md:text-sm text-slate-800 leading-relaxed">
                           {quizQuestions[quizIdx].explanation || "الإجابة الصحيحة مذكورة بالدروس لتعزيز كفاءتك المعرفية."}
                         </p>
                       </div>
@@ -3561,7 +3212,7 @@ export default function App() {
                       <button
                         disabled={!selectedOption}
                         onClick={handleNextQuiz}
-                        className="bg-amber-800 disabled:opacity-50 text-white px-6 py-3 rounded-xl hover:bg-amber-700 text-sm font-bold flex items-center gap-1.5 shadow cursor-pointer transition border border-amber-600/20"
+                        className="bg-amber-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl hover:bg-amber-600 text-sm font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition border border-amber-600/30"
                       >
                         <span>{quizIdx + 1 === quizQuestions.length ? "رؤية النتائج النهائية 🏁" : "السؤال التالي"}</span>
                         <ChevronLeft className="w-4 h-4 transform rotate-180" />
@@ -3571,29 +3222,29 @@ export default function App() {
                 ) : (
                   // Quiz completed card
                   <div className="text-center p-8 space-y-6">
-                    <Trophy className="w-16 h-16 text-amber-400 mx-auto animate-bounce fill-amber-500/20" />
+                    <Trophy className="w-16 h-16 text-amber-600 mx-auto animate-bounce fill-amber-500/20" />
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-bold font-serif text-slate-100">
+                      <h3 className="text-2xl font-bold font-serif text-slate-900">
                         {quizType === "comprehensive"
                           ? "أتممت الامتحان الشامل والنهائي لكامل كتاب التاريخ بنجاح! 🎓"
                           : quizType === "lesson"
                           ? "أتممت اختبار الدرس المنهجي بنجاح! 📝"
                           : "أتممت الاختبار النهائي للوحدة بنجاح! 🎉"}
                       </h3>
-                      <p className="text-xs text-slate-400">لقد أحرزت {quizCorrectAnswers} إجابات صحيحة من أصل {quizQuestions.length}</p>
+                      <p className="text-xs text-slate-600">لقد أحرزت {quizCorrectAnswers} إجابات صحيحة من أصل {quizQuestions.length}</p>
                     </div>
 
                     {/* Progress score feedback reward */}
-                    <div className="inline-flex items-center gap-2.5 bg-[#1b1226] px-6 py-3 rounded-2xl border border-indigo-950/80">
-                      <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                      <span className="text-sm font-serif font-bold text-amber-300 text-right">
+                    <div className="inline-flex items-center gap-2.5 bg-amber-50 px-6 py-3 rounded-2xl border border-amber-200 shadow-xs">
+                      <Star className="w-5 h-5 text-amber-600 fill-amber-500" />
+                      <span className="text-sm font-serif font-bold text-amber-900 text-right">
                         لقد نلت +{quizCorrectAnswers * (quizType === "comprehensive" ? 15 : 10)} نقاط معرفة إضافية تضاف لرصيدك!
                       </span>
                     </div>
 
                     {/* Badge unlock reward */}
                     {(((quizCorrectAnswers / quizQuestions.length) * 100) >= 80) ? (
-                      <div className="bg-[#11241a] text-emerald-400 p-4 rounded-xl border border-[#1b3d2b] text-sm font-semibold max-w-md mx-auto leading-relaxed">
+                      <div className="bg-emerald-50 text-emerald-900 p-4 rounded-xl border border-emerald-200 text-sm font-semibold max-w-md mx-auto leading-relaxed shadow-xs">
                         {quizType === "comprehensive"
                           ? "🎖️ رائع! نظراً لتحقيقك نسبة نجاح تتجاوز 80% في الامتحان الشامل، تم تزيين ملفك الشخصي بوسام 'المؤرخ العبقري الشامل' المرموق بنجاح!"
                           : quizType === "lesson"
@@ -3601,7 +3252,7 @@ export default function App() {
                           : "🎖️ رائع! نظراً لتحقيقك نسبة فوز تتجاوز 80%، تم فتح وسام الوحدة الخاص بك وإضافته لملفك الشخصي بنجاح!"}
                       </div>
                     ) : (
-                      <div className="bg-[#241a11] text-amber-400 p-4 rounded-xl border border-[#3b291a] text-xs font-medium max-w-md mx-auto leading-relaxed">
+                      <div className="bg-amber-50 text-amber-900 p-4 rounded-xl border border-amber-200 text-xs font-medium max-w-md mx-auto leading-relaxed shadow-xs">
                         📖 لم تحقق 80% للحصول على الجائزة الكبرى هذه المرة، لكن واصل مطالعة الدروس والخطوط الزمنية وتحدّ مرة أخرى بثقة!
                       </div>
                     )}
@@ -3624,33 +3275,33 @@ export default function App() {
 
             {/* CURRICULUM LIVE CHALLENGES: B) TRUE/FALSE SPEEDRUN */}
             {quizMode === "speedrun" && (
-              <div className="bg-[#121020] rounded-2xl border border-indigo-950/80 shadow p-6 md:p-8 space-y-6 max-w-2xl mx-auto">
+              <div className="bg-white rounded-2xl border border-amber-200/90 shadow-sm p-6 md:p-8 space-y-6 max-w-2xl mx-auto text-slate-900">
                 {quizIdx < quizQuestions.length ? (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between border-b border-indigo-950 pb-4">
-                      <div className="flex items-center gap-2 text-amber-400">
-                        <Clock className="w-5 h-5 animate-pulse" />
+                    <div className="flex items-center justify-between border-b border-amber-100 pb-4">
+                      <div className="flex items-center gap-2 text-amber-800">
+                        <Clock className="w-5 h-5 animate-pulse text-amber-600" />
                         <span className="font-sans font-bold text-sm">تحدي السرعة (صح أو خطأ)</span>
                       </div>
-                      <span className="text-xs font-sans text-slate-400">مرحلة {quizIdx + 1} من {quizQuestions.length}</span>
+                      <span className="text-xs font-sans text-slate-600">مرحلة {quizIdx + 1} من {quizQuestions.length}</span>
                     </div>
 
                     {/* Visual countdown timer */}
                     <div className="space-y-1 text-center">
-                      <span className={`text-base font-serif font-extrabold ${speedrunTimer <= 5 ? "text-red-400 animate-pulse" : "text-amber-400"}`}>
+                      <span className={`text-base font-serif font-extrabold ${speedrunTimer <= 5 ? "text-rose-600 animate-pulse" : "text-amber-800"}`}>
                         متبقي {speedrunTimer} ثوانٍ!
                       </span>
-                      <div className="w-full bg-[#18152c] h-2.5 rounded-full overflow-hidden border border-indigo-950/40">
+                      <div className="w-full bg-amber-100 h-2.5 rounded-full overflow-hidden border border-amber-200">
                         <div
-                          className={`h-full transition-all duration-1000 ${speedrunTimer <= 5 ? "bg-red-500" : "bg-amber-500"}`}
+                          className={`h-full transition-all duration-1000 ${speedrunTimer <= 5 ? "bg-rose-500" : "bg-amber-500"}`}
                           style={{ width: `${(speedrunTimer / 15) * 100}%` }}
                         />
                       </div>
                     </div>
 
                     {/* Question prompt statement */}
-                    <div className="bg-[#1b1930] hover:bg-[#201c3e] border border-indigo-950/80 rounded-2xl p-6 text-center select-none shadow-inner">
-                      <p className="text-lg md:text-xl font-bold font-serif text-slate-100 leading-relaxed">
+                    <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-6 text-center select-none shadow-xs">
+                      <p className="text-lg md:text-xl font-bold font-serif text-slate-900 leading-relaxed">
                         {quizQuestions[quizIdx].text}
                       </p>
                     </div>
@@ -3659,13 +3310,13 @@ export default function App() {
                     <div className="grid grid-cols-2 gap-4 font-serif">
                       <button
                         onClick={() => handleSpeedrunAnswer("صواب")}
-                        className="bg-emerald-700 hover:bg-emerald-600 text-white text-base py-4 rounded-xl shadow-md border border-emerald-600/30 hover:scale-[1.01] active:scale-[0.99] font-bold transition duration-200 cursor-pointer"
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white text-base py-4 rounded-xl shadow-sm border border-emerald-700 hover:scale-[1.01] active:scale-[0.99] font-bold transition duration-200 cursor-pointer"
                       >
                         صواب (✔)
                       </button>
                       <button
                         onClick={() => handleSpeedrunAnswer("خطأ")}
-                        className="bg-red-700 hover:bg-red-600 text-white text-base py-4 rounded-xl shadow-md border border-red-600/30 hover:scale-[1.01] active:scale-[0.99] font-bold transition duration-200 cursor-pointer"
+                        className="bg-rose-600 hover:bg-rose-500 text-white text-base py-4 rounded-xl shadow-sm border border-rose-700 hover:scale-[1.01] active:scale-[0.99] font-bold transition duration-200 cursor-pointer"
                       >
                         خطأ (✘)
                       </button>
@@ -3674,13 +3325,13 @@ export default function App() {
                 ) : (
                   // Speedrun ended card
                   <div className="text-center p-8 space-y-6">
-                    <Trophy className="w-16 h-16 text-amber-400 mx-auto animate-bounce" />
+                    <Trophy className="w-16 h-16 text-amber-600 mx-auto animate-bounce" />
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-bold font-serif text-slate-100">انتهى تحدي السرعة الخارق! ⭐</h3>
-                      <p className="text-xs text-slate-400 font-sans">صبت إجابات صحيحة في {quizCorrectAnswers} ثوانٍ من أصل {quizQuestions.length}</p>
+                      <h3 className="text-2xl font-bold font-serif text-slate-900">انتهى تحدي السرعة الخارق! ⭐</h3>
+                      <p className="text-xs text-slate-600 font-sans">صبت إجابات صحيحة في {quizCorrectAnswers} ثوانٍ من أصل {quizQuestions.length}</p>
                     </div>
 
-                    <div className="bg-[#1b1226] border border-indigo-950/80 p-4 rounded-xl max-w-sm mx-auto text-amber-300 text-sm font-serif">
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl max-w-sm mx-auto text-amber-900 text-sm font-serif shadow-xs">
                       لقد نلت +{quizCorrectAnswers * 15} نقاط معرفة مضافة لملفك الشخصي لقاء شجاعتك وسرعتك الفورية!
                     </div>
 
@@ -3689,7 +3340,7 @@ export default function App() {
                         handlePlaySound("click");
                         setQuizMode("none");
                       }}
-                      className="bg-amber-800 text-white px-5 py-2.5 rounded-xl hover:bg-amber-700 text-xs font-bold transition shadow border border-amber-600/30 cursor-pointer"
+                      className="bg-amber-700 text-white px-5 py-2.5 rounded-xl hover:bg-amber-600 text-xs font-bold transition shadow-sm border border-amber-600/30 cursor-pointer"
                     >
                       الرجوع لقراءة الفصول
                     </button>
@@ -3700,29 +3351,29 @@ export default function App() {
 
             {/* CURRICULUM LIVE CHALLENGES: C) TAP MATCHING PAIRS */}
             {quizMode === "match" && (
-              <div className="bg-[#121020] rounded-2xl border border-indigo-950/80 shadow p-6 md:p-8 space-y-6">
-                <div className="text-center space-y-1 border-b border-indigo-950 pb-4">
-                  <h3 className="text-lg font-bold font-serif text-slate-100">لعبة التوصيل الذكية والألقاب</h3>
-                  <p className="text-xs text-slate-400 font-sans">انقر على المربع من العمود الأيمن ثم شريكه المناسب من العمود الأيسر</p>
+              <div className="bg-white rounded-2xl border border-amber-200/90 shadow-sm p-6 md:p-8 space-y-6 text-slate-900">
+                <div className="text-center space-y-1 border-b border-amber-100 pb-4">
+                  <h3 className="text-lg font-bold font-serif text-slate-900">لعبة التوصيل الذكية والألقاب</h3>
+                  <p className="text-xs text-slate-600 font-sans">انقر على المربع من العمود الأيمن ثم شريكه المناسب من العمود الأيسر</p>
                 </div>
 
                 {/* Left & Right Grids */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-right select-none font-sans">
                   {/* Left Column (Historical names or events) */}
                   <div className="space-y-3">
-                    <span className="text-xs text-slate-400 font-bold block mb-1">العمود الأيسر:</span>
+                    <span className="text-xs text-slate-600 font-bold block mb-1">العمود الأيسر:</span>
                     {matchLeft.map((leftNode) => {
                       const isMatched = !!matchedPairs[leftNode.id];
                       const isSelected = selectedLeft === leftNode.id;
                       const isWrong = wrongMatchLeft === leftNode.id;
 
-                      let boxStyle = "bg-[#18152c] border-indigo-950/40 text-slate-200 hover:bg-[#201c3e] cursor-pointer";
+                      let boxStyle = "bg-amber-50/60 border-amber-200 text-slate-800 hover:bg-amber-100 cursor-pointer shadow-xs";
                       if (isMatched) {
-                        boxStyle = "bg-emerald-950/40 border-emerald-800/60 text-emerald-300 opacity-50 pointer-events-none";
+                        boxStyle = "bg-emerald-50 border-emerald-300 text-emerald-800 opacity-60 pointer-events-none shadow-xs";
                       } else if (isSelected) {
-                        boxStyle = "bg-indigo-950/90 border-indigo-500 text-indigo-300 scale-[1.02] ring-2 ring-indigo-500/40 font-bold";
+                        boxStyle = "bg-amber-100 border-amber-500 text-amber-900 scale-[1.02] ring-2 ring-amber-400 font-bold shadow-xs";
                       } else if (isWrong) {
-                        boxStyle = "bg-red-950 border-red-500 text-red-300 scale-[1.02] animate-shake";
+                        boxStyle = "bg-rose-50 border-rose-500 text-rose-800 scale-[1.02] animate-shake";
                       }
 
                       return (
@@ -3740,19 +3391,19 @@ export default function App() {
 
                   {/* Right Column (Descriptions/Matches) */}
                   <div className="space-y-3">
-                    <span className="text-xs text-slate-400 font-bold block mb-1">العمود الأيمن:</span>
+                    <span className="text-xs text-slate-600 font-bold block mb-1">العمود الأيمن:</span>
                     {matchRight.map((rightNode) => {
                       const isMatched = Object.values(matchedPairs).includes(rightNode.id);
                       const isWrong = wrongMatchRight === rightNode.id;
                       const isDisabled = !selectedLeft;
 
-                      let boxStyle = "bg-[#18152c] border-indigo-950/40 text-slate-200 hover:bg-[#201c3e] cursor-pointer";
+                      let boxStyle = "bg-amber-50/60 border-amber-200 text-slate-800 hover:bg-amber-100 cursor-pointer shadow-xs";
                       if (isMatched) {
-                        boxStyle = "bg-emerald-950/40 border-emerald-800/60 text-emerald-300 opacity-50 pointer-events-none";
+                        boxStyle = "bg-emerald-50 border-emerald-300 text-emerald-800 opacity-60 pointer-events-none shadow-xs";
                       } else if (isDisabled) {
-                        boxStyle = "bg-[#121020] border-indigo-950/20 text-slate-400/80 opacity-70 cursor-not-allowed";
+                        boxStyle = "bg-slate-50 border-slate-200 text-slate-400 opacity-60 cursor-not-allowed";
                       } else if (isWrong) {
-                        boxStyle = "bg-red-950 border-red-500 text-red-200 scale-[1.02] animate-shake";
+                        boxStyle = "bg-rose-50 border-rose-500 text-rose-800 scale-[1.02] animate-shake";
                       }
 
                       return (
@@ -3771,13 +3422,13 @@ export default function App() {
 
                 {/* Match game completed check */}
                 {Object.keys(matchedPairs).length === matchLeft.length && (
-                  <div className="bg-[#11241a] text-emerald-400 p-5 rounded-2xl border border-[#1b3d2b] text-center space-y-4 max-w-md mx-auto animate-[fadeIn_0.5s_ease-out]">
-                    <Trophy className="w-12 h-12 text-emerald-400 mx-auto" />
+                  <div className="bg-emerald-50 text-emerald-900 p-5 rounded-2xl border border-emerald-200 text-center space-y-4 max-w-md mx-auto animate-[fadeIn_0.5s_ease-out] shadow-xs">
+                    <Trophy className="w-12 h-12 text-emerald-600 mx-auto" />
                     <div>
                       <h4 className="font-serif font-bold text-lg">أحسنت التوصيل يا بطل! 🎖️</h4>
-                      <p className="text-xs text-slate-300 mt-1">طابقت كافة الشخصيات والحقائق بالوصف والتواريخ المطابقة لها بنجاح!</p>
+                      <p className="text-xs text-slate-600 mt-1">طابقت كافة الشخصيات والحقائق بالوصف والتواريخ المطابقة لها بنجاح!</p>
                     </div>
-                    <span className="bg-[#1b1226] text-amber-300 font-bold text-sm px-4 py-1.5 rounded-full inline-block border border-indigo-950">
+                    <span className="bg-amber-100 text-amber-900 font-bold text-sm px-4 py-1.5 rounded-full inline-block border border-amber-300">
                       ربحت +50 نقاط معرفة إضافية!
                     </span>
                     <button
@@ -3785,7 +3436,7 @@ export default function App() {
                         handlePlaySound("click");
                         setQuizMode("none");
                       }}
-                      className="bg-amber-800 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow mx-auto block cursor-pointer border border-amber-600/20"
+                      className="bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm mx-auto block cursor-pointer border border-amber-600/20"
                     >
                       الرجوع لدروس الفصل
                     </button>
@@ -3807,29 +3458,10 @@ export default function App() {
         />
       )}
 
-      {/* Parent Exit Lock Modal (Protects quiz exit with Father's PIN and auditory cue) */}
-      <ParentExitLockModal
-        isOpen={showParentExitModal}
-        onClose={() => setShowParentExitModal(false)}
-        onConfirmUnlock={() => {
-          setShowParentExitModal(false);
-          if (pendingExitAction) {
-            pendingExitAction();
-            setPendingExitAction(null);
-          } else {
-            setQuizMode("none");
-          }
-        }}
-        parentPin={parentQuizPin}
-        onUpdateParentPin={handleUpdateParentPin}
-        onPlaySound={handlePlaySound}
-        quizTitle={quizTitle}
-      />
-
       {/* Visual bottom parchment style design separator */}
-      <footer className="bg-[#09080f]/90 border-t border-indigo-950/65 py-6 text-center text-slate-400 text-xs shrink-0 font-sans mt-auto">
+      <footer className="bg-white border-t border-amber-200/80 py-6 text-center text-slate-600 text-xs shrink-0 font-sans mt-auto shadow-xs">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="font-serif text-slate-300 select-none">© {new Date().getFullYear()} المُؤَرِّخ الصَّغِير – جُمْهُورِيَّةُ السُّودَانِ - مَنَاهِجُ المَرْكَزُ القَوْمِي لِلمَنَاهِجِ وَالبَحْثِ التَّرْبَوِي بِبَخْتِ الرِّضَا</p>
+          <p className="font-serif text-slate-700 select-none">© {new Date().getFullYear()} المُؤَرِّخ الصَّغِير – جُمْهُورِيَّةُ السُّودَانِ - مَنَاهِجُ المَرْكَزُ القَوْمِي لِلمَنَاهِجِ وَالبَحْثِ التَّرْبَوِي بِبَخْتِ الرِّضَا</p>
           <div className="flex gap-4">
             <button
               onClick={() => {

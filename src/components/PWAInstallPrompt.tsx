@@ -126,9 +126,9 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onPlaySound 
 
             {/* App Icon & Badge */}
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-xl border border-amber-500/40 bg-[#121020] p-1 shrink-0 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-md border border-amber-300 bg-white p-1 shrink-0 flex items-center justify-center">
                 <img 
-                  src="/icon.svg" 
+                  src="/logo.png" 
                   alt="أيقونة تطبيق تاريخ السودان" 
                   className="w-full h-full object-contain rounded-xl"
                   referrerPolicy="no-referrer"

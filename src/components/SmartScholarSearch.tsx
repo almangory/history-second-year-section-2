@@ -351,15 +351,15 @@ export const SmartScholarSearch: React.FC<SmartScholarSearchProps> = ({ onSelect
           onClick={handleOpenSearch}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="group relative flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-amber-100 font-serif font-bold text-sm rounded-full shadow-[0_10px_25px_-5px_rgba(0,0,0,0.8)] border-2 border-amber-500/50 hover:border-amber-400 cursor-pointer transition-all duration-300 ring-4 ring-amber-950/40"
+          className="group relative flex items-center gap-2.5 px-4 py-2.5 bg-white hover:bg-amber-50/70 text-amber-900 font-serif font-bold text-sm rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.1)] border-2 border-amber-400 hover:border-amber-600 cursor-pointer transition-all duration-300 ring-2 ring-amber-200/70"
         >
-          <div className="relative flex items-center justify-center w-7 h-7 rounded-full bg-amber-950/80 border border-amber-400/40 text-amber-300">
+          <div className="relative flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 border border-amber-300 text-amber-800">
             <Search className="w-4 h-4" />
           </div>
-          <span className="hidden sm:inline font-serif text-xs md:text-sm tracking-wide">
-            الباحث المنهجي الذكي 🔍
+          <span className="hidden sm:inline font-serif text-xs md:text-sm tracking-wide text-amber-900">
+            الباحث المنهجي الذكي
           </span>
-          <span className="sm:hidden font-serif text-xs">
+          <span className="sm:hidden font-serif text-xs text-amber-900">
             بحث المنهج
           </span>
           {/* Subtle glow badge */}

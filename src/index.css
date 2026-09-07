@@ -15,16 +15,17 @@
    ========================================================= */
 
 :root {
-  /* Default Modern Dark Slate (Sophisticated Navy, not muddy black) */
-  --bg-main: #0b0f19;
-  --bg-card: #131b2e;
-  --bg-item: #1e293b;
-  --bg-input: #0f172a;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --border-primary: rgba(148, 163, 184, 0.18);
-  --accent-gold: #f59e0b;
-  --accent-blue: #3b82f6;
+  /* Default Clean, Bright, Friendly School Palette */
+  --bg-main: #fcfaf7;
+  --bg-card: #ffffff;
+  --bg-item: #fdfbf7;
+  --bg-input: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --border-primary: #e2e8f0;
+  --accent-gold: #d97706;
+  --accent-blue: #2563eb;
+  color-scheme: light;
 }
 
 body {
@@ -52,11 +53,11 @@ option {
   background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-item);
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #94a3b8;
 }
 
 /* =========================================================
@@ -80,7 +81,11 @@ option {
 /* Map dark utility backgrounds to clean white/slate in Light Theme */
 .light-theme .bg-\[\#09080f\],
 .light-theme .bg-\[\#0b0f19\],
-.light-theme .bg-\[\#0f0d1c\] {
+.light-theme .bg-\[\#0f0d1c\],
+.light-theme .bg-\[\#0b0918\],
+.light-theme .bg-\[\#0c0a17\],
+.light-theme .bg-\[\#0b0a14\],
+.light-theme .bg-slate-950 {
   background-color: var(--bg-main) !important;
 }
 
@@ -90,7 +95,12 @@ option {
 .light-theme .bg-\[\#131b2e\],
 .light-theme .bg-\[\#1a1122\],
 .light-theme .bg-\[\#1a1122\]\/90,
-.light-theme .bg-\[\#251e3d\] {
+.light-theme .bg-\[\#15122b\],
+.light-theme .bg-\[\#141026\],
+.light-theme .bg-\[\#141026\]\/95,
+.light-theme .bg-\[\#141224\],
+.light-theme .bg-\[\#251e3d\],
+.light-theme .bg-slate-900 {
   background-color: var(--bg-card) !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
 }
@@ -104,9 +114,11 @@ option {
 .light-theme .bg-\[\#1e293b\],
 .light-theme .bg-\[\#16132b\],
 .light-theme .bg-\[\#1a1738\],
+.light-theme .bg-\[\#181530\],
 .light-theme .bg-\[\#181532\]\/90,
 .light-theme .bg-\[\#110e1a\]\/80,
-.light-theme .bg-slate-900,
+.light-theme .bg-slate-800,
+.light-theme .bg-slate-800\/80,
 .light-theme .bg-slate-900\/60,
 .light-theme .bg-slate-900\/80,
 .light-theme .bg-slate-900\/40 {
@@ -117,6 +129,9 @@ option {
 .light-theme .bg-\[\#17142d\],
 .light-theme .bg-\[\#0e0d1a\],
 .light-theme .bg-\[\#110e1a\],
+.light-theme .bg-\[\#0e0c18\],
+.light-theme .bg-\[\#100c1e\],
+.light-theme .bg-\[\#18132d\],
 .light-theme .bg-\[\#1a1634\],
 .light-theme .bg-\[\#131126\] {
   background-color: var(--bg-input) !important;
@@ -383,20 +398,82 @@ option {
 }
 
 /* =========================================================
-   6. Naqla Smart Mentor Floating Widget Positioning
+   6. Custom Sudan Bot Avatar Launcher (Replaces Default Pill)
    ========================================================= */
 .mentor-floating-btn {
+  position: fixed !important;
   bottom: 90px !important;
-  left: 20px !important;
+  left: 24px !important;
   right: auto !important;
-  z-index: 9999 !important;
+  width: 68px !important;
+  height: 68px !important;
+  min-width: 68px !important;
+  min-height: 68px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: #ffffff url('/assets/sudan-bot-avatar.png') center/cover no-repeat !important;
+  border: 3px solid #f59e0b !important;
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.45), 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  overflow: visible !important;
+  font-size: 0 !important;
+  color: transparent !important;
+  line-height: 0 !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  cursor: pointer !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mentor-floating-btn::after {
+  content: 'سودان بوت 🤖';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #1c1917;
+  font-family: 'Tajawal', system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  border: 1px solid #fef3c7;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.mentor-floating-btn > * {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.mentor-floating-btn:hover {
+  transform: translateY(-5px) scale(1.08) !important;
+  box-shadow: 0 14px 30px rgba(245, 158, 11, 0.6), 0 6px 16px rgba(0, 0, 0, 0.18) !important;
+  border-color: #d97706 !important;
+}
+
+.mentor-floating-btn:active {
+  transform: scale(0.95) !important;
 }
 
 @media (max-width: 640px) {
   .mentor-floating-btn {
-    bottom: 85px !important;
-    left: 15px !important;
-    width: 52px !important;
-    height: 52px !important;
+    bottom: 80px !important;
+    left: 16px !important;
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+  }
+  .mentor-floating-btn::after {
+    font-size: 9px;
+    padding: 1px 5px;
+    bottom: -5px;
   }
 }
