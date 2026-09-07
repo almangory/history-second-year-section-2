@@ -38,6 +38,7 @@ export interface GalleryItem {
   period: string;
   location: string;
   description: string;
+  image?: string;
   historicalDetails: {
     title: string;
     description: string;
@@ -69,6 +70,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     lessonTitle: "الدرس الأول: الغزو التركي المصري للسودان (١٨٢٠ - ١٨٢١م)",
     category: "monument",
     type: "SudanPyramids",
+    image: "/assets/lessons/u1_l1.jpg",
     period: "عصور السودان القديمة ومملكة مروي",
     location: "شندي - البجراوية - ولاية نهر النيل",
     description: "الأهرامات النوبية الخالدة في مروي والبجراوية، شواهد حضارة كوش ومروي القديمة على ضفاف نهر النيل الخالد، والتي عكست عراقة الدولة السودانية قبل الغزو التركي.",
@@ -99,6 +101,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     lessonTitle: "الدرس الثاني: تأسيس مدينة الخرطوم عاصمة للسودان وتطورها",
     category: "architecture",
     type: "KhartoumCpt",
+    image: "/assets/lessons/u1_l2.jpg",
     period: "١٨٢٤ - ١٨٣٨م (عهد عثمان بك جركس وخورشيد باشا)",
     location: "الخرطوم - مقرن النيلين الأبيض والأزرق",
     description: "مقر الحكمدارية ودواوين الحكومة المركزية في الخرطوم بعد اختيارها عاصمة للسودان عام ١٨٢٤م بدلاً من سنار لموقعها الاستراتيجي عند ملتقى النيلين.",
@@ -152,7 +155,113 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     ]
   },
 
+  {
+    id: "gal_khartoum_school_1853",
+    title: "أول مدرسة حديثة في الخرطوم ورفاعة رافع الطهطاوي (١٨٥٣م)",
+    unitId: 1,
+    unitTitle: "الوحدة الأولى: تاريخ السودان الحديث (١٨٢١ - ١٨٨٥م)",
+    lessonId: "u1_l3",
+    lessonTitle: "الدرس الثالث: التعليم والقضاء في العهد التركي المصري",
+    category: "monument",
+    type: "SchoolKhartoum",
+    image: "/assets/lessons/u1_l3.jpg",
+    period: "١٨٥٣م (عهد الخديوي عباس الأول)",
+    location: "الخرطوم - حوض النيل",
+    description: "تأسيس أول مدرسة ابتدائية نظامية حديثة في السودان برئاسة العالم التنويري الشيخ رفاعة رافع الطهطاوي، لتدريس الحساب واللغات والعلوم الحديثة لأبناء السودان.",
+    historicalDetails: [
+      {
+        title: "دور رفاعة رافع الطهطاوي",
+        description: "أشرف الطهطاوي على تنظيم المناهج وتوفير الكتب وترجمة المعارف، وفتح أبواب التعليم النظامي الحديث لأول مرة.",
+        curriculumFact: "افتتحت أول مدرسة حديثة في الخرطوم عام ١٨٥٣م في عهد عباس الأول وتولى إدارتها رفاعة رافع الطهطاوي."
+      }
+    ]
+  },
+  {
+    id: "gal_suakin_telegraph",
+    title: "ميناء سواكن التاريخي وشبكة التلغراف في عهد إسماعيل",
+    unitId: 1,
+    unitTitle: "الوحدة الأولى: تاريخ السودان الحديث (١٨٢١ - ١٨٨٥م)",
+    lessonId: "u1_l4",
+    lessonTitle: "الدرس الرابع: السودان في عهد الخديوي إسماعيل (١٨٦٣ - ١٨٧٩م)",
+    category: "architecture",
+    type: "SuakinPort",
+    image: "/assets/lessons/u1_l4.jpg",
+    period: "١٨٦٣ - ١٨٧٩م (عهد الخديوي إسماعيل)",
+    location: "سواكن - البحر الأحمر والخرطوم",
+    description: "تطوير جزيرة وميناء سواكن التاريخي بالحجر المرجاني، ومد خطوط التلغراف السلكي لربط مدن السودان بالخرطوم ومصر والعالم الخارجي.",
+    historicalDetails: [
+      {
+        title: "تطوير ميناء سواكن والاتصالات",
+        description: "شهد عهد إسماعيل إنشاء الميناء التجاري ومد خطوط التلغراف لتسريع الاتصال الإداري والأمني بين المديريات.",
+        curriculumFact: "توسعت خطوط التلغراف في عهد إسماعيل لتشمل الخرطوم وشندي وبربر ودنقلا وسواكن ومصوع."
+      }
+    ]
+  },
+  {
+    id: "gal_gordon_palace_1877",
+    title: "حكمدارية غردون باشا في الخرطوم وسياسات نهاية الحكم التركي",
+    unitId: 1,
+    unitTitle: "الوحدة الأولى: تاريخ السودان الحديث (١٨٢١ - ١٨٨٥م)",
+    lessonId: "u1_l5",
+    lessonTitle: "الدرس الخامس: نهاية الحكم التركي المصري في السودان",
+    category: "monument",
+    type: "GordonKhartoum",
+    image: "/assets/lessons/u1_l5.jpg",
+    period: "١٨٧٧ - ١٨٨٠م (حكمدارية غردون الأولى)",
+    location: "الخرطوم - سراي الحكمدارية",
+    description: "حكمدارية الجنرال البريطاني تشارلز غردون في قصر الخرطوم، والتوترات المتصاعدة الناتجة عن الضرائب الباهظة واحتكار التجارة التي مهدت لاندلاع الثورة المهدية.",
+    historicalDetails: [
+      {
+        title: "أسباب نقمة الأهالي وسقوط النظام",
+        description: "أدى الاستعانة بالموظفين الأجانب وفرض الضرائب القاسية وتراجع الأوضاع المعيشية إلى تهيئة الظروف لإعلان الثورة المهدية عام ١٨٨١م.",
+        curriculumFact: "عين غردون باشا حكمداراً عاماً للسودان عام ١٨٧٧م واشتدت في عهده الأزمات المالية والإدارية."
+      }
+    ]
+  },
+
   // --- الوحدة الثانية: العصر العباسي ---
+  {
+    id: "gal_abbasid_flags_132",
+    title: "إعلان قيام الدولة العباسية والرايات السوداء بالكوفة (١٣٢هـ)",
+    unitId: 2,
+    unitTitle: "الوحدة الثانية: من التاريخ الإسلامي - العصر العباسي",
+    lessonId: "u2_l1",
+    lessonTitle: "الدرس الأول: قيام الدولة العباسية وأول خلفائها",
+    category: "monument",
+    type: "AbbasidRise",
+    image: "/assets/lessons/u2_l1.jpg",
+    period: "١٣٢ هـ / ٧٥٠ م",
+    location: "الكوفة - العراق وخراسان",
+    description: "انطلاق الثورة العباسية تحت الرايات السوداء بقيادة أبي مسلم الخراساني ومبايعة أبي العباس السفاح كأول خليفة عباسي في جامع الكوفة الكبير.",
+    historicalDetails: [
+      {
+        title: "المبايعة والتحول التاريخي",
+        description: "أعلنت الدعوة العباسية في خراسان ثم انتقلت للعراق وانتهت بهزيمة الأمويين في معركة الزاب الشهيرة عام ١٣٢هـ.",
+        curriculumFact: "قامت الدولة العباسية عام ١٣٢هـ وسقطت الدولة الأموية، وكان أول خلفائها أبو العباس السفاح."
+      }
+    ]
+  },
+  {
+    id: "gal_harun_rashid_court",
+    title: "مجلس الخليفة هارون الرشيد والعصر الذهبي للحضارة العباسية",
+    unitId: 2,
+    unitTitle: "الوحدة الثانية: من التاريخ الإسلامي - العصر العباسي",
+    lessonId: "u2_l2",
+    lessonTitle: "الدرس الثاني: أبرز خلفاء الدولة العباسية",
+    category: "monument",
+    type: "HarunCourt",
+    image: "/assets/lessons/u2_l2.jpg",
+    period: "١٧٠ - ١٩٣ هـ / ٧٨٦ - ٨٠٩ م",
+    location: "بغداد - قصر الخلد وقصر السلام",
+    description: "بلاط الخليفة هارون الرشيد في ذروة الازدهار، حيث اجتمع العلماء والأدباء والفقهاء والشعراء وسفراء الدول الكبرى كإمبراطور الفرنجة شارلمان.",
+    historicalDetails: [
+      {
+        title: "الرخاء والعلاقات الدبلوماسية",
+        description: "بلغت الدولة العباسية أوج قوتها الاقتصادية والعلمية وتبادلت الهدايا الدبلوماسية كالساعة المائية الشهيرة مع شارلمان.",
+        curriculumFact: "تولى هارون الرشيد الخلافة عام ١٧٠هـ واشتهر عصره بالرخاء والجهاد وإنشاء النواة الأولى لبيت الحكمة."
+      }
+    ]
+  },
   {
     id: "gal_baghdad_round",
     title: "مخطط مدينة بغداد الدائرية وأبوابها الأربعة (مدينة السلام)",
@@ -162,6 +271,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     lessonTitle: "الدرس الثالث: عاصمة الخلافة: بغداد المدورة",
     category: "map",
     type: "BaghdadRound",
+    image: "/assets/lessons/u2_l3.jpg",
     period: "١٤٥ هـ / ٧٦٢ م (عهد الخليفة أبي جعفر المنصور)",
     location: "بغداد - ضفاف نهر دجلة بالعراق",
     description: "التصميم الدائري الفريد لمدينة بغداد بقطر ميلين، يتوسطها قصر الذهب والمسجد الجامع، محاطة بأسوار دفاعية وخندق مائي وأربعة أبواب رئيسية.",
@@ -190,10 +300,11 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     title: "دار بيت الحكمة والمخطوطات العباسية وحركة الترجمة",
     unitId: 2,
     unitTitle: "الوحدة الثانية: من التاريخ الإسلامي - العصر العباسي",
-    lessonId: "u2_l2",
-    lessonTitle: "الدرس الثاني: أبرز خلفاء الدولة العباسية",
+    lessonId: "u2_l4",
+    lessonTitle: "الدرس الرابع: الحضارة الإسلامية في العصر العباسي",
     category: "illustration",
     type: "HouseOfWisdom",
+    image: "/assets/lessons/u2_l4.jpg",
     period: "العصر الذهبي (عهد هارون الرشيد والخليفة المأمون ١٩٨ - ٢١٨هـ)",
     location: "بغداد - دار الحكمة والمكتبات العامة",
     description: "أعظم مجمع علمي وترجمي في العالم الوسيط؛ جمع المخطوطات والعلماء من شتى الأصقاع لترجمة أمهات الكتب في الطب، الفلك، الفلسفة، والرياضيات إلى العربية.",
@@ -215,6 +326,27 @@ export const GALLERY_ITEMS: GalleryItem[] = [
       { id: "hw3", x: 50, y: 40, label: "الخطوط الإنسانية الجامعة", text: "تكامل جهود علماء الأمة في بيت الحكمة من شتى القوميات واللغات." }
     ]
   },
+  {
+    id: "gal_mongol_siege_656",
+    title: "سقوط بغداد على يد المغول بقيادة هولاكو (٦٥٦هـ / ١٢٥٨م)",
+    unitId: 2,
+    unitTitle: "الوحدة الثانية: من التاريخ الإسلامي - العصر العباسي",
+    lessonId: "u2_l5",
+    lessonTitle: "الدرس الخامس: نهاية الدولة العباسية وسقوط بغداد",
+    category: "monument",
+    type: "MongolFall",
+    image: "/assets/lessons/u2_l5.jpg",
+    period: "٦٥٦ هـ / ١٢٥٨ م",
+    location: "بغداد - أسوار المدينة ونهر دجلة",
+    description: "حصار جحافل المغول بقيادة هولاكو لعاصمة الخلافة بغداد واقتحامها، واستشهاد الخليفة المستعصم بالله وتدمير معالم الحضارة ورمي خزائن الكتب في نهر دجلة.",
+    historicalDetails: [
+      {
+        title: "نهاية الخلافة العباسية في بغداد",
+        description: "استمرت الدولة العباسية أكثر من خمسة قرون (١٣٢ - ٦٥٦هـ) حتى دمر المغول بغداد، ثم أحييت الخلافة شكلياً في مصر.",
+        curriculumFact: "سقطت بغداد عام ٦٥٦هـ على يد هولاكو وقتل آخر خلفاء بني العباس في بغداد (المستعصم بالله)."
+      }
+    ]
+  },
 
   // --- الوحدة الثالثة: الممالك الإسلامية بإفريقيا ---
   {
@@ -226,6 +358,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     lessonTitle: "الدرس الأول: ظهور الدويلات المستقلة في شمال إفريقيا (الأغالبة)",
     category: "illustration",
     type: "IslamicShip",
+    image: "/assets/lessons/u3_l1.jpg",
     period: "١٨٤ - ٢٩٦ هـ / ٨٠٠ - ٩٠٩ م (دولة الأغالبة بالقيروان)",
     location: "تونس، صقلية، البحر الأبيض المتوسط",
     description: "الأسطول البحري الحربي الإسلامي القوي الذي شيده الأغالبة في تونس، والذي خاض معارك مظفرة في البحر المتوسط وفتح جزيرة صقلية وسردينيا ومالطا.",
@@ -248,6 +381,48 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     ]
   },
   {
+    id: "gal_maghreb_conquests_fez",
+    title: "دولة الأدارسة وبناء مدينة فاس وجامع القرويين بالمغرب",
+    unitId: 3,
+    unitTitle: "الوحدة الثالثة: من تاريخ إفريقيا - الممالك الإسلامية",
+    lessonId: "u3_l2",
+    lessonTitle: "الدرس الثاني: الفتوحات الإسلامية في بلاد المغرب العربي",
+    category: "architecture",
+    type: "IdrisidFez",
+    image: "/assets/lessons/u3_l2.jpg",
+    period: "١٧٢ - ٣٧٥ هـ / ٧٨٨ - ٩٨٥ م",
+    location: "فاس - المملكة المغربية",
+    description: "تأسيس إدريس بن عبد الله لأول دولة إسلامية مستقلة بالمغرب الأقصى (الأدارسة)، وبناء مدينة فاس عاصمة لها، وإنشاء فاطمة الفهرية لجامع وجامعة القرويين كأول جامعة في التاريخ.",
+    historicalDetails: [
+      {
+        title: "تأسيس فاس وجامع القرويين",
+        description: "أصبحت فاس عاصمة إشعاع علمي وثقافي ربطت الأندلس بإفريقيا واحتضنت أقدم مركز جامعي مستمر حتى اليوم.",
+        curriculumFact: "أسس إدريس بن عبد الله دولة الأدارسة بالمغرب عام ١٧٢هـ وأسست فاطمة الفهرية جامع القرويين عام ٢٤٥هـ."
+      }
+    ]
+  },
+  {
+    id: "gal_kilwa_swahili_coast",
+    title: "سلطنة كلوة الإسلامية والملاحة والتجارة على الساحل السواحيلي",
+    unitId: 3,
+    unitTitle: "الوحدة الثالثة: من تاريخ إفريقيا - الممالك الإسلامية",
+    lessonId: "u3_l3",
+    lessonTitle: "الدرس الثالث: انتشار الإسلام في شرق إفريقيا (الساحل السواحيلي)",
+    category: "architecture",
+    type: "KilwaSwahili",
+    image: "/assets/lessons/u3_l3.jpg",
+    period: "القرن العاشر إلى الخامس عشر الميلادي",
+    location: "جزيرة كلوة، زنجبار، مومباسا، الساحل السواحيلي",
+    description: "ازدهار المدن الحجرية وسلطنة كلوة التاريخية وقصر حسوني كبرى على شواطئ المحيط الهندي، وربط تجارة الذهب والعاج والتوابل بين إفريقيا وشبه الجزيرة العربية والهند والصين.",
+    historicalDetails: [
+      {
+        title: "الحضارة السواحيلية والتجارة البحرية",
+        description: "شهدت كلوة سك عملات نقدية إسلامية خاصة وبناء مساجد وقصور بالحجر المرجاني وزارها الرحالة ابن بطوطة واعتبرها من أجمل مدن العالم.",
+        curriculumFact: "انتشر الإسلام في شرق إفريقيا عبر التجار العرب والبحارة وامتزجت اللغة العربية باللغات المحلية لتنشأ اللغة السواحيلية."
+      }
+    ]
+  },
+  {
     id: "gal_mali_caravan",
     title: "قوافل تجارة الذهب وإمبراطورية مالي وحج منسا موسى",
     unitId: 3,
@@ -256,6 +431,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     lessonTitle: "الدرس الرابع: نماذج للممالك الإسلامية في السودان الأوسط والغربي (مالي)",
     category: "illustration",
     type: "GoldMali",
+    image: "/assets/lessons/u3_l4.jpg",
     period: "١٣١٢ - ١٣٣٧ م (عهد الملك منسا موسى)",
     location: "حوض نهر النيجر - تمبكتو - نياني",
     description: "قوافل الجمال العابرة للصحراء الكبرى المحملة بذهب مالي والملح؛ وموكب الحج الأسطوري للملك منسا موسى عام ١٣٢٤م الذي أبهر العالم بثروته وسخائه.",
@@ -680,11 +856,25 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               className="group bg-[#151326] hover:bg-[#1b1833] rounded-2xl border border-indigo-950/70 hover:border-amber-500/40 p-4 transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-amber-500/5 cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
             >
               {/* Illustration Thumbnail Container */}
-              <div className="relative rounded-xl overflow-hidden bg-amber-50/90 border border-amber-200/60 p-2 group-hover:scale-[1.01] transition-transform duration-300">
-                <SVGIllustration type={item.type} className="w-full h-44 pointer-events-none" />
+              <div className="relative rounded-xl overflow-hidden bg-[#0c0a17] border border-amber-500/20 group-hover:scale-[1.01] transition-transform duration-300 h-48 flex items-center justify-center">
+                {item.image ? (
+                  <div className="relative w-full h-full">
+                    <img 
+                      src={item.image} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      loading="lazy" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a17]/90 via-transparent to-transparent opacity-60" />
+                  </div>
+                ) : (
+                  <div className="p-2 w-full h-full flex items-center justify-center bg-amber-50/90">
+                    <SVGIllustration type={item.type} className="w-full h-44 pointer-events-none" />
+                  </div>
+                )}
 
                 {/* Floating Category Badge */}
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-[#09080f]/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-indigo-900/40 text-[10px] text-amber-300 font-bold font-serif">
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-[#09080f]/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-indigo-900/40 text-[10px] text-amber-300 font-bold font-serif">
                   {item.category === "map" && <MapPin className="w-3 h-3 text-teal-400" />}
                   {item.category === "monument" && <Award className="w-3 h-3 text-amber-400" />}
                   {item.category === "architecture" && <Layers className="w-3 h-3 text-indigo-400" />}
@@ -841,7 +1031,16 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                     }}
                     className="w-full h-full relative flex items-center justify-center p-2"
                   >
-                    <SVGIllustration type={activeItem.type} className="w-full h-full" />
+                    {activeItem.image ? (
+                      <img 
+                        src={activeItem.image} 
+                        alt={activeItem.title} 
+                        className="w-full h-full object-contain rounded-xl select-none" 
+                        draggable={false} 
+                      />
+                    ) : (
+                      <SVGIllustration type={activeItem.type} className="w-full h-full" />
+                    )}
 
                     {/* Historical Hotspot Pins */}
                     {showHotspots && activeItem.hotspots && activeItem.hotspots.map((spot, idx) => (

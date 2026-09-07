@@ -141,6 +141,9 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Lightbox Modal for Fullscreen Historical Illustrations
+  const [selectedLightboxImage, setSelectedLightboxImage] = useState<{ src: string; title: string } | null>(null);
+
   const onToggleFavoriteLesson = (lessonId: string) => {
     handlePlaySound("click");
     setFavoriteLessons(prev => {
@@ -496,9 +499,38 @@ export default function App() {
     setIsEditingMedia(prev => !prev);
   };
 
-  const renderLessonMedia = (lessonId: string, defaultIllustration: string) => {
+  const renderLessonMedia = (lessonId: string, defaultIllustration: string, lessonImage?: string, lessonTitle?: string) => {
     const media = customMedia[lessonId];
     if (!media) {
+      if (lessonImage) {
+        return (
+          <div 
+            onClick={() => {
+              handlePlaySound("click");
+              setSelectedLightboxImage({ src: lessonImage, title: lessonTitle || "لوحة تاريخية تعليمية" });
+            }}
+            className="group relative w-full h-64 sm:h-72 rounded-2xl overflow-hidden border border-amber-900/30 shadow-md hover:shadow-xl hover:border-amber-500/60 transition-all duration-300 cursor-pointer bg-[#0c0a17]"
+            title="انقر لتكبير اللوحة التاريخية واستعراض التفاصيل"
+          >
+            <img 
+              src={lessonImage} 
+              alt={lessonTitle || "لوحة تاريخية"} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+              loading="lazy" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-75 group-hover:opacity-60 transition-opacity" />
+            <div className="absolute bottom-2.5 right-3 left-3 flex items-center justify-between text-white text-xs select-none">
+              <span className="font-bold flex items-center gap-1.5 drop-shadow">
+                <span>🎨 {lessonTitle || "لوحة تاريخية تعليمية"}</span>
+                <span className="text-[10px] text-amber-300 font-normal bg-black/50 px-2 py-0.5 rounded-full border border-amber-400/30">(انقر للتكبير 🔍)</span>
+              </span>
+              <span className="p-1.5 rounded-xl bg-black/60 backdrop-blur-sm group-hover:bg-amber-600 transition shadow">
+                <Maximize2 className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+        );
+      }
       return <SVGIllustration type={defaultIllustration} className="w-full h-56 bg-slate-950/40 rounded-xl border border-indigo-950/40" />;
     }
 
@@ -2213,31 +2245,43 @@ export default function App() {
         {/* TAB 5: LESSON READER & QUIZ TRAY */}
         {currentTab === "unit" && selectedUnit && quizMode === "none" && (
           <div className="space-y-8 animate-[fadeIn_0.3s_ease-out]">
-            {/* Unit Cover Header */}
+            {/* Clean, Non-Distracting Unit Navigation Bar */}
             {!isReadingMode && (
-              <div className="bg-gradient-to-br from-[#121020] to-[#1a1122] rounded-3xl p-6 border border-indigo-950 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-              <div className="absolute inset-5 border border-slate-800/20 rounded-2xl pointer-events-none"></div>
+              <div className="bg-white/80 dark:bg-[#121020]/90 rounded-2xl p-4 border border-amber-900/10 dark:border-indigo-950/80 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={() => {
+                      handlePlaySound("click");
+                      setCurrentTab("dashboard");
+                    }}
+                    className="p-2 rounded-xl bg-amber-100/70 hover:bg-amber-200/70 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-amber-900 dark:text-amber-300 transition cursor-pointer shrink-0"
+                    title="الرجوع للرئيسية"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <div className="text-right">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] px-2 py-0.5 rounded-full font-bold">الوحدة {selectedUnit.id}</span>
+                      <h2 className="text-base sm:text-lg font-bold font-serif text-slate-900 dark:text-amber-400">{selectedUnit.title}</h2>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="space-y-3 relative text-right flex-1 z-10">
-                <span className="bg-[#1e121e] text-amber-400 border border-amber-900/40 text-xs px-2.5 py-0.5 rounded-full font-bold">الوحدة {selectedUnit.id}</span>
-                <h2 className="text-2xl md:text-3xl font-bold font-serif text-amber-400">{selectedUnit.title}</h2>
-                <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-sans max-w-2xl">{selectedUnit.description}</p>
-                
-                {/* Visual subtab navigator */}
-                <div className="flex flex-wrap gap-2 pt-2 select-none">
+                {/* Compact Action Pills */}
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end select-none flex-wrap">
                   <button
                     onClick={() => {
                       handlePlaySound("click");
                       setLessonActiveSubTab("lessons");
                       setQuizMode("none");
                     }}
-                    className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                       lessonActiveSubTab === "lessons" && quizMode === "none"
-                        ? "bg-amber-800/90 text-white border-amber-500/50 shadow-md"
-                        : "bg-[#18152c] hover:bg-[#201c3e] text-slate-300 border-indigo-950/60"
+                        ? "bg-amber-700 text-white shadow-sm"
+                        : "bg-amber-50 hover:bg-amber-100/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-300 border border-amber-200/60 dark:border-indigo-950/60"
                     }`}
                   >
-                    <BookOpen className="w-4 h-4" />
+                    <BookOpen className="w-3.5 h-3.5" />
                     <span>مطالعة الدروس</span>
                   </button>
                   <button
@@ -2246,13 +2290,13 @@ export default function App() {
                       setLessonActiveSubTab("timeline");
                       setQuizMode("none");
                     }}
-                    className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                       lessonActiveSubTab === "timeline" && quizMode === "none"
-                        ? "bg-amber-800/90 text-white border-amber-500/50 shadow-md"
-                        : "bg-[#18152c] hover:bg-[#201c3e] text-slate-300 border-indigo-950/60"
+                        ? "bg-amber-700 text-white shadow-sm"
+                        : "bg-amber-50 hover:bg-amber-100/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-300 border border-amber-200/60 dark:border-indigo-950/60"
                     }`}
                   >
-                    <Star className="w-4 h-4" />
+                    <Star className="w-3.5 h-3.5" />
                     <span>الخط الزمني</span>
                   </button>
                   <button
@@ -2261,48 +2305,25 @@ export default function App() {
                       setLessonActiveSubTab("flashcards");
                       setQuizMode("none");
                     }}
-                    className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                       lessonActiveSubTab === "flashcards" && quizMode === "none"
-                        ? "bg-amber-800/90 text-white border-amber-500/50 shadow-md"
-                        : "bg-[#18152c] hover:bg-[#201c3e] text-slate-300 border-indigo-950/60"
+                        ? "bg-amber-700 text-white shadow-sm"
+                        : "bg-amber-50 hover:bg-amber-100/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-300 border border-amber-200/60 dark:border-indigo-950/60"
                     }`}
                   >
-                    <FileText className="w-4 h-4" />
+                    <FileText className="w-3.5 h-3.5" />
                     <span>بطاقات المراجعة</span>
+                  </button>
+                  <button
+                    onClick={() => startComprehensiveQuiz(selectedUnit.id)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition flex items-center gap-1 cursor-pointer shadow-sm ml-1"
+                    title="بدء اختبار الوحدة"
+                  >
+                    <Gamepad2 className="w-3.5 h-3.5" />
+                    <span>اختبار الوحدة</span>
                   </button>
                 </div>
               </div>
-
-              {/* Quiz and Challenges Buttons */}
-              <div className="bg-[#121020]/90 rounded-2xl border border-indigo-950/80 p-5 shrink-0 w-full md:w-64 flex flex-col gap-2.5 shadow-sm">
-                <span className="text-slate-100 font-bold block text-sm border-b border-indigo-950 pb-2 text-center">🏆 مركز التحديات والاختبارات</span>
-                <button
-                  onClick={() => startComprehensiveQuiz(selectedUnit.id)}
-                  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm border-none"
-                >
-                  <Gamepad2 className="w-4 h-4" />
-                  <span>الاختبار النهائي للوحدة</span>
-                </button>
-                {QUESTIONS.some(q => q.unitId === selectedUnit.id && q.type === QuestionType.TRUE_FALSE) && (
-                  <button
-                    onClick={() => startSpeedrunQuiz(selectedUnit.id)}
-                    className="w-full bg-gradient-to-r from-indigo-700 to-indigo-800 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm border-none"
-                  >
-                    <Clock className="w-4 h-4" />
-                    <span>تحدي الصح والخطأ السريع</span>
-                  </button>
-                )}
-                {QUESTIONS.some(q => q.unitId === selectedUnit.id && q.type === QuestionType.MATCH) && (
-                  <button
-                    onClick={() => startMatchGame(selectedUnit.id)}
-                    className="w-full bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm border-none"
-                  >
-                    <Award className="w-4 h-4" />
-                    <span>لعبة التوصيل الذكي</span>
-                  </button>
-                )}
-              </div>
-            </div>
             )}
 
             {/* CURRICULUM READING SUBTAB */}
@@ -2651,7 +2672,7 @@ export default function App() {
 
                                 {/* Custom media or illustrative elements */}
                                 <div className="space-y-2">
-                                  {renderLessonMedia(activeLesson.id, activeLesson.illustration)}
+                                  {renderLessonMedia(activeLesson.id, activeLesson.illustration, activeLesson.image, activeLesson.title)}
                                   
                                   <div className="flex items-center justify-between">
                                     <button
@@ -3873,6 +3894,38 @@ export default function App() {
         themeMode={theme}
         onCycleTheme={cycleTheme}
       />
+
+      {/* Lightbox Modal for High-Res Historical Illustrations */}
+      {selectedLightboxImage && (
+        <div 
+          onClick={() => setSelectedLightboxImage(null)}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 cursor-zoom-out animate-[fadeIn_0.2s_ease-out]"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="relative max-w-5xl max-h-[92vh] w-full bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-amber-500/30 flex flex-col cursor-default"
+          >
+            <button
+              onClick={() => setSelectedLightboxImage(null)}
+              className="absolute top-4 left-4 z-20 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition cursor-pointer shadow-lg"
+              title="إغلاق"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="overflow-auto max-h-[80vh] flex items-center justify-center bg-black/40 p-2">
+              <img 
+                src={selectedLightboxImage.src} 
+                alt={selectedLightboxImage.title} 
+                className="w-full h-auto max-h-[78vh] object-contain rounded-xl"
+              />
+            </div>
+            <div className="p-4 bg-slate-950 text-center border-t border-slate-800">
+              <h3 className="text-amber-400 font-bold text-base sm:text-lg">{selectedLightboxImage.title}</h3>
+              <p className="text-xs text-slate-400 mt-1 font-medium">لوحة تاريخية تعليمية عالية الدقة تجسد وتوثق وقائع المنهج الدراسي</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
