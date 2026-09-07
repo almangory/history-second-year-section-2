@@ -3339,7 +3339,7 @@ export default function App() {
                     unitId: qhUnitId,
                     lessonId: qhLessonId,
                     questionCount: qhSize,
-                    challengeType: "standard"
+                    challengeType: "mcq"
                   });
                 }}
                 className="w-full sm:w-96 py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-400 hover:to-amber-600 text-slate-950 font-black text-lg shadow-xl shadow-amber-500/30 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
