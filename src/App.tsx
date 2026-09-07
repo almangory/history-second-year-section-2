@@ -16,6 +16,7 @@ import { AIChatBot } from "./components/AIChatBot";
 import { WorksheetGenerator } from "./components/WorksheetGenerator";
 import { GalleryView } from "./components/GalleryView";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import { ClassicLessonReader } from "./components/ClassicLessonReader";
 import { NavigationDock, ActiveTabType } from "./components/NavigationDock";
 import { TimelineView } from "./views/TimelineView";
 import { speechEngine } from "./utils/speechUtils";
@@ -267,6 +268,8 @@ export default function App() {
   const [bookPageIndex, setBookPageIndex] = useState(0); // For paginating lesson parts (0 to 3)
   const [pageFlipDirection, setPageFlipDirection] = useState<1 | -1>(1); // For realistic 3D paper flipping direction
   const [isReadingMode, setIsReadingMode] = useState(false);
+  const [readerMode, setReaderMode] = useState<"classic" | "book">("classic"); // Classic reading mode is DEFAULT!
+  const [readerFontSize, setReaderFontSize] = useState<"sm" | "md" | "lg" | "xl">("md");
   const [isTOCExpanded, setIsTOCExpanded] = useState(false);
   const [timelineIndex, setTimelineIndex] = useState(0);
   const [flashcardIdx, setFlashcardIdx] = useState(0);
@@ -335,6 +338,37 @@ export default function App() {
     stopSpeaking();
     setBookPageIndex(0);
   }, [currentLessonIdx, selectedUnitId, currentTab, lessonActiveSubTab]);
+
+  const toggleFullscreen = () => {
+    handlePlaySound("levelup");
+    if (!isReadingMode) {
+      setIsReadingMode(true);
+      try {
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+    } else {
+      setIsReadingMode(false);
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isReadingMode) {
+        setIsReadingMode(false);
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [isReadingMode]);
 
   const pauseSpeaking = () => {
     if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -2072,8 +2106,8 @@ export default function App() {
                       }
                     };
 
-                    return (
-                      <div className="relative bg-[#FAF6EE] text-[#2c221a] rounded-3xl border-4 border-[#3e2e21] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col ring-8 ring-amber-950/20 h-[620px] md:h-[685px] [perspective:2000px]">
+                    const renderBookMarkup = (isFullscreen: boolean) => (
+                      <div className={`relative bg-[#FAF6EE] text-[#2c221a] rounded-2xl sm:rounded-3xl border-2 sm:border-4 border-[#3e2e21] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col ring-4 sm:ring-8 ring-amber-950/20 ${isFullscreen ? "w-full max-w-6xl h-full max-h-[88vh] md:max-h-[92vh]" : "h-[620px] md:h-[685px]"} [perspective:2000px]`}>
                         {/* Immersive Top Toolbar (Reading Mode, TOC) */}
                         <div className="px-6 py-2.5 bg-[#ebdcb4]/30 border-b border-[#ebdcb4]/60 flex items-center justify-between select-none font-sans text-xs text-amber-950 shrink-0 z-20 gap-2">
                           <div className="flex items-center gap-1.5">
@@ -2124,20 +2158,31 @@ export default function App() {
                               <span>اقرأ لي الدرس 🔊</span>
                             </button>
 
-                            {/* Toggle Reading Mode */}
+                            {/* Switch to Classic Mode */}
                             <button
                               onClick={() => {
-                                handlePlaySound("levelup");
-                                setIsReadingMode(!isReadingMode);
+                                handlePlaySound("click");
+                                setReaderMode("classic");
                               }}
+                              className="px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm bg-[#faf6ee] hover:bg-[#ebdcb4] text-amber-950 border-[#ebdcb3]"
+                              title="التبديل إلى وضع القراءة الكلاسيكي"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-amber-800" />
+                              <span className="hidden sm:inline">القراءة الكلاسيكية 📜</span>
+                            </button>
+
+                            {/* Toggle Fullscreen Mode */}
+                            <button
+                              onClick={toggleFullscreen}
                               className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
                                 isReadingMode 
-                                  ? "bg-amber-800 text-white border-amber-700 font-serif animate-pulse" 
+                                  ? "bg-amber-800 text-white border-amber-700 font-serif" 
                                   : "bg-[#faf6ee] hover:bg-[#ebdcb4] text-amber-950 border-[#ebdcb3]"
                               }`}
+                              title={isReadingMode ? "خروج من ملء الشاشة" : "عرض ملء الشاشة المتكيف"}
                             >
                               {isReadingMode ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                              <span>{isReadingMode ? "المغادرة لوضع العرض 👓" : "وضع الدراسة الهادئة 👓"}</span>
+                              <span>{isReadingMode ? "تصغير 🗗" : "ملء الشاشة ⛶"}</span>
                             </button>
                           </div>
                         </div>
@@ -2732,6 +2777,302 @@ export default function App() {
                           </button>
                         </div>
                       </div>
+                    );
+
+                    return (
+                      <>
+                        {/* Fullscreen Modal Overlay */}
+                        {isReadingMode && (
+                          <div className="fixed inset-0 z-50 bg-[#FAF8F5] dark:bg-[#0c0a17] flex flex-col w-full h-full overflow-hidden animate-[fadeIn_0.2s_ease]">
+                            {/* Fullscreen Sticky Top Header */}
+                            <div className="px-3 sm:px-6 py-2.5 bg-white/95 dark:bg-[#151224] border-b border-amber-200 dark:border-indigo-950 flex items-center justify-between gap-2 shadow-xs shrink-0 select-none z-30">
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <button
+                                  onClick={toggleFullscreen}
+                                  className="bg-amber-100 hover:bg-amber-200 dark:bg-[#221c3d] text-amber-900 dark:text-amber-200 px-3 py-1.5 rounded-xl border border-amber-300 dark:border-indigo-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                  title="خروج من ملء الشاشة (ESC)"
+                                >
+                                  <Minimize2 className="w-4 h-4 text-amber-800 dark:text-amber-400" />
+                                  <span className="font-bold">خروج من ملء الشاشة 🗗</span>
+                                </button>
+                                <span className="hidden md:inline-block font-serif font-bold text-xs sm:text-sm text-slate-900 dark:text-amber-300 truncate max-w-[260px]">
+                                  الوحدة {selectedUnit.id} • {activeLesson.title}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center bg-amber-100/70 dark:bg-[#100e1c] p-1 rounded-xl border border-amber-300/60 dark:border-indigo-950/60 shrink-0">
+                                <button
+                                  onClick={() => {
+                                    handlePlaySound("click");
+                                    setReaderMode("classic");
+                                  }}
+                                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    readerMode === "classic"
+                                      ? "bg-amber-600 text-white shadow-xs font-serif"
+                                      : "text-amber-950 dark:text-amber-200 hover:bg-amber-200/60"
+                                  }`}
+                                >
+                                  <FileText className="w-3.5 h-3.5" />
+                                  <span>كلاسيكي (افتراضي)</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handlePlaySound("click");
+                                    setReaderMode("book");
+                                  }}
+                                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    readerMode === "book"
+                                      ? "bg-amber-600 text-white shadow-xs font-serif"
+                                      : "text-amber-950 dark:text-amber-200 hover:bg-amber-200/60"
+                                  }`}
+                                >
+                                  <Book className="w-3.5 h-3.5" />
+                                  <span>كتاب المنهج (3D)</span>
+                                </button>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 sm:gap-2">
+                                {readerMode === "classic" && (
+                                  <div className="hidden sm:flex items-center bg-amber-50 dark:bg-[#1a172e] border border-amber-200 dark:border-indigo-950 rounded-lg px-2 py-1 gap-1 text-xs">
+                                    <span className="text-[10px] text-amber-900/70 dark:text-amber-400/70 font-bold ml-1">الخط:</span>
+                                    <button
+                                      onClick={() => {
+                                        handlePlaySound("click");
+                                        setReaderFontSize(prev => prev === "xl" ? "lg" : prev === "lg" ? "md" : "sm");
+                                      }}
+                                      className="px-2 py-0.5 rounded bg-white dark:bg-[#100e1c] border border-amber-200 text-amber-950 text-xs font-bold cursor-pointer"
+                                      title="تصغير الخط"
+                                    >
+                                      A-
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        handlePlaySound("click");
+                                        setReaderFontSize(prev => prev === "sm" ? "md" : prev === "md" ? "lg" : "xl");
+                                      }}
+                                      className="px-2 py-0.5 rounded bg-white dark:bg-[#100e1c] border border-amber-200 text-amber-950 text-xs font-bold cursor-pointer"
+                                      title="تكبير الخط"
+                                    >
+                                      A+
+                                    </button>
+                                  </div>
+                                )}
+
+                                <button
+                                  onClick={() => {
+                                    handlePlaySound("click");
+                                    if (speechEngine.getStatus().isSpeaking) {
+                                      if (speechEngine.getStatus().isPaused) speechEngine.resume();
+                                      else speechEngine.pause();
+                                    } else {
+                                      const textToRead = `${activeLesson.title}. ${activeLesson.content.join(" ")}. أهم النقاط: ${activeLesson.keyPoints.join(". ")}`;
+                                      speechEngine.speak(textToRead, 0.95, () => handlePlaySound("success"));
+                                    }
+                                  }}
+                                  className="p-2 sm:px-3 sm:py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1 cursor-pointer bg-amber-50 hover:bg-amber-100 text-amber-950 border-amber-200 dark:bg-[#1e1a38] dark:border-indigo-900"
+                                  title="استمع للدرس"
+                                >
+                                  <Volume2 className="w-3.5 h-3.5 text-amber-800 dark:text-amber-400" />
+                                  <span className="hidden sm:inline">اقرأ لي</span>
+                                </button>
+
+                                <button
+                                  onClick={toggleFullscreen}
+                                  className="p-2 rounded-xl border text-xs font-bold transition cursor-pointer bg-red-50 hover:bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:border-red-900/60 dark:text-red-300"
+                                  title="إغلاق ملء الشاشة"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Fullscreen Content Area */}
+                            <div className="flex-1 overflow-y-auto w-full">
+                              {readerMode === "classic" ? (
+                                <div className="max-w-4xl mx-auto w-full px-3 sm:px-6 md:px-8 py-6">
+                                  <ClassicLessonReader
+                                    lesson={activeLesson}
+                                    unit={selectedUnit}
+                                    currentLessonIdx={currentLessonIdx}
+                                    totalLessons={selectedUnit.lessons.length}
+                                    readerFontSize={readerFontSize}
+                                    setReaderFontSize={setReaderFontSize}
+                                    onPrevLesson={() => {
+                                      if (currentLessonIdx > 0) {
+                                        handlePlaySound("click");
+                                        setCurrentLessonIdx(prev => prev - 1);
+                                        setBookPageIndex(0);
+                                      }
+                                    }}
+                                    onNextLesson={() => {
+                                      if (currentLessonIdx < selectedUnit.lessons.length - 1) {
+                                        handlePlaySound("click");
+                                        setCurrentLessonIdx(prev => prev + 1);
+                                        setBookPageIndex(0);
+                                      }
+                                    }}
+                                    onOpenQuiz={() => {
+                                      handlePlaySound("levelup");
+                                      setIsReadingMode(false);
+                                      setQuizMode("standard");
+                                    }}
+                                    onSwitchToBook={() => {
+                                      handlePlaySound("click");
+                                      setReaderMode("book");
+                                    }}
+                                    isFavorite={favoriteLessons.includes(activeLesson.id)}
+                                    onToggleFavorite={() => onToggleFavoriteLesson(activeLesson.id)}
+                                    isFullscreen={true}
+                                    renderLessonMedia={renderLessonMedia}
+                                    handleStartEditingMedia={handleStartEditingMedia}
+                                    handleResetCustomMedia={handleResetCustomMedia}
+                                    hasCustomMedia={Boolean(customMedia[activeLesson.id])}
+                                    isSpeaking={isSpeaking}
+                                    isPaused={isPaused}
+                                    currentSpeechParagraphIndex={currentSpeechParagraphIndex}
+                                    onStartSpeakingAll={startSpeakingAll}
+                                    onSpeakParagraph={speakParagraph}
+                                    onResumeSpeaking={resumeSpeaking}
+                                    onPauseSpeaking={pauseSpeaking}
+                                    onStopSpeaking={stopSpeaking}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden">
+                                  {renderBookMarkup(true)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Normal Reading View (Classic or Book) */}
+                        <div className="space-y-4">
+                          {/* Top Mode Switcher Bar */}
+                          <div className="flex flex-wrap items-center justify-between gap-3 bg-white/95 dark:bg-[#151224] border border-amber-200/80 dark:border-indigo-950/70 p-3 rounded-2xl shadow-xs select-none">
+                            <div className="flex items-center bg-amber-100/70 dark:bg-[#120f20] p-1 rounded-xl border border-amber-300/60 dark:border-indigo-950/60 shadow-xs">
+                              <button
+                                onClick={() => {
+                                  handlePlaySound("click");
+                                  setReaderMode("classic");
+                                }}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                  readerMode === "classic"
+                                    ? "bg-amber-600 text-white shadow-xs font-serif"
+                                    : "text-amber-950 dark:text-amber-200 hover:bg-amber-200/60 dark:hover:bg-[#1e1a38]"
+                                }`}
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span>وضع القراءة الكلاسيكي (افتراضي) 📜</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handlePlaySound("click");
+                                  setReaderMode("book");
+                                }}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                  readerMode === "book"
+                                    ? "bg-amber-600 text-white shadow-xs font-serif"
+                                    : "text-amber-950 dark:text-amber-200 hover:bg-amber-200/60 dark:hover:bg-[#1e1a38]"
+                                }`}
+                              >
+                                <Book className="w-3.5 h-3.5" />
+                                <span>كتاب المنهج التفاعلي (3D) 📖</span>
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {readerMode === "classic" && (
+                                <div className="flex items-center bg-amber-50 dark:bg-[#1e1a38] border border-amber-200 dark:border-indigo-900/60 rounded-xl px-2 py-1 gap-1 text-xs">
+                                  <span className="text-[11px] text-amber-900/70 dark:text-amber-300/70 font-bold ml-1">حجم الخط:</span>
+                                  <button
+                                    onClick={() => {
+                                      handlePlaySound("click");
+                                      setReaderFontSize(prev => prev === "xl" ? "lg" : prev === "lg" ? "md" : "sm");
+                                    }}
+                                    className="w-6 h-6 rounded-lg bg-white dark:bg-[#120f20] hover:bg-amber-100 dark:hover:bg-[#2a244d] border border-amber-200 dark:border-indigo-950 text-amber-950 dark:text-amber-200 font-bold cursor-pointer transition flex items-center justify-center text-xs"
+                                    title="تصغير الخط"
+                                  >
+                                    A-
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handlePlaySound("click");
+                                      setReaderFontSize(prev => prev === "sm" ? "md" : prev === "md" ? "lg" : "xl");
+                                    }}
+                                    className="w-6 h-6 rounded-lg bg-white dark:bg-[#120f20] hover:bg-amber-100 dark:hover:bg-[#2a244d] border border-amber-200 dark:border-indigo-950 text-amber-950 dark:text-amber-200 font-bold cursor-pointer transition flex items-center justify-center text-xs"
+                                    title="تكبير الخط"
+                                  >
+                                    A+
+                                  </button>
+                                </div>
+                              )}
+
+                              <button
+                                onClick={toggleFullscreen}
+                                className="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs bg-amber-700 hover:bg-amber-800 text-white border-amber-800"
+                                title="عرض ملء الشاشة المتكيف مع جميع الأجهزة"
+                              >
+                                <Maximize2 className="w-3.5 h-3.5" />
+                                <span>ملء الشاشة ⛶</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Active Mode Body */}
+                          {readerMode === "classic" ? (
+                            <ClassicLessonReader
+                              lesson={activeLesson}
+                              unit={selectedUnit}
+                              currentLessonIdx={currentLessonIdx}
+                              totalLessons={selectedUnit.lessons.length}
+                              readerFontSize={readerFontSize}
+                              setReaderFontSize={setReaderFontSize}
+                              onPrevLesson={() => {
+                                if (currentLessonIdx > 0) {
+                                  handlePlaySound("click");
+                                  setCurrentLessonIdx(prev => prev - 1);
+                                  setBookPageIndex(0);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }
+                              }}
+                              onNextLesson={() => {
+                                if (currentLessonIdx < selectedUnit.lessons.length - 1) {
+                                  handlePlaySound("click");
+                                  setCurrentLessonIdx(prev => prev + 1);
+                                  setBookPageIndex(0);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }
+                              }}
+                              onOpenQuiz={() => {
+                                handlePlaySound("levelup");
+                                setQuizMode("standard");
+                              }}
+                              onSwitchToBook={() => {
+                                handlePlaySound("click");
+                                setReaderMode("book");
+                              }}
+                              isFavorite={favoriteLessons.includes(activeLesson.id)}
+                              onToggleFavorite={() => onToggleFavoriteLesson(activeLesson.id)}
+                              isFullscreen={false}
+                              renderLessonMedia={renderLessonMedia}
+                              handleStartEditingMedia={handleStartEditingMedia}
+                              handleResetCustomMedia={handleResetCustomMedia}
+                              hasCustomMedia={Boolean(customMedia[activeLesson.id])}
+                              isSpeaking={isSpeaking}
+                              isPaused={isPaused}
+                              currentSpeechParagraphIndex={currentSpeechParagraphIndex}
+                              onStartSpeakingAll={startSpeakingAll}
+                              onSpeakParagraph={speakParagraph}
+                              onResumeSpeaking={resumeSpeaking}
+                              onPauseSpeaking={pauseSpeaking}
+                              onStopSpeaking={stopSpeaking}
+                            />
+                          ) : (
+                            renderBookMarkup(false)
+                          )}
+                        </div>
+                      </>
                     );
                   })()}
                 </div>
