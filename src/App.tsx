@@ -14,6 +14,7 @@ import { SVGIllustration } from "./components/SVGIllustrations";
 import { MapExplorer } from "./components/MapExplorer";
 import { AIChatBot } from "./components/AIChatBot";
 import { WorksheetGenerator } from "./components/WorksheetGenerator";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GalleryView } from "./components/GalleryView";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { ClassicLessonReader } from "./components/ClassicLessonReader";
@@ -1900,22 +1901,24 @@ export default function App() {
         {/* TAB WORKSHEETS: WORKSHEETS GENERATOR & PRINT OUTS */}
         {currentTab === "worksheets" && quizMode === "none" && (
           <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
-            <WorksheetGenerator
-              units={UNITS}
-              questions={QUESTIONS}
-              favoriteLessons={favoriteLessons}
-              onToggleFavoriteLesson={onToggleFavoriteLesson}
-              onPlaySound={handlePlaySound}
-              score={score}
-              setScore={setScore}
-              parentPin={parentQuizPin}
-              onRequestExit={(action, isDirty) => {
-                requestExitQuiz(action, isDirty, "ورقة العمل والتقييم المدرسي");
-              }}
-              onWorksheetSolvingChange={(isSolving) => {
-                setIsWorksheetSolvingActive(isSolving);
-              }}
-            />
+            <ErrorBoundary fallbackTitle="أوراق العمل والتقييم المدرسي">
+              <WorksheetGenerator
+                units={UNITS}
+                questions={QUESTIONS}
+                favoriteLessons={favoriteLessons}
+                onToggleFavoriteLesson={onToggleFavoriteLesson}
+                onPlaySound={handlePlaySound}
+                score={score}
+                setScore={setScore}
+                parentPin="1234"
+                onRequestExit={(action) => {
+                  requestExitQuiz(action);
+                }}
+                onWorksheetSolvingChange={(isSolving) => {
+                  setIsWorksheetSolvingActive(isSolving);
+                }}
+              />
+            </ErrorBoundary>
           </div>
         )}
 

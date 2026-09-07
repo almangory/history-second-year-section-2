@@ -410,7 +410,8 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
           }
         } else {
           totalQuestionsGraded++;
-          if (answer && answer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase()) {
+          const safeCorrect = typeof q.correctAnswer === "string" ? q.correctAnswer : String(q.correctAnswer || "");
+          if (answer && safeCorrect && answer.trim().toLowerCase() === safeCorrect.trim().toLowerCase()) {
             correctCount++;
           }
         }
@@ -1077,7 +1078,8 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                       {page.questions.map((q, idx) => {
                         const ansKey = `${page.pageNumber}-${idx}`;
                         const userChoice = userAnswers[ansKey] || "";
-                        const isAnswerCorrect = userChoice.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
+                        const safeCorrect = typeof q.correctAnswer === "string" ? q.correctAnswer : String(q.correctAnswer || "");
+                        const isAnswerCorrect = userChoice && safeCorrect ? userChoice.trim().toLowerCase() === safeCorrect.trim().toLowerCase() : false;
 
                         return (
                           <div 
@@ -1105,7 +1107,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-sans">
                                   {q.options.map((opt, oIdx) => {
                                     const isSelected = userChoice === opt;
-                                    const isThisCorrect = opt.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
+                                    const isThisCorrect = safeCorrect && opt ? opt.trim().toLowerCase() === safeCorrect.trim().toLowerCase() : false;
 
                                     return (
                                       <button
@@ -1139,7 +1141,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                                 <div className="flex items-center gap-3 sm:gap-4 text-xs font-sans font-bold">
                                   {["صواب", "خطأ"].map((opt) => {
                                     const isSelected = userChoice === opt;
-                                    const isThisCorrect = opt.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
+                                    const isThisCorrect = safeCorrect && opt ? opt.trim().toLowerCase() === safeCorrect.trim().toLowerCase() : false;
 
                                     return (
                                       <button
@@ -1229,6 +1231,49 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                                             {q.diagramData?.labels.map((lOpt) => (
                                               <option key={lOpt.id} value={lOpt.name}>
                                                 {lOpt.name}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* MATCH PAIRS */}
+                              {(q.type === QuestionType.MATCH || q.type === "match") && q.matchPairs && (
+                                <div className="space-y-2 font-sans">
+                                  <p className="text-[11px] text-slate-700 bg-slate-100 p-2 rounded">
+                                    صل كل فقرة في القائمة (أ) بما يناسبها من القائمة (ب):
+                                  </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                    {q.matchPairs.map((pair, pIdx) => {
+                                      const matchKey = `${ansKey}-match-${pIdx}`;
+                                      const selectedVal = userAnswers[matchKey] || "";
+                                      const isPairCorrect = selectedVal === pair.right;
+
+                                      return (
+                                        <div key={pIdx} className="flex items-center gap-2 border border-slate-200 bg-slate-50 p-2 rounded">
+                                          <span className="font-bold text-slate-900 shrink-0">{pair.left}</span>
+                                          <span className="text-slate-400">←</span>
+                                          <select
+                                            value={selectedVal}
+                                            disabled={isEvaluated}
+                                            onChange={(e) => {
+                                              onPlaySound("click");
+                                              setUserAnswers({ ...userAnswers, [matchKey]: e.target.value });
+                                            }}
+                                            className={`w-full bg-white border text-xs rounded px-2 py-1 outline-none ${
+                                              isEvaluated
+                                                ? isPairCorrect ? "border-emerald-500 bg-emerald-50 text-emerald-800 font-bold" : "border-red-500 bg-red-50 text-red-800 font-bold"
+                                                : "border-slate-300"
+                                            }`}
+                                          >
+                                            <option value="">-- اختر الإجابة --</option>
+                                            {q.matchPairs?.map((mOpt, oIdx) => (
+                                              <option key={oIdx} value={mOpt.right}>
+                                                {mOpt.right}
                                               </option>
                                             ))}
                                           </select>
@@ -1349,7 +1394,8 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                     {page.questions.map((q, idx) => {
                       const ansKey = `${page.pageNumber}-${idx}`;
                       const userChoice = userAnswers[ansKey] || "";
-                      const isAnswerCorrect = userChoice.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
+                      const safeCorrect = typeof q.correctAnswer === "string" ? q.correctAnswer : String(q.correctAnswer || "");
+                      const isAnswerCorrect = userChoice && safeCorrect ? userChoice.trim().toLowerCase() === safeCorrect.trim().toLowerCase() : false;
 
                       return (
                         <div key={idx} className="bg-white p-4 rounded-xl border border-amber-200/80 space-y-3 font-sans shadow-xs">
@@ -1438,6 +1484,93 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                                 onChange={(e) => setUserAnswers({ ...userAnswers, [ansKey]: e.target.value })}
                                 className="w-full h-20 sm:h-24 bg-amber-50/30 border border-amber-200 rounded-lg p-3 text-xs text-slate-800 focus:outline-none focus:border-amber-500 leading-relaxed"
                               />
+                            </div>
+                          )}
+
+                          {/* DIAGRAM IN INTERACTIVE MODE */}
+                          {q.type === "diagram" && q.diagramData && (
+                            <div className="space-y-3 pt-1">
+                              <p className="text-[11px] text-slate-700 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200">
+                                {q.diagramData.description}
+                              </p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                {q.diagramData.labels.map((lbl, lIdx) => {
+                                  const selectKey = `${ansKey}-diagram-${lbl.id}`;
+                                  const userSelected = userAnswers[selectKey] || "";
+                                  const isLblCorrect = userSelected === lbl.name;
+
+                                  return (
+                                    <div key={lbl.id} className="flex items-center gap-2 border border-amber-200 bg-amber-50/40 p-2 rounded-lg">
+                                      <span className="w-5 h-5 bg-amber-800 text-white rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">
+                                        {lIdx + 1}
+                                      </span>
+                                      <select
+                                        value={userSelected}
+                                        disabled={isEvaluated}
+                                        onChange={(e) => {
+                                          onPlaySound("click");
+                                          setUserAnswers({ ...userAnswers, [selectKey]: e.target.value });
+                                        }}
+                                        className={`w-full bg-white border text-xs rounded px-2 py-1 outline-none ${
+                                          isEvaluated 
+                                            ? isLblCorrect ? "border-emerald-500 bg-emerald-50 text-emerald-800 font-bold" : "border-red-500 bg-red-50 text-red-800 font-bold"
+                                            : "border-slate-300"
+                                        }`}
+                                      >
+                                        <option value="">-- حدد المسمى الصحيح --</option>
+                                        {q.diagramData?.labels.map((lOpt) => (
+                                          <option key={lOpt.id} value={lOpt.name}>
+                                            {lOpt.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* MATCH PAIRS IN INTERACTIVE MODE */}
+                          {(q.type === QuestionType.MATCH || q.type === "match") && q.matchPairs && (
+                            <div className="space-y-2 pt-1">
+                              <p className="text-[11px] text-slate-600">
+                                طابق كل عنصر من القائمة الأولى بما يناسبه من القائمة المقابلة:
+                              </p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                {q.matchPairs.map((pair, pIdx) => {
+                                  const matchKey = `${ansKey}-match-${pIdx}`;
+                                  const selectedChoice = userAnswers[matchKey] || "";
+                                  const isMatchCorrect = selectedChoice === pair.right;
+
+                                  return (
+                                    <div key={pIdx} className="flex items-center gap-2 p-2 rounded-lg border border-amber-200 bg-amber-50/50">
+                                      <span className="font-bold text-slate-900 shrink-0">{pair.left}</span>
+                                      <span className="text-slate-400">←</span>
+                                      <select
+                                        value={selectedChoice}
+                                        disabled={isEvaluated}
+                                        onChange={(e) => {
+                                          onPlaySound("click");
+                                          setUserAnswers({ ...userAnswers, [matchKey]: e.target.value });
+                                        }}
+                                        className={`w-full bg-white border text-xs rounded px-2 py-1 outline-none ${
+                                          isEvaluated
+                                            ? isMatchCorrect ? "border-emerald-500 bg-emerald-50 text-emerald-800 font-bold" : "border-red-500 bg-red-50 text-red-800"
+                                            : "border-slate-300"
+                                        }`}
+                                      >
+                                        <option value="">-- اختر المطابق --</option>
+                                        {q.matchPairs?.map((p, optIdx) => (
+                                          <option key={optIdx} value={p.right}>
+                                            {p.right}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           )}
 
