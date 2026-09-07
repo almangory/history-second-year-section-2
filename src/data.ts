@@ -1,4 +1,4 @@
-﻿import { Unit, Question, QuestionType } from "./types";
+import { Unit, Question, QuestionType } from "./types";
 
 export const UNITS: Unit[] = [
   {
@@ -37,7 +37,8 @@ export const UNITS: Unit[] = [
           "حملة سنار بقيادة إسماعيل باشا (٥٠٠٠ جندي)، اصطدمت بالشايقية في معركة كورتي (٤ نوفمبر ١٨٢٠م)، وسقطت سنار في يونيو ١٨٢١م.",
           "حملة كردفان بقيادة محمد بك الدفتدار (٤٠٠٠ جندي)، انتصرت في معركة بارا (أبريل ١٨٢١م) بعد مقتل المقدوم مسلم ودخول الأبيض."
         ],
-        illustration: "TurkoEgyptianInvasion"
+        illustration: "TurkoEgyptianInvasion",
+        image: "/assets/lessons/u1_l1.jpg"
       },
       {
         id: "u1_l2",
@@ -63,7 +64,8 @@ export const UNITS: Unit[] = [
           "تقسيم السودان لـ ٧ مديريات: دنقلا، بربر، الخرطوم، كردفان، سنار، فازوغلي، والتاكا.",
           "إدخال زراعة السواقي واستيراد الكباش لتحسين نسل الضأن ومحاولات استخراج ذهب بني شنقول."
         ],
-        illustration: "KhartoumCpt"
+        illustration: "KhartoumCpt",
+        image: "/assets/lessons/u1_l2.jpg"
       },
       {
         id: "u1_l3",
@@ -95,7 +97,8 @@ export const UNITS: Unit[] = [
           "إعفاء المتأخرات الضريبية وتكليف مشايخ القبائل بالتحصيل وتشكيل مجالس المديريات.",
           "فشل نظام اللامركزية وتمرد المشايخ مما دفع سعيد لإعادة الحكمدارية عام ١٨٦٢م وتعيين موسى باشا حمدي."
         ],
-        illustration: "AbbasSaidEra"
+        illustration: "AbbasSaidEra",
+        image: "/assets/lessons/u1_l3.jpg"
       },
       {
         id: "u1_l4",
@@ -125,7 +128,8 @@ export const UNITS: Unit[] = [
           "ضم دارفور سنة ١٨٧٤م على يد الزبير ود رحمة بعد معركة الفاشر ومقتل السلطان إبراهيم.",
           "ضم مصوع وسواكن ١٨٦٥م، والتوسع بخط الاستواء مع صمويل بيكر (١٨٧١م) وغردون (١٨٧٤م)."
         ],
-        illustration: "KhediveIsmailEra"
+        illustration: "KhediveIsmailEra",
+        image: "/assets/lessons/u1_l4.jpg"
       },
       {
         id: "u1_l5",
@@ -143,7 +147,8 @@ export const UNITS: Unit[] = [
           "قسوة الإدارة الأوروبية فاقمت سخط وكراهية الأهالي للحكم التركي المصري.",
           "استقالة غردون في يوليو ١٨٧٩م بعد عزل الخديوي إسماعيل وتعيين محمد رؤوف واندلاع الثورة المهدية."
         ],
-        illustration: "GordonPashaEra"
+        illustration: "GordonPashaEra",
+        image: "/assets/lessons/u1_l5.jpg"
       }
     ],
     timeline: [
@@ -189,7 +194,8 @@ export const UNITS: Unit[] = [
           "الدعوة السرية بدأت بتنظيم أسسه محمد بن علي بن عبد الله بن عباس في الكوفة وخراسان.",
           "قيادة الثورة المسلحة بواسطة سليمان بن كثير وأبي مسلم الخراساني ومبايعة السفاح بالكوفة."
         ],
-        illustration: "AbbasidRise"
+        illustration: "AbbasidRise",
+        image: "/assets/lessons/u2_l1.jpg"
       },
       {
         id: "u2_l2",
@@ -213,7 +219,8 @@ export const UNITS: Unit[] = [
           "المأمون طوّر بيت الحكمة ودعم حركة الترجمة العلمية للغة العربية.",
           "المعتصم بنى سامراء سنة ٢٢١هـ وانتصر في معركة عمورية على البيزنطيين."
         ],
-        illustration: "AbbasidCaliphs"
+        illustration: "AbbasidCaliphs",
+        image: "/assets/lessons/u2_l2.jpg"
       },
       {
         id: "u2_l3",
@@ -231,7 +238,8 @@ export const UNITS: Unit[] = [
           "أبواب بغداد الأربعة: باب الكوفة، باب البصرة، باب خراسان، وباب الشام.",
           "تأسيس حي الرصافة بالضفة الشرقية لولي العهد المهدي سنة ١٥١هـ."
         ],
-        illustration: "BaghdadRound"
+        illustration: "BaghdadRound",
+        image: "/assets/lessons/u2_l3.jpg"
       },
       {
         id: "u2_l4",
@@ -249,7 +257,8 @@ export const UNITS: Unit[] = [
           "إرغام الإمبراطورة إيريني في عهد المهدي والرشيد على عقد الصلح وحمل الجزية السنوية.",
           "معركة عمورية (٢٢٣هـ) بقيادة المعتصم وفتح أنقرة رداً على اعتداءات البيزنطيين."
         ],
-        illustration: "HouseOfWisdom"
+        illustration: "HouseOfWisdom",
+        image: "/assets/lessons/u2_l4.jpg"
       },
       {
         id: "u2_l5",
@@ -270,7 +279,8 @@ export const UNITS: Unit[] = [
           "المغول قبائل رعوية من أواسط آسيا زحفت غرباً بقيادة جنكيز خان ثم هولاكو.",
           "سقوط بغداد ومقتل الخليفة المستعصم بالله عام ٦٥٦ هـ / ١٢٥٨ م وتدمير بيت الحكمة ومعالم الحضارة."
         ],
-        illustration: "FallOfBaghdad"
+        illustration: "FallOfBaghdad",
+        image: "/assets/lessons/u2_l5.jpg"
       }
     ],
     timeline: [
@@ -318,7 +328,8 @@ export const UNITS: Unit[] = [
           "دولة الأغالبة بتونس أسسها إبراهيم بن الأغلب عام ١٨٤هـ في عهد هارون الرشيد وعاصمتها القيروان.",
           "شهرة الأغالبة بالأسطول البحري القوي وفتح جزيرة صقلية وتوسيع جامع القيروان والزيتونة."
         ],
-        illustration: "MaghrebKingdoms"
+        illustration: "MaghrebKingdoms",
+        image: "/assets/lessons/u3_l1.jpg"
       },
       {
         id: "u3_l2",
@@ -358,7 +369,8 @@ export const UNITS: Unit[] = [
           "الازدهار التجاري بالذهب والعاج وبناء المساجد الحجرية في عهد السلطان سليمان حسن (العظيم).",
           "سقوط سلطنة كلوة تحت الاحتلال البرتغالي سنة ١٥١٥م بسبب النزاعات الداخلية."
         ],
-        illustration: "MaliEmpire"
+        illustration: "MaliEmpire",
+        image: "/assets/lessons/u3_l3.jpg"
       },
       {
         id: "u3_l4",
@@ -384,7 +396,8 @@ export const UNITS: Unit[] = [
           "شهادة ابن بطوطة على عظمة مالي وأمنها التام وحرص أهلها على الصلوات والقرآن.",
           "ممالك الهوسا بنيجيريا: تميزوا بالحرف ودباغة الجلود، ووحدهم الشيخ عثمان دان فوديو في خلافة سوكتو."
         ],
-        illustration: "SonghaiEmpire"
+        illustration: "SonghaiEmpire",
+        image: "/assets/lessons/u3_l4.jpg"
       }
     ],
     timeline: [

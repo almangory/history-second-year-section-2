@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ArrowRight, 
   ArrowLeft, 
@@ -15,7 +15,8 @@ import {
   Type,
   Maximize2,
   Minimize2,
-  BookOpen
+  BookOpen,
+  X
 } from "lucide-react";
 import { Unit, Lesson } from "../types";
 import { SVGIllustration } from "../components/SVGIllustrations";
@@ -56,6 +57,9 @@ export const LessonView: React.FC<LessonViewProps> = ({
 
   // Font Size (eye-comfort) State
   const [fontSizeLevel, setFontSizeLevel] = useState<"normal" | "large" | "xlarge">("normal");
+
+  // Image Lightbox Modal State
+  const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
 
   // Subscribe to TTS changes
   useEffect(() => {
@@ -197,14 +201,39 @@ export const LessonView: React.FC<LessonViewProps> = ({
             </h1>
           </div>
 
-          {/* SVG Historical Illustration */}
-          {lesson.illustration && (
+          {/* Historical Illustration (Realistic AI Generated Artwork or High-Detail SVG) */}
+          {lesson.image ? (
+            <div 
+              onClick={() => setIsImageModalOpen(true)}
+              className="group cursor-pointer flex flex-col items-center my-5 overflow-hidden rounded-2xl bg-white dark:bg-[#121020] border border-slate-200 dark:border-indigo-950/80 shadow-md hover:shadow-xl hover:border-amber-500/50 transition-all duration-300"
+              title="انقر لتكبير اللوحة التاريخية واستعراض تفاصيلها"
+            >
+              <div className="relative w-full overflow-hidden">
+                <img 
+                  src={lesson.image} 
+                  alt={lesson.title} 
+                  className="w-full max-h-96 object-cover object-center rounded-t-2xl group-hover:scale-[1.02] transition duration-300"
+                  loading="lazy"
+                />
+                <div className="absolute top-3 left-3 bg-black/60 hover:bg-black/80 text-white p-2 rounded-xl backdrop-blur-sm opacity-0 group-hover:opacity-100 transition duration-200 shadow">
+                  <Maximize2 className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="w-full py-2.5 px-4 bg-slate-50 dark:bg-[#141124] border-t border-slate-200 dark:border-indigo-950/60 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <span>🎨 {lesson.title}</span>
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400">(انقر للتكبير 🔍)</span>
+                </span>
+                <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold px-2 py-0.5 rounded-full">لوحة تعليمية</span>
+              </div>
+            </div>
+          ) : lesson.illustration ? (
             <div className="flex justify-center my-4 p-4 rounded-2xl bg-[#09080f]/70 border border-indigo-950/80 shadow-inner">
               <div className="w-full max-w-sm sm:max-w-md">
                 <SVGIllustration name={lesson.illustration} />
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Lesson Content Paragraphs */}
           <div className={`space-y-4 text-slate-200 ${getParagraphFontSize()}`}>
@@ -282,6 +311,38 @@ export const LessonView: React.FC<LessonViewProps> = ({
           </div>
         </article>
       </div>
+
+      {/* Lightbox Modal for Full Screen Image Inspection */}
+      {isImageModalOpen && lesson.image && (
+        <div 
+          onClick={() => setIsImageModalOpen(false)}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 cursor-zoom-out animate-[fadeIn_0.2s_ease-out]"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="relative max-w-5xl max-h-[92vh] w-full bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-amber-500/30 flex flex-col cursor-default"
+          >
+            <button
+              onClick={() => setIsImageModalOpen(false)}
+              className="absolute top-4 left-4 z-20 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition cursor-pointer shadow-lg"
+              title="إغلاق"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="overflow-auto max-h-[80vh] flex items-center justify-center bg-black/40 p-2">
+              <img 
+                src={lesson.image} 
+                alt={lesson.title} 
+                className="w-full h-auto max-h-[78vh] object-contain rounded-xl"
+              />
+            </div>
+            <div className="p-4 bg-slate-950 text-center border-t border-slate-800">
+              <h3 className="text-amber-400 font-bold text-base sm:text-lg">{lesson.title}</h3>
+              <p className="text-xs text-slate-400 mt-1 font-medium">لوحة تاريخية تعليمية عالية الدقة تجسد وتوثق أحداث ومضمون الدرس</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

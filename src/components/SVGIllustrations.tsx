@@ -7,14 +7,16 @@ import React from "react";
 
 interface SVGProps {
   className?: string;
-  type: string;
+  type?: string;
+  name?: string;
 }
 
-export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48", type }) => {
+export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48", type, name }) => {
+  const targetType = type || name || "";
   // Container with subtle parchment theme and vintage accents
   const containerClass = `relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#18142a]/95 to-[#100d1e]/95 p-3 md:p-4 border border-amber-500/20 shadow-lg flex items-center justify-center select-none ${className}`;
 
-  switch (type) {
+  switch (targetType) {
     // =========================================================================
     // الوحدة الأولى: تاريخ السودان الحديث (الحكم التركي المصري ١٨٢١ - ١٨٨٥م)
     // =========================================================================

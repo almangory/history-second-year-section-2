@@ -42,6 +42,7 @@ export interface Lesson {
   content: string[];
   keyPoints: string[];
   illustration: string;
+  image?: string;
 }
 
 export interface Unit {
