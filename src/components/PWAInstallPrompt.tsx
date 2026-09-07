@@ -109,17 +109,17 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onPlaySound 
       {/* Instructional Modal */}
       {showModal && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
           dir="rtl"
         >
-          <div className="bg-[#15122b] border border-amber-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 text-right relative">
+          <div className="bg-white border-2 border-amber-300 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 text-right relative text-slate-900">
             {/* Close Button */}
             <button
               onClick={() => {
                 if (onPlaySound) onPlaySound("click");
                 setShowModal(false);
               }}
-              className="absolute left-4 top-4 text-slate-400 hover:text-white bg-slate-800/60 p-2 rounded-full transition cursor-pointer"
+              className="absolute left-4 top-4 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -128,34 +128,34 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onPlaySound 
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-md border border-amber-300 bg-white p-1 shrink-0 flex items-center justify-center">
                 <img 
-                  src="/logo.png" 
+                  src="/logo.png?v=20260907c" 
                   alt="أيقونة تطبيق تاريخ السودان" 
                   className="w-full h-full object-contain rounded-xl"
                   referrerPolicy="no-referrer"
                 />
               </div>
               <div className="space-y-0.5">
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full font-bold">
                   تطبيق الويب التفاعلي PWA
                 </span>
-                <h3 className="font-serif font-black text-lg text-amber-400">
+                <h3 className="font-serif font-black text-lg text-amber-900">
                   تاريخ السودان والتربية الوطنية
                 </h3>
-                <p className="text-xs text-slate-300">الصف السادس الابتدائي 🇸🇩</p>
+                <p className="text-xs text-slate-600">الصف السادس الابتدائي 🇸🇩</p>
               </div>
             </div>
 
             {/* Benefits of Installing */}
-            <div className="bg-[#0f0d1c] p-3.5 rounded-2xl border border-indigo-950/80 space-y-2 text-xs text-slate-200">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold">
+            <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200 space-y-2 text-xs text-slate-800">
+              <div className="flex items-center gap-2 text-emerald-700 font-bold">
                 <Check className="w-4 h-4 shrink-0" />
                 <span>فتح فوري بشاشة كاملة وبدون أشرطة المتصفح المزعجة</span>
               </div>
-              <div className="flex items-center gap-2 text-emerald-400 font-bold">
+              <div className="flex items-center gap-2 text-emerald-700 font-bold">
                 <Check className="w-4 h-4 shrink-0" />
                 <span>أيقونة تاريخية مخصصة تزين شاشة هاتفك الرئيسية</span>
               </div>
-              <div className="flex items-center gap-2 text-emerald-400 font-bold">
+              <div className="flex items-center gap-2 text-emerald-700 font-bold">
                 <Check className="w-4 h-4 shrink-0" />
                 <span>وصول سريع وحفظ مستمر لدروسك ونتائجك</span>
               </div>
@@ -163,20 +163,20 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onPlaySound 
 
             {/* Specific Instructions based on OS */}
             {isIOS ? (
-              <div className="space-y-2.5 bg-amber-950/20 border border-amber-500/30 p-4 rounded-2xl text-xs text-amber-200 font-sans">
-                <p className="font-bold text-amber-300 flex items-center gap-1.5">
-                  <Smartphone className="w-4 h-4" />
+              <div className="space-y-2.5 bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-950 font-sans">
+                <p className="font-bold text-amber-900 flex items-center gap-1.5">
+                  <Smartphone className="w-4 h-4 text-amber-700" />
                   <span>خطوات التثبيت على أجهزة آيفون / آيباد (Safari):</span>
                 </p>
-                <ol className="space-y-2 list-decimal list-inside text-slate-200 pr-1">
+                <ol className="space-y-2 list-decimal list-inside text-slate-700 pr-1">
                   <li>
-                    اضغط على زر <strong className="text-amber-400">المشاركة (Share)</strong> <Share className="w-3.5 h-3.5 inline mx-1 text-sky-400" /> في أسفل شاشة المتصفح.
+                    اضغط على زر <strong className="text-amber-800">المشاركة (Share)</strong> <Share className="w-3.5 h-3.5 inline mx-1 text-sky-600" /> في أسفل شاشة المتصفح.
                   </li>
                   <li>
-                    مرر للأسفل واختر <strong className="text-amber-400">"إضافة إلى الشاشة الرئيسية"</strong> <PlusSquare className="w-3.5 h-3.5 inline mx-1 text-amber-400" /> (Add to Home Screen).
+                    مرر للأسفل واختر <strong className="text-amber-800">"إضافة إلى الشاشة الرئيسية"</strong> <PlusSquare className="w-3.5 h-3.5 inline mx-1 text-amber-700" /> (Add to Home Screen).
                   </li>
                   <li>
-                    اضغط على كلمة <strong className="text-emerald-400">"إضافة" (Add)</strong> في أعلى الزاوية.
+                    اضغط على كلمة <strong className="text-emerald-700">"إضافة" (Add)</strong> في أعلى الزاوية.
                   </li>
                 </ol>
               </div>
@@ -185,20 +185,20 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onPlaySound 
                 <button
                   type="button"
                   onClick={handleInstallClick}
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 py-3 rounded-2xl font-serif font-black text-sm shadow-xl transition cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white py-3 rounded-2xl font-serif font-black text-sm shadow-md transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Download className="w-5 h-5" />
                   <span>تثبيت التطبيق على جهازي الآن 🚀</span>
                 </button>
               </div>
             ) : (
-              <div className="space-y-2 bg-[#121020] border border-indigo-950 p-4 rounded-2xl text-xs text-slate-300">
-                <p className="font-bold text-amber-400 flex items-center gap-1.5">
-                  <Monitor className="w-4 h-4" />
+              <div className="space-y-2 bg-amber-50/60 border border-amber-200 p-4 rounded-2xl text-xs text-slate-700">
+                <p className="font-bold text-amber-900 flex items-center gap-1.5">
+                  <Monitor className="w-4 h-4 text-amber-700" />
                   <span>لتثبيت التطبيق على الحاسوب أو الأندرويد:</span>
                 </p>
                 <p>
-                  اضغط على قائمة خيارات المتصفح (⋮ أو ⋯) في الأعلى، ثم اختر <strong className="text-amber-400">"تثبيت التطبيق" (Install app)</strong> أو <strong className="text-amber-400">"إضافة إلى الشاشة الرئيسية"</strong>.
+                  اضغط على قائمة خيارات المتصفح (⋮ أو ⋯) في الأعلى، ثم اختر <strong className="text-amber-800">"تثبيت التطبيق" (Install app)</strong> أو <strong className="text-amber-800">"إضافة إلى الشاشة الرئيسية"</strong>.
                 </p>
               </div>
             )}
@@ -209,7 +209,7 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onPlaySound 
                 if (onPlaySound) onPlaySound("click");
                 setShowModal(false);
               }}
-              className="w-full bg-[#1b1736] hover:bg-[#221d42] text-slate-300 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200"
             >
               إغلاق ومتابعة التصفح
             </button>

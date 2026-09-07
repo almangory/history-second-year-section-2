@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const CACHE_NAME = "sudan-grade6-history-v1";
+const CACHE_NAME = "sudan-grade6-history-v3";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

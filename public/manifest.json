@@ -13,15 +13,27 @@
   "categories": ["education", "books", "history"],
   "icons": [
     {
-      "src": "/favicon.png",
-      "sizes": "192x192 512x512 any",
+      "src": "/favicon.png?v=20260907c",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png?v=20260907c",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo.png",
-      "sizes": "512x512",
+      "src": "/apple-touch-icon.png?v=20260907c",
+      "sizes": "180x180",
       "type": "image/png"
+    },
+    {
+      "src": "/icon.svg?v=20260907c",
+      "sizes": "512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

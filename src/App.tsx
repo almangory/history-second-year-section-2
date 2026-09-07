@@ -13,7 +13,6 @@ import { playSound } from "./components/SoundEffects";
 import { SVGIllustration } from "./components/SVGIllustrations";
 import { MapExplorer } from "./components/MapExplorer";
 import { AIChatBot } from "./components/AIChatBot";
-import { SmartScholarSearch } from "./components/SmartScholarSearch";
 import { WorksheetGenerator } from "./components/WorksheetGenerator";
 import { GalleryView } from "./components/GalleryView";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
@@ -3446,17 +3445,7 @@ export default function App() {
             )}
       </main>
 
-      {/* Smart Algorithmic Curriculum Search with Voice Input - Hidden during quizzes and worksheets to maintain test integrity */}
-      {quizMode === "none" && currentTab !== "worksheets" && !isWorksheetSolvingActive && (
-        <SmartScholarSearch 
-          onSelectLesson={(unitId) => {
-            setSelectedUnitId(unitId);
-            setCurrentTab("unit");
-            setCurrentLessonIdx(0);
-            setBookPageIndex(0);
-          }} 
-        />
-      )}
+      {/* Visual bottom parchment style design separator */}
 
       {/* Visual bottom parchment style design separator */}
       <footer className="bg-white border-t border-amber-200/80 py-6 text-center text-slate-600 text-xs shrink-0 font-sans mt-auto shadow-xs">
