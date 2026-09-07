@@ -1377,28 +1377,37 @@ export default function App() {
                   ? "التحويل لوضع القراءة السيبيا المريح للعين" 
                   : "التحويل للوضع الليلي"
               }
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-indigo-950/60 bg-slate-100 dark:bg-[#18152c] text-amber-700 dark:text-amber-400 hover:scale-105 active:scale-95 transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+              className={`px-3 py-2 rounded-xl border transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5 ${
+                theme === "light"
+                  ? "bg-amber-100/90 border-amber-300 text-amber-900 hover:bg-amber-200"
+                  : theme === "sepia"
+                  ? "bg-[#ebdcb4] border-[#d8c395] text-[#4a3520] hover:bg-[#e4d3a6]"
+                  : "bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700"
+              }`}
             >
               {theme === "dark" ? (
-                <Sun className="w-5 h-5 text-amber-400" />
+                <Sun className="w-4 h-4 text-amber-400 shrink-0" />
               ) : theme === "light" ? (
-                <BookOpen className="w-5 h-5 text-amber-700" />
+                <Sun className="w-4 h-4 text-amber-700 shrink-0" />
               ) : (
-                <Moon className="w-5 h-5 text-indigo-300" />
+                <BookOpen className="w-4 h-4 text-amber-800 shrink-0" />
               )}
-              <span className="text-[10px] hidden sm:inline font-bold">
-                {theme === "dark" ? "ليلي" : theme === "light" ? "نهاري" : "سيبيا مريح"}
+              <span className="text-xs hidden sm:inline font-bold">
+                {theme === "dark" ? "الوضع الليلي" : theme === "light" ? "الوضع النهاري" : "ورق سيبيا"}
               </span>
             </button>
 
             {/* Sound Toggle */}
             <button
               onClick={() => setUseSound(!useSound)}
-              className={`p-2.5 rounded-xl border transition cursor-pointer ${
-                useSound ? "bg-[#1d121c] text-amber-400 border-amber-900/30" : "bg-[#18152c] text-slate-500 border-indigo-950"
+              title={useSound ? "كتم المؤثرات الصوتية" : "تفعيل المؤثرات الصوتية"}
+              className={`p-2 rounded-xl border transition cursor-pointer flex items-center justify-center shadow-sm ${
+                useSound 
+                  ? "bg-amber-100 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-200" 
+                  : "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200"
               }`}
             >
-              {useSound ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              {useSound ? <Volume2 className="w-5 h-5 text-amber-600 dark:text-amber-400" /> : <VolumeX className="w-5 h-5 text-slate-500 dark:text-slate-400" />}
             </button>
 
             {/* Network Status Badge Button */}
@@ -1412,13 +1421,13 @@ export default function App() {
                   ? "متصل بالإنترنت وحفظ سحابي نشط (انقر لتجربة وضع عدم الاتصال)" 
                   : "وضع العمل المحلي دون اتصال بالإنترنت (انقر لإعادة الاتصال)"
               }
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition cursor-pointer select-none ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-bold transition cursor-pointer select-none shadow-sm ${
                 isOnline && !offlineModeSimulated 
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400" 
-                  : "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400"
+                  ? "bg-emerald-100/90 border-emerald-400 text-emerald-800 dark:bg-emerald-950/50 dark:border-emerald-700 dark:text-emerald-300" 
+                  : "bg-rose-100/90 border-rose-400 text-rose-800 dark:bg-rose-950/50 dark:border-rose-700 dark:text-rose-300"
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${isOnline && !offlineModeSimulated ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
+              <span className={`w-2.5 h-2.5 rounded-full ${isOnline && !offlineModeSimulated ? "bg-emerald-600 animate-pulse" : "bg-rose-600"}`} />
               <span className="hidden sm:inline">
                 {isOnline && !offlineModeSimulated ? "متصل" : "محلي"}
               </span>
@@ -1430,21 +1439,21 @@ export default function App() {
                 handlePlaySound("click");
                 setCurrentTab("badges");
               }}
-              className="bg-[#19152b] hover:bg-[#231d3d] border border-indigo-950/60 rounded-xl px-3 py-2 flex items-center gap-1.5 transition text-yellow-400 cursor-pointer"
+              className="bg-amber-50 hover:bg-amber-100/80 dark:bg-slate-800 dark:hover:bg-slate-700 border border-amber-300 dark:border-slate-700 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition text-amber-800 dark:text-yellow-300 cursor-pointer shadow-sm"
             >
-              <Trophy className="w-5 h-5 text-yellow-500 shrink-0" />
+              <Trophy className="w-5 h-5 text-amber-500 dark:text-yellow-400 shrink-0" />
               <div className="text-right">
-                <div className="text-[10px] font-bold text-yellow-600 leading-none">الأوسمة</div>
-                <div className="text-xs font-bold font-serif text-slate-100">{unlockedBadges.length} / {BADGES_LIST.length}</div>
+                <div className="text-[10px] font-bold text-amber-700 dark:text-yellow-500 leading-none">الأوسمة</div>
+                <div className="text-xs font-bold font-serif text-slate-800 dark:text-slate-100">{unlockedBadges.length} / {BADGES_LIST.length}</div>
               </div>
             </button>
 
             {/* Knowledge points total badge */}
-            <div className="bg-[#1e131d] text-white border border-amber-950/50 rounded-xl px-4 py-2 flex items-center gap-2 shadow-inner">
-              <Star className="w-5 h-5 text-amber-400 animate-pulse shrink-0 fill-amber-400" />
+            <div className="bg-amber-100/70 dark:bg-slate-800 border border-amber-300/80 dark:border-slate-700 rounded-xl px-3.5 py-1.5 flex items-center gap-2 shadow-sm">
+              <Star className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 fill-amber-500" />
               <div className="text-right">
-                <div className="text-[10px] text-amber-500 leading-none">نقاط المعرفة</div>
-                <div className="text-sm font-bold font-serif text-slate-50">{score}</div>
+                <div className="text-[10px] text-amber-800 dark:text-amber-400 font-bold leading-none">نقاط المعرفة</div>
+                <div className="text-sm font-bold font-serif text-slate-900 dark:text-slate-50">{score}</div>
               </div>
             </div>
 
@@ -1483,9 +1492,9 @@ export default function App() {
       </header>
 
       {/* Real-time Global Navigation Tabs (Hidden on mobile devices, use bottom dock instead) */}
-      <div className="hidden md:block bg-[#121020]/95 border-b border-indigo-950/60 sticky top-[73px] z-30 backdrop-blur-md px-4 shrink-0 transition select-none shadow">
-        <div className="max-w-7xl mx-auto flex items-center justify-between overflow-x-auto no-scrollbar py-3 gap-4">
-          <div className="flex items-center gap-1.5 md:gap-3 overflow-x-auto no-scrollbar pb-1 sm:pb-0 scrollbar-none">
+      <div className="hidden md:block bg-white/95 dark:bg-[#121020]/95 border-b border-slate-200 dark:border-indigo-950/60 sticky top-[73px] z-30 backdrop-blur-md px-4 shrink-0 transition select-none shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between overflow-x-auto no-scrollbar py-2.5 gap-4">
+          <div className="flex items-center gap-1.5 md:gap-2.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 scrollbar-none">
             <button
               id="nav-dashboard"
               onClick={() => {
@@ -1498,12 +1507,12 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 (currentTab === "dashboard" || currentTab === "unit") && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <BookOpen className="w-4 h-4 shrink-0 text-amber-500" />
-              <span>المنهج والوحدات 📖</span>
+              <BookOpen className={`w-4 h-4 shrink-0 ${(currentTab === "dashboard" || currentTab === "unit") && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
+              <span>المنهج والوحدات</span>
             </button>
 
             <button
@@ -1517,12 +1526,12 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "quiz_hub" && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <Gamepad2 className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>مِنَصَّةُ الِاخْتِبَارَاتِ 📝</span>
+              <Gamepad2 className={`w-4 h-4 shrink-0 ${currentTab === "quiz_hub" && quizMode === "none" ? "text-white" : "text-orange-600 dark:text-orange-400"}`} />
+              <span>منصة الاختبارات</span>
             </button>
 
             <button
@@ -1536,12 +1545,12 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "worksheets" && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <FileText className="w-4 h-4 text-sky-400 shrink-0" />
-              <span>أَوْرَاقُ العَمَلِ وَالطبَاعَة 🖨️</span>
+              <FileText className={`w-4 h-4 shrink-0 ${currentTab === "worksheets" && quizMode === "none" ? "text-white" : "text-blue-600 dark:text-blue-400"}`} />
+              <span>أوراق العمل والطباعة</span>
             </button>
 
             <button
@@ -1555,12 +1564,12 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "gallery" && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <Image className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>مَعْرَضُ الصُّوَرِ وَالخَرَائِطِ 🖼️</span>
+              <Image className={`w-4 h-4 shrink-0 ${currentTab === "gallery" && quizMode === "none" ? "text-white" : "text-emerald-600 dark:text-emerald-400"}`} />
+              <span>معرض الصور والخرائط</span>
             </button>
 
             <button
@@ -1574,12 +1583,12 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "map" && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <Compass className="w-4 h-4 text-teal-400 shrink-0" />
-              <span>خريطة المعرفة 🗺️</span>
+              <Compass className={`w-4 h-4 shrink-0 ${currentTab === "map" && quizMode === "none" ? "text-white" : "text-teal-600 dark:text-teal-400"}`} />
+              <span>خريطة المعرفة</span>
             </button>
 
             <button
@@ -1593,12 +1602,12 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "timeline" && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>الخط الزمني ⏳</span>
+              <Clock className={`w-4 h-4 shrink-0 ${currentTab === "timeline" && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
+              <span>الخط الزمني</span>
             </button>
 
             <button
@@ -1612,12 +1621,12 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "chat" && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <Bot className="w-4 h-4 text-purple-400 shrink-0" />
-              <span>المعلم الذكي 🤖</span>
+              <Bot className={`w-4 h-4 shrink-0 ${currentTab === "chat" && quizMode === "none" ? "text-white" : "text-purple-600 dark:text-purple-400"}`} />
+              <span>المعلم الذكي</span>
             </button>
 
             <button
@@ -1631,18 +1640,18 @@ export default function App() {
               }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 currentTab === "badges" && quizMode === "none"
-                  ? "bg-amber-800 text-slate-100 shadow-md border border-amber-600/30 scale-102"
-                  : "bg-[#18152c]/65 text-slate-300 hover:bg-[#201c3e]/80 border border-transparent hover:text-slate-100"
+                  ? "bg-amber-600 text-white shadow-md border border-amber-700 scale-102"
+                  : "bg-slate-100 hover:bg-slate-200/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-indigo-950/50"
               }`}
             >
-              <Trophy className="w-4 h-4 text-yellow-400 shrink-0" />
-              <span>لوحة الأوسمة 🏆</span>
+              <Trophy className={`w-4 h-4 shrink-0 ${currentTab === "badges" && quizMode === "none" ? "text-white" : "text-yellow-600 dark:text-yellow-400"}`} />
+              <span>لوحة الأوسمة</span>
             </button>
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
-            <span className="text-[10px] text-slate-400 font-bold bg-[#141221] py-1 px-3 rounded-lg border border-indigo-950">
-              رصيد الأسئلة: {QUESTIONS.length} سؤال وبطاقة 📚
+            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold bg-amber-50 dark:bg-slate-800 py-1.5 px-3 rounded-xl border border-amber-200 dark:border-slate-700 shadow-sm flex items-center gap-1.5">
+              <span>رصيد الأسئلة: {QUESTIONS.length} سؤال وبطاقة 📚</span>
             </span>
           </div>
         </div>
@@ -2247,22 +2256,22 @@ export default function App() {
           <div className="space-y-8 animate-[fadeIn_0.3s_ease-out]">
             {/* Clean, Non-Distracting Unit Navigation Bar */}
             {!isReadingMode && (
-              <div className="bg-white/80 dark:bg-[#121020]/90 rounded-2xl p-4 border border-amber-900/10 dark:border-indigo-950/80 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+              <div className="bg-white/95 dark:bg-[#141224] rounded-2xl p-4 border border-amber-300/60 dark:border-amber-900/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => {
                       handlePlaySound("click");
                       setCurrentTab("dashboard");
                     }}
-                    className="p-2 rounded-xl bg-amber-100/70 hover:bg-amber-200/70 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-amber-900 dark:text-amber-300 transition cursor-pointer shrink-0"
+                    className="p-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 dark:bg-[#1e1a38] dark:hover:bg-[#28224d] text-amber-900 dark:text-amber-300 border border-amber-300/70 dark:border-amber-700/50 transition cursor-pointer shrink-0 shadow-xs"
                     title="الرجوع للرئيسية"
                   >
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-5 h-5" />
                   </button>
                   <div className="text-right">
                     <div className="flex items-center gap-2">
-                      <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] px-2 py-0.5 rounded-full font-bold">الوحدة {selectedUnit.id}</span>
-                      <h2 className="text-base sm:text-lg font-bold font-serif text-slate-900 dark:text-amber-400">{selectedUnit.title}</h2>
+                      <span className="bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-200 text-xs px-2.5 py-0.5 rounded-full font-bold border border-amber-300/60 dark:border-amber-700/50">الوحدة {selectedUnit.id}</span>
+                      <h2 className="text-base sm:text-lg font-bold font-serif text-slate-900 dark:text-amber-300">{selectedUnit.title}</h2>
                     </div>
                   </div>
                 </div>
@@ -2275,13 +2284,13 @@ export default function App() {
                       setLessonActiveSubTab("lessons");
                       setQuizMode("none");
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
                       lessonActiveSubTab === "lessons" && quizMode === "none"
-                        ? "bg-amber-700 text-white shadow-sm"
-                        : "bg-amber-50 hover:bg-amber-100/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-300 border border-amber-200/60 dark:border-indigo-950/60"
+                        ? "bg-amber-600 text-white shadow-sm ring-2 ring-amber-400/40"
+                        : "bg-white hover:bg-amber-50 dark:bg-[#1a1732] dark:hover:bg-[#231f44] text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700"
                     }`}
                   >
-                    <BookOpen className="w-3.5 h-3.5" />
+                    <BookOpen className={`w-4 h-4 ${lessonActiveSubTab === "lessons" && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
                     <span>مطالعة الدروس</span>
                   </button>
                   <button
@@ -2290,13 +2299,13 @@ export default function App() {
                       setLessonActiveSubTab("timeline");
                       setQuizMode("none");
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
                       lessonActiveSubTab === "timeline" && quizMode === "none"
-                        ? "bg-amber-700 text-white shadow-sm"
-                        : "bg-amber-50 hover:bg-amber-100/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-300 border border-amber-200/60 dark:border-indigo-950/60"
+                        ? "bg-amber-600 text-white shadow-sm ring-2 ring-amber-400/40"
+                        : "bg-white hover:bg-amber-50 dark:bg-[#1a1732] dark:hover:bg-[#231f44] text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700"
                     }`}
                   >
-                    <Star className="w-3.5 h-3.5" />
+                    <Star className={`w-4 h-4 ${lessonActiveSubTab === "timeline" && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
                     <span>الخط الزمني</span>
                   </button>
                   <button
@@ -2305,21 +2314,21 @@ export default function App() {
                       setLessonActiveSubTab("flashcards");
                       setQuizMode("none");
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
                       lessonActiveSubTab === "flashcards" && quizMode === "none"
-                        ? "bg-amber-700 text-white shadow-sm"
-                        : "bg-amber-50 hover:bg-amber-100/80 dark:bg-[#18152c] dark:hover:bg-[#201c3e] text-slate-700 dark:text-slate-300 border border-amber-200/60 dark:border-indigo-950/60"
+                        ? "bg-amber-600 text-white shadow-sm ring-2 ring-amber-400/40"
+                        : "bg-white hover:bg-amber-50 dark:bg-[#1a1732] dark:hover:bg-[#231f44] text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700"
                     }`}
                   >
-                    <FileText className="w-3.5 h-3.5" />
+                    <FileText className={`w-4 h-4 ${lessonActiveSubTab === "flashcards" && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
                     <span>بطاقات المراجعة</span>
                   </button>
                   <button
                     onClick={() => startComprehensiveQuiz(selectedUnit.id)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition flex items-center gap-1 cursor-pointer shadow-sm ml-1"
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition flex items-center gap-1.5 cursor-pointer shadow-sm ml-1"
                     title="بدء اختبار الوحدة"
                   >
-                    <Gamepad2 className="w-3.5 h-3.5" />
+                    <Gamepad2 className="w-4 h-4 text-white" />
                     <span>اختبار الوحدة</span>
                   </button>
                 </div>
@@ -2330,8 +2339,8 @@ export default function App() {
             {quizMode === "none" && lessonActiveSubTab === "lessons" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
                 {!isReadingMode && (
-                  <div className="bg-[#121020] border border-indigo-950 rounded-xl p-4 flex flex-col gap-2 h-fit animate-[fadeIn_0.3s_ease]">
-                    <span className="text-[10px] text-slate-400 font-bold tracking-wider pr-1 block">قائمة فصول الوحدة:</span>
+                  <div className="bg-white/90 dark:bg-[#141224] border border-amber-200 dark:border-indigo-950 rounded-xl p-4 flex flex-col gap-2 h-fit animate-[fadeIn_0.3s_ease] shadow-sm">
+                    <span className="text-xs text-amber-900 dark:text-amber-300 font-bold tracking-wider pr-1 block">قائمة فصول الوحدة:</span>
                     {selectedUnit.lessons.map((less, idx) => (
                       <button
                         key={less.id}
@@ -2339,14 +2348,14 @@ export default function App() {
                           handlePlaySound("click");
                           setCurrentLessonIdx(idx);
                         }}
-                        className={`w-full text-right p-3 rounded-lg border text-sm transition-all duration-200 cursor-pointer flex items-center justify-between ${
+                        className={`w-full text-right p-3 rounded-lg border text-sm transition-all duration-200 cursor-pointer flex items-center justify-between shadow-xs ${
                           currentLessonIdx === idx
-                            ? "bg-amber-800 text-white border-amber-600 font-serif font-bold shadow"
-                            : "bg-[#18152c] hover:bg-[#201c3e] text-slate-200 border-indigo-950/60"
+                            ? "bg-amber-600 text-white border-amber-700 font-serif font-bold shadow"
+                            : "bg-amber-50/60 hover:bg-amber-100/80 dark:bg-[#1a1732] dark:hover:bg-[#231f44] text-slate-800 dark:text-slate-200 border-amber-200/70 dark:border-indigo-950/80"
                         }`}
                       >
                         <span className="truncate">{idx + 1}. {less.title}</span>
-                        {favoriteLessons.includes(less.id) && <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 shrink-0" />}
+                        {favoriteLessons.includes(less.id) && <Heart className="w-4 h-4 text-red-500 fill-red-500 shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -3081,14 +3090,14 @@ export default function App() {
 
             {/* CURRICULUM TIMELINE SUBTAB */}
             {quizMode === "none" && lessonActiveSubTab === "timeline" && (
-              <div className="bg-[#121020] rounded-2xl border border-indigo-950/80 shadow p-6 md:p-8 space-y-6">
+              <div className="bg-white/95 dark:bg-[#121020] rounded-2xl border border-amber-200/80 dark:border-indigo-950/80 shadow p-6 md:p-8 space-y-6">
                 <div className="text-center space-y-1">
-                  <h3 className="text-xl font-bold font-serif text-slate-100">الخط الزمني التاريخي لأحداث الوحدة</h3>
-                  <p className="text-xs text-slate-400 font-sans">تصفّح الأحداث الكبرى وتواريخ الملوك والمعارك والنهضات مرتبة زمانياً</p>
+                  <h3 className="text-xl font-bold font-serif text-slate-900 dark:text-slate-100">الخط الزمني التاريخي لأحداث الوحدة</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-sans">تصفّح الأحداث الكبرى وتواريخ الملوك والمعارك والنهضات مرتبة زمانياً</p>
                 </div>
 
                 {/* Horizontal scroll timeline track list */}
-                <div className="flex items-center justify-between border-b border-indigo-950/60 pb-8 overflow-x-auto whitespace-nowrap scrollbar-none py-4 px-2 select-none gap-6">
+                <div className="flex items-center justify-between border-b border-amber-200/60 dark:border-indigo-950/60 pb-8 overflow-x-auto whitespace-nowrap scrollbar-none py-4 px-2 select-none gap-6">
                   {selectedUnit.timeline.map((ev, idx) => (
                     <button
                       key={idx}
@@ -3101,19 +3110,19 @@ export default function App() {
                       {/* Connection Line */}
                       {idx > 0 && (
                         <div className={`absolute right-1/2 translate-x-[50%] top-4 w-[120px] md:w-[150px] h-0.5 -z-10 ${
-                          timelineIndex >= idx ? "bg-amber-500" : "bg-[#18152c] h-0.5"
+                          timelineIndex >= idx ? "bg-amber-500" : "bg-amber-100 dark:bg-[#18152c] h-0.5"
                         }`}></div>
                       )}
                       
                       <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
                         timelineIndex === idx
-                          ? "bg-amber-950 border-amber-400 scale-125 shadow-md"
-                          : "bg-[#18152c] hover:bg-[#201c3e] border-indigo-950/80 group-hover:scale-110"
+                          ? "bg-amber-600 border-amber-700 dark:bg-amber-950 dark:border-amber-400 scale-125 shadow-md"
+                          : "bg-amber-50 dark:bg-[#18152c] hover:bg-amber-100 dark:hover:bg-[#201c3e] border-amber-300 dark:border-indigo-950/80 group-hover:scale-110"
                       }`}>
-                        <div className={`w-2 h-2 rounded-full ${timelineIndex === idx ? "bg-white" : "bg-amber-500"}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${timelineIndex === idx ? "bg-white" : "bg-amber-600 dark:bg-amber-500"}`}></div>
                       </div>
                       
-                      <span className={`text-sm font-bold font-serif mt-2 block ${timelineIndex === idx ? "text-amber-400 font-extrabold" : "text-slate-300"}`}>
+                      <span className={`text-sm font-bold font-serif mt-2 block ${timelineIndex === idx ? "text-amber-700 dark:text-amber-400 font-extrabold" : "text-slate-700 dark:text-slate-300"}`}>
                         {ev.year}
                       </span>
                       <span className="text-[10px] text-slate-500 font-sans block max-w-[80px] truncate">{ev.title}</span>
@@ -3122,17 +3131,17 @@ export default function App() {
                 </div>
 
                 {/* Selected Timeline Card Description */}
-                <div className="bg-[#1a1122]/90 rounded-2xl border border-indigo-950/60 p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                <div className="bg-amber-50/70 dark:bg-[#1a1122]/90 rounded-2xl border border-amber-200 dark:border-indigo-950/60 p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-center shadow-xs">
                   <div className="md:col-span-2 space-y-3 text-right">
-                    <span className="bg-[#110e1a] border border-amber-900/40 text-amber-400 font-serif text-sm font-bold px-3 py-1 rounded-full">{selectedUnit.timeline[timelineIndex].year}</span>
-                    <h4 className="text-xl font-bold font-serif text-amber-400 mt-2">{selectedUnit.timeline[timelineIndex].title}</h4>
-                    <p className="text-sm md:text-base text-slate-200 leading-relaxed font-serif">{selectedUnit.timeline[timelineIndex].description}</p>
+                    <span className="bg-white dark:bg-[#110e1a] border border-amber-300 dark:border-amber-900/40 text-amber-800 dark:text-amber-400 font-serif text-sm font-bold px-3 py-1 rounded-full shadow-xs">{selectedUnit.timeline[timelineIndex].year}</span>
+                    <h4 className="text-xl font-bold font-serif text-amber-900 dark:text-amber-400 mt-2">{selectedUnit.timeline[timelineIndex].title}</h4>
+                    <p className="text-sm md:text-base text-slate-800 dark:text-slate-200 leading-relaxed font-serif">{selectedUnit.timeline[timelineIndex].description}</p>
                   </div>
                   {/* Decorative badge box */}
-                  <div className="bg-[#110e1a]/80 rounded-xl border border-indigo-950/50 p-4 aspect-square flex flex-col items-center justify-center h-full text-center">
-                    <Star className="w-14 h-14 text-amber-400 animate-spin-slow mb-2 fill-amber-400" />
-                    <span className="text-slate-100 font-serif font-bold text-xs uppercase tracking-wider">سجل المؤرخ</span>
-                    <span className="text-[10px] text-slate-400 font-sans">الوحدة {selectedUnit.id} • السنة {selectedUnit.timeline[timelineIndex].year}</span>
+                  <div className="bg-white/80 dark:bg-[#110e1a]/80 rounded-xl border border-amber-200 dark:border-indigo-950/50 p-4 aspect-square flex flex-col items-center justify-center h-full text-center shadow-xs">
+                    <Star className="w-14 h-14 text-amber-500 dark:text-amber-400 animate-spin-slow mb-2 fill-amber-500 dark:fill-amber-400" />
+                    <span className="text-slate-800 dark:text-slate-100 font-serif font-bold text-xs uppercase tracking-wider">سجل المؤرخ</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans">الوحدة {selectedUnit.id} • السنة {selectedUnit.timeline[timelineIndex].year}</span>
                   </div>
                 </div>
               </div>
@@ -3140,10 +3149,10 @@ export default function App() {
 
             {/* CURRICULUM FLASHCARDS SUBTAB */}
             {quizMode === "none" && lessonActiveSubTab === "flashcards" && (
-              <div className="bg-[#121020] rounded-2xl border border-indigo-950/80 shadow p-6 md:p-8 space-y-6">
+              <div className="bg-white/95 dark:bg-[#121020] rounded-2xl border border-amber-200/80 dark:border-indigo-950/80 shadow p-6 md:p-8 space-y-6">
                 <div className="text-center space-y-1">
-                  <h3 className="text-xl font-bold font-serif text-slate-100">بطاقات المراجعة السريعة والذكية</h3>
-                  <p className="text-xs text-slate-400 font-sans">انتقِر البطاقة لعرض الإجابة السريعة واختبار معلوماتك</p>
+                  <h3 className="text-xl font-bold font-serif text-slate-900 dark:text-slate-100">بطاقات المراجعة السريعة والذكية</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-sans">انقر فوق البطاقة لعرض الإجابة السريعة واختبار معلوماتك</p>
                 </div>
 
                 {/* Flipcard Wrapper */}
@@ -3153,15 +3162,15 @@ export default function App() {
                       handlePlaySound("click");
                       setFlashcardFlipped(!flashcardFlipped);
                     }}
-                    className="w-full max-w-lg h-56 cursor-pointer relative transition-all duration-500 perspective-1000 shadow-xl rounded-2xl border border-indigo-950"
+                    className="w-full max-w-lg h-56 cursor-pointer relative transition-all duration-500 perspective-1000 shadow-xl rounded-2xl border border-amber-200 dark:border-indigo-950"
                   >
                     {/* card face */}
                     <div className={`absolute inset-0 w-full h-full rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center transition-all duration-300 ${
                       flashcardFlipped
-                        ? "bg-gradient-to-br from-[#1b1236]/90 to-[#2e1d13]/90 text-white border-amber-500/30 shadow-inner"
-                        : "bg-gradient-to-br from-[#121020] to-[#18152c] text-slate-100 border-indigo-950"
+                        ? "bg-gradient-to-br from-amber-800 to-amber-950 text-white border-amber-500/30 shadow-inner"
+                        : "bg-gradient-to-br from-amber-50 to-orange-100/70 dark:from-[#121020] dark:to-[#18152c] text-slate-900 dark:text-slate-100 border-amber-200 dark:border-indigo-950"
                     }`}>
-                      <span className="text-[10px] tracking-wider uppercase font-bold text-amber-400 block mb-2">
+                      <span className={`text-[11px] tracking-wider uppercase font-bold block mb-2 ${flashcardFlipped ? "text-amber-200" : "text-amber-700 dark:text-amber-400"}`}>
                         {flashcardFlipped ? "الإجابة الصحيحة" : "سؤال التحدي والذكاء"}
                       </span>
                       
@@ -3171,7 +3180,11 @@ export default function App() {
                           : selectedUnit.flashcards[flashcardIdx].front}
                       </h4>
 
-                      <span className={`text-[10px] absolute bottom-4 bg-[#1b1930] text-slate-200 px-3 py-1 rounded-full font-bold border border-indigo-900/30 ${flashcardFlipped ? "bg-amber-900/40 text-amber-200" : ""}`}>
+                      <span className={`text-[10px] absolute bottom-4 px-3 py-1 rounded-full font-bold border ${
+                        flashcardFlipped 
+                          ? "bg-amber-900/60 text-amber-200 border-amber-700/50" 
+                          : "bg-white dark:bg-[#1b1930] text-slate-700 dark:text-slate-200 border-amber-200 dark:border-indigo-900/30 shadow-xs"
+                      }`}>
                         {flashcardFlipped ? "انقر لرؤية السؤال ↩" : "انقر لرؤية الإجابة ↪"}
                       </span>
                     </div>
@@ -3186,11 +3199,11 @@ export default function App() {
                         setFlashcardIdx(prev => prev - 1);
                         setFlashcardFlipped(false);
                       }}
-                      className="bg-[#1b1930] hover:bg-[#252244] border border-indigo-900/50 disabled:opacity-50 text-slate-100 p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+                      className="bg-white dark:bg-[#1b1930] hover:bg-amber-50 dark:hover:bg-[#252244] border border-slate-300 dark:border-indigo-900/50 disabled:opacity-40 text-slate-800 dark:text-slate-100 p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
                     >
-                      <ChevronRight className="w-5 h-5 animate-pulse" />
+                      <ChevronRight className="w-5 h-5 text-amber-700 dark:text-amber-400" />
                     </button>
-                    <span className="text-xs font-bold text-slate-300 font-sans">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 font-sans">
                       البطاقة {flashcardIdx + 1} من {selectedUnit.flashcards.length}
                     </span>
                     <button
@@ -3200,9 +3213,9 @@ export default function App() {
                         setFlashcardIdx(prev => prev + 1);
                         setFlashcardFlipped(false);
                       }}
-                      className="bg-[#1b1930] hover:bg-[#252244] border border-indigo-900/50 disabled:opacity-50 text-slate-100 p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+                      className="bg-white dark:bg-[#1b1930] hover:bg-amber-50 dark:hover:bg-[#252244] border border-slate-300 dark:border-indigo-900/50 disabled:opacity-40 text-slate-800 dark:text-slate-100 p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
                     >
-                      <ChevronLeft className="w-5 h-5 animate-pulse" />
+                      <ChevronLeft className="w-5 h-5 text-amber-700 dark:text-amber-400" />
                     </button>
                   </div>
                 </div>
