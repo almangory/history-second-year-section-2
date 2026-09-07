@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@300;400;550;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@300;400;550;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -379,5 +379,24 @@ option {
     margin: 0 !important;
     width: 100% !important;
     background: transparent !important;
+  }
+}
+
+/* =========================================================
+   6. Naqla Smart Mentor Floating Widget Positioning
+   ========================================================= */
+.mentor-floating-btn {
+  bottom: 90px !important;
+  left: 20px !important;
+  right: auto !important;
+  z-index: 9999 !important;
+}
+
+@media (max-width: 640px) {
+  .mentor-floating-btn {
+    bottom: 85px !important;
+    left: 15px !important;
+    width: 52px !important;
+    height: 52px !important;
   }
 }
