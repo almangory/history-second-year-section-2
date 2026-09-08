@@ -8,10 +8,12 @@ import {
   FileText, Printer, Check, CheckSquare, X, Lock, Unlock, 
   RefreshCw, Info, Award, HelpCircle, Sparkles, CheckCircle2, XCircle,
   Maximize2, Minimize2, ZoomIn, ZoomOut, Monitor, ShieldAlert,
-  ArrowRight, CheckCheck, Eye
+  ArrowRight, CheckCheck, Eye, BookOpen, GraduationCap, School
 } from "lucide-react";
-import { Question, Unit, QuestionType } from "../types";
+import { Question, Unit, QuestionType, OfficialExam } from "../types";
 import { generateDynamicQuestions } from "../utils/questionGenerator";
+import { OFFICIAL_EXAMS } from "../data/officialExamsData";
+import { OfficialExamPaperView } from "./OfficialExamPaperView";
 
 interface WorksheetGeneratorProps {
   units: Unit[];
@@ -182,6 +184,17 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
   onRequestExit,
   onWorksheetSolvingChange
 }) => {
+  // Master Category Tabs: "exams" (Board & School Exams) | "unit_worksheets" (Comprehensive 5 Units) | "generator" (Smart Dynamic Generator)
+  const [activeSourceTab, setActiveSourceTab] = useState<"exams" | "unit_worksheets" | "generator">("exams");
+  const [selectedExamId, setSelectedExamId] = useState<string>("exam_primary_cert_red_sea");
+  const [selectedUnitWorksheetId, setSelectedUnitWorksheetId] = useState<string>("worksheet_unit_1");
+
+  // Filtered lists of official materials
+  const boardExamsList = OFFICIAL_EXAMS.filter(e => e.category === "board_exam" || e.category === "school_exam");
+  const unitWorksheetsList = OFFICIAL_EXAMS.filter(e => e.category === "unit_worksheet");
+  const activeExam = boardExamsList.find(e => e.id === selectedExamId) || boardExamsList[0];
+  const activeUnitWorksheet = unitWorksheetsList.find(e => e.id === selectedUnitWorksheetId) || unitWorksheetsList[0];
+
   // Filters Settings State
   const [scopeType, setScopeType] = useState<"all" | "unit" | "lesson" | "favorites">("all");
   const [selectedUnitId, setSelectedUnitId] = useState<number>(1);
@@ -644,8 +657,303 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
         </div>
       )}
 
-      {/* FILTER & GENERATION PANEL (Hidden during print) */}
-      <div className="no-print bg-white rounded-2xl border border-amber-200/90 p-5 space-y-4 shadow-sm text-slate-900">
+      {/* =========================================================================
+          MASTER CATEGORY TABS (Exams | Unit Worksheets | Smart Generator)
+          ========================================================================= */}
+      <div className="no-print bg-white rounded-2xl border-2 border-amber-200/90 p-2 sm:p-2.5 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {/* Tab 1: Official Board & School Exams */}
+          <button
+            onClick={() => {
+              onPlaySound("click");
+              setActiveSourceTab("exams");
+            }}
+            className={`p-3 rounded-xl text-right transition cursor-pointer flex items-center justify-between gap-3 border ${
+              activeSourceTab === "exams"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-700 shadow-md scale-[1.01]"
+                : "bg-amber-50/60 hover:bg-amber-100/70 text-slate-800 border-amber-200"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl sm:text-2xl">🏛️</span>
+              <div>
+                <div className="font-serif font-black text-sm sm:text-base leading-tight">
+                  امتحانات الشهادة والامتحانات الرسمية
+                </div>
+                <div className={`text-[11px] ${activeSourceTab === "exams" ? "text-amber-100" : "text-slate-500"}`}>
+                  شهادة التعليم الابتدائي والامتحانات النموذجية
+                </div>
+              </div>
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+              activeSourceTab === "exams" ? "bg-amber-900/40 text-amber-100" : "bg-amber-200/70 text-amber-900"
+            }`}>
+              4 امتحانات
+            </span>
+          </button>
+
+          {/* Tab 2: Comprehensive 5 Units Worksheets */}
+          <button
+            onClick={() => {
+              onPlaySound("click");
+              setActiveSourceTab("unit_worksheets");
+            }}
+            className={`p-3 rounded-xl text-right transition cursor-pointer flex items-center justify-between gap-3 border ${
+              activeSourceTab === "unit_worksheets"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-700 shadow-md scale-[1.01]"
+                : "bg-amber-50/60 hover:bg-amber-100/70 text-slate-800 border-amber-200"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl sm:text-2xl">📘</span>
+              <div>
+                <div className="font-serif font-black text-sm sm:text-base leading-tight">
+                  كراسة أوراق عمل الوحدات (1 - 5)
+                </div>
+                <div className={`text-[11px] ${activeSourceTab === "unit_worksheets" ? "text-amber-100" : "text-slate-500"}`}>
+                  أوراق عمل شاملة للوحدات بنماذج الإجابة
+                </div>
+              </div>
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+              activeSourceTab === "unit_worksheets" ? "bg-amber-900/40 text-amber-100" : "bg-amber-200/70 text-amber-900"
+            }`}>
+              5 وحدات
+            </span>
+          </button>
+
+          {/* Tab 3: Custom Smart Generator */}
+          <button
+            onClick={() => {
+              onPlaySound("click");
+              setActiveSourceTab("generator");
+            }}
+            className={`p-3 rounded-xl text-right transition cursor-pointer flex items-center justify-between gap-3 border ${
+              activeSourceTab === "generator"
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-700 shadow-md scale-[1.01]"
+                : "bg-amber-50/60 hover:bg-amber-100/70 text-slate-800 border-amber-200"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl sm:text-2xl">⚡</span>
+              <div>
+                <div className="font-serif font-black text-sm sm:text-base leading-tight">
+                  المولد الذكي لأوراق العمل
+                </div>
+                <div className={`text-[11px] ${activeSourceTab === "generator" ? "text-amber-100" : "text-slate-500"}`}>
+                  توليد أسئلة مخصصة حسب الدروس والوحدات
+                </div>
+              </div>
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+              activeSourceTab === "generator" ? "bg-amber-900/40 text-amber-100" : "bg-amber-200/70 text-amber-900"
+            }`}>
+              تخصيص حر
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          UNIVERSAL WATERMARK CONTROLS BAR (Visible when in print mode)
+          ========================================================================= */}
+      {worksheetMode === "print" && !isFullscreen && (
+        <div className="no-print bg-amber-50/80 rounded-2xl p-3 sm:p-4 border border-amber-200 flex flex-col md:flex-row items-center justify-between gap-4 select-none text-slate-800 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl ${removeWatermark ? "bg-emerald-100 text-emerald-800 border border-emerald-300" : "bg-amber-100 text-amber-800 border border-amber-300"}`}>
+              {removeWatermark ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-slate-900">التحكم في العلامة المائية للطباعة</h4>
+              <p className="text-xs text-slate-600">
+                {removeWatermark 
+                  ? "✅ تم إلغاء العلامة المائية بنجاح، الأوراق والامتحانات جاهزة للطباعة الصافية." 
+                  : "🔒 تحتوي الأوراق على علامة مائية للمنصة. يمكنك إلغاؤها بكلمة المرور (20302060)."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {!removeWatermark && !showPasswordBox && (
+              <button
+                onClick={() => {
+                  onPlaySound("click");
+                  setShowPasswordBox(true);
+                }}
+                className="bg-white hover:bg-amber-50 text-amber-900 px-4 py-2 border border-amber-300 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 shadow-xs"
+              >
+                🔐 إدخال رمز إزالة العلامة المائية
+              </button>
+            )}
+
+            {showPasswordBox && (
+              <form onSubmit={handleVerifyPasscode} className="flex items-center gap-2">
+                <input
+                  type="password"
+                  placeholder="رمز المرور (20302060)..."
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500"
+                />
+                <button
+                  type="submit"
+                  className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0"
+                >
+                  تأكيد
+                </button>
+              </form>
+            )}
+
+            {removeWatermark && (
+              <span className="text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 font-bold rounded-lg shrink-0">
+                العلامة المائية ملغاة 🔓
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SECTION 1: OFFICIAL EXAMS VIEW
+          ========================================================================= */}
+      {activeSourceTab === "exams" && (
+        <div className="space-y-6">
+          {/* EXAM SELECTOR BAR */}
+          <div className="no-print bg-white rounded-2xl border border-amber-200 p-4 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between border-b border-amber-100 pb-2">
+              <h3 className="font-serif font-bold text-amber-900 text-sm sm:text-base flex items-center gap-2">
+                <span>🏛️ اختر الامتحان الرسمي للحل والطباعة:</span>
+              </h3>
+              <span className="text-xs text-slate-500 font-sans hidden sm:inline">
+                مطابقة 100% لمقرر الصف السادس الابتدائي المعتمد
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {boardExamsList.map((exam) => (
+                <button
+                  key={exam.id}
+                  onClick={() => {
+                    onPlaySound("click");
+                    setSelectedExamId(exam.id);
+                  }}
+                  className={`p-3 rounded-xl text-right transition cursor-pointer border text-xs flex flex-col justify-between min-h-[105px] ${
+                    selectedExamId === exam.id
+                      ? "bg-amber-50/90 border-amber-500 shadow-sm ring-2 ring-amber-400/50"
+                      : "bg-white hover:bg-amber-50/50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
+                      <span className="font-bold text-amber-800 text-[11px] truncate">
+                        {exam.subtitle || exam.state}
+                      </span>
+                      <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0">
+                        {exam.totalMarks} درجة
+                      </span>
+                    </div>
+                    <div className="font-serif font-bold text-slate-950 text-xs sm:text-sm leading-snug">
+                      {exam.title}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-amber-100/70 mt-2">
+                    <span>⏱️ {exam.duration}</span>
+                    <span className="font-bold text-amber-700">حل وتصحيح ✍️</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RENDER ACTIVE EXAM */}
+          <OfficialExamPaperView
+            exam={activeExam}
+            onPlaySound={onPlaySound}
+            onAddScore={(pts) => setScore(prev => prev + pts)}
+            worksheetMode={worksheetMode}
+            onModeChange={setWorksheetMode}
+            removeWatermark={removeWatermark}
+            onToggleFullscreen={handleToggleFullscreen}
+            isFullscreen={isFullscreen}
+          />
+        </div>
+      )}
+
+      {/* =========================================================================
+          SECTION 2: COMPREHENSIVE 5 UNIT WORKSHEETS VIEW
+          ========================================================================= */}
+      {activeSourceTab === "unit_worksheets" && (
+        <div className="space-y-6">
+          {/* UNIT WORKSHEETS SELECTOR BAR */}
+          <div className="no-print bg-white rounded-2xl border border-amber-200 p-4 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between border-b border-amber-100 pb-2">
+              <h3 className="font-serif font-bold text-amber-900 text-sm sm:text-base flex items-center gap-2">
+                <span>📘 كراسة أوراق العمل الشاملة للوحدات الدراسية الخمس:</span>
+              </h3>
+              <span className="text-xs text-slate-500 font-sans hidden sm:inline">
+                نماذج إجابات معتمدة وأدلة منهجية
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              {unitWorksheetsList.map((ws, idx) => (
+                <button
+                  key={ws.id}
+                  onClick={() => {
+                    onPlaySound("click");
+                    setSelectedUnitWorksheetId(ws.id);
+                  }}
+                  className={`p-3 rounded-xl text-right transition cursor-pointer border text-xs flex flex-col justify-between min-h-[105px] ${
+                    selectedUnitWorksheetId === ws.id
+                      ? "bg-amber-50/90 border-amber-500 shadow-sm ring-2 ring-amber-400/50"
+                      : "bg-white hover:bg-amber-50/50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
+                      <span className="font-bold text-amber-800 text-[11px]">
+                        الوحدة {idx + 1}
+                      </span>
+                      <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0">
+                        {ws.totalMarks} درجة
+                      </span>
+                    </div>
+                    <div className="font-serif font-bold text-slate-950 text-xs leading-snug">
+                      {ws.title.replace("كراسة أوراق العمل الشاملة - ", "")}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-amber-100/70 mt-2">
+                    <span>{ws.sections.length} أقسام</span>
+                    <span className="font-bold text-amber-700">حل وطباعة 🖨️</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RENDER ACTIVE UNIT WORKSHEET */}
+          <OfficialExamPaperView
+            exam={activeUnitWorksheet}
+            onPlaySound={onPlaySound}
+            onAddScore={(pts) => setScore(prev => prev + pts)}
+            worksheetMode={worksheetMode}
+            onModeChange={setWorksheetMode}
+            removeWatermark={removeWatermark}
+            onToggleFullscreen={handleToggleFullscreen}
+            isFullscreen={isFullscreen}
+          />
+        </div>
+      )}
+
+      {/* =========================================================================
+          SECTION 3: SMART DYNAMIC GENERATOR VIEW
+          ========================================================================= */}
+      {activeSourceTab === "generator" && (
+        <div className="space-y-6">
+          {/* FILTER & GENERATION PANEL (Hidden during print) */}
+          <div className="no-print bg-white rounded-2xl border border-amber-200/90 p-5 space-y-4 shadow-sm text-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-100 pb-2">
           <h3 className="text-amber-800 font-serif font-bold text-base md:text-lg flex items-center gap-1.5">
             <span>⚙️ إعدادات ورقة العمل ونطاق الأسئلة</span>
@@ -948,63 +1256,6 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
         </div>
       )}
 
-      {/* WATERMARK SETTINGS BAR (When in print mode) */}
-      {worksheetMode === "print" && !isFullscreen && (
-        <div className="no-print bg-amber-50/80 rounded-2xl p-4 border border-amber-200 flex flex-col md:flex-row items-center justify-between gap-4 select-none text-slate-800 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl ${removeWatermark ? "bg-emerald-100 text-emerald-800 border border-emerald-300" : "bg-amber-100 text-amber-800 border border-amber-300"}`}>
-              {removeWatermark ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-            </div>
-            <div>
-              <h4 className="font-bold text-sm text-slate-900">التحكم في العلامة المائية للطباعة</h4>
-              <p className="text-xs text-slate-600">
-                {removeWatermark 
-                  ? "✅ تم إلغاء العلامة المائية بنجاح، الأوراق جاهزة للطباعة الصافية." 
-                  : "🔒 تحتوي الورقة على علامة مائية للموقع. يمكنك إلغاءها بكلمة المرور."}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {!removeWatermark && !showPasswordBox && (
-              <button
-                onClick={() => {
-                  onPlaySound("click");
-                  setShowPasswordBox(true);
-                }}
-                className="bg-white hover:bg-amber-50 text-amber-900 px-4 py-2 border border-amber-300 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 shadow-xs"
-              >
-                🔐 إدخال رمز إزالة العلامة المائية
-              </button>
-            )}
-
-            {showPasswordBox && (
-              <form onSubmit={handleVerifyPasscode} className="flex items-center gap-2">
-                <input
-                  type="password"
-                  placeholder="رمز المرور (20302060)..."
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  className="bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500"
-                />
-                <button
-                  type="submit"
-                  className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0"
-                >
-                  تأكيد
-                </button>
-              </form>
-            )}
-
-            {removeWatermark && (
-              <span className="text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 font-bold rounded-lg shrink-0">
-                العلامة المائية ملغاة 🔓
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* WORKSHEET DISPLAY ZONE (Dynamically Scaled according to Zoom & Screen Width) */}
       {generatedPages.length > 0 && (
         <div 
@@ -1048,12 +1299,21 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                   <div className="relative z-10 space-y-5 flex-1">
                     {/* Header Section */}
                     <div className="border-b-4 border-slate-900 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                      <div>
-                        <h1 className="text-lg sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-1.5">
-                          <span>ورقة عمل التاريخ والتربية الوطنية 🏛️</span>
-                          <span className="text-[10px] sm:text-[11px] border border-slate-900 text-slate-900 font-sans font-bold px-2 py-0.5 rounded">الصف السادس</span>
-                        </h1>
-                        <p className="text-[10px] sm:text-[11px] text-slate-600 font-sans mt-0.5 font-medium leading-none">وزارة التربية والتعليم - المركز القومي للمناهج والبحث التربوي (بخت الرضا)</p>
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src="/logo.png" 
+                          alt="شعار منصة نقلة للمناهج التعليمية الإلكترونية" 
+                          className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-xs shrink-0" 
+                        />
+                        <div>
+                          <h1 className="text-lg sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-1.5">
+                            <span>ورقة عمل التاريخ والتربية الوطنية 🏛️</span>
+                            <span className="text-[10px] sm:text-[11px] border border-slate-900 text-slate-900 font-sans font-bold px-2 py-0.5 rounded">الصف السادس</span>
+                          </h1>
+                          <p className="text-[10px] sm:text-[11px] text-slate-600 font-sans mt-0.5 font-medium leading-none">
+                            منصة نقلة للمناهج التعليمية الإلكترونية - بخت الرضا
+                          </p>
+                        </div>
                       </div>
 
                       <div className="text-right text-[10px] sm:text-[11px] text-slate-700 font-sans space-y-0.5 border-r-2 sm:border-r-0 sm:border-l-2 border-slate-300 pr-2 sm:pr-0 sm:pl-3">
@@ -1615,6 +1875,8 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
               ))}
             </div>
           )}
+        </div>
+      )}
         </div>
       )}
     </div>

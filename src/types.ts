@@ -72,3 +72,62 @@ export interface ChatMessage {
   text: string;
   timestamp: Date;
 }
+
+export type ExamQuestionType =
+  | "mcq"
+  | "tf"
+  | "blank"
+  | "match"
+  | "timeline"
+  | "odd_one_out"
+  | "essay"
+  | "short_answer"
+  | "map"
+  | "table_comparison";
+
+export interface ExamQuestion {
+  id: string;
+  type: ExamQuestionType;
+  text: string;
+  options?: string[];
+  correctAnswer: string;
+  explanation?: string;
+  matchPairs?: { left: string; right: string }[];
+  timelineEvents?: { event: string; year: string }[];
+  oddItems?: { words: string[]; odd: string; reason: string };
+  tableComparison?: {
+    criteria: string[];
+    colA: { title: string; values: string[] };
+    colB: { title: string; values: string[] };
+  };
+  mapData?: {
+    prompt: string;
+    points: { label: string; answer: string }[];
+  };
+  essayTopics?: string[];
+}
+
+export interface ExamSection {
+  id: string;
+  title: string;
+  instruction: string;
+  marks?: number;
+  questions: ExamQuestion[];
+}
+
+export interface OfficialExam {
+  id: string;
+  title: string;
+  subtitle: string;
+  authority: string;
+  state?: string;
+  year?: string;
+  grade: string;
+  subject: string;
+  duration: string;
+  totalMarks: number;
+  category: "board_exam" | "school_exam" | "unit_worksheet";
+  unitId?: number;
+  sections: ExamSection[];
+}
+
