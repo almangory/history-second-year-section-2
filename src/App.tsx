@@ -1309,6 +1309,15 @@ export default function App() {
       {/* Visual top bar */}
       <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 shrink-0"></div>
 
+      {/* Offline Alert Banner */}
+      {(!isOnline || offlineModeSimulated) && (
+        <div className="bg-amber-800 text-amber-50 px-4 py-2 text-xs font-sans text-center flex items-center justify-center gap-2 border-b border-amber-900 shadow-sm shrink-0 select-none animate-[fadeIn_0.3s_ease-out]">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+          <span className="font-bold">📡 وضع عدم الاتصال (أوفلاين) نشط</span>
+          <span className="hidden sm:inline">— كامل نصوص الدروس الـ 21، والامتحانات، وأوراق العمل، والمؤثرات الصوتية تعمل بكامل طاقتها بدون إنترنت!</span>
+        </div>
+      )}
+
       {/* Main Top Header Navigation */}
       <header className="bg-white/95 backdrop-blur-md border-b border-amber-200/80 px-4 md:px-8 py-3.5 sticky top-0 z-40 shadow-xs shrink-0 transition-colors duration-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">

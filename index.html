@@ -28,9 +28,14 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch((err) => {
-            console.log('ServiceWorker registration skipped:', err);
-          });
+          navigator.serviceWorker.register('/sw.js?v=20260908_v7', { scope: '/' })
+            .then((registration) => {
+              // Automatically check for updates on reload
+              registration.update();
+            })
+            .catch((err) => {
+              console.log('ServiceWorker registration skipped:', err);
+            });
         });
       }
     </script>
