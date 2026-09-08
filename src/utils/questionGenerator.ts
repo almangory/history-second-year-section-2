@@ -6,7 +6,7 @@
 import { Question, QuestionType, Unit } from "../types";
 import { UNITS, QUESTIONS } from "../data";
 
-// Bank of authentic curriculum essay questions for Sudanese Grade 6 History & Civics
+// Bank of authentic curriculum essay questions for Sudanese Grade 2 Secondary History
 export const ESSAY_QUESTION_BANK: Question[] = [
   // --- الوحدة الأولى: تاريخ السودان الحديث ---
   {
@@ -16,7 +16,7 @@ export const ESSAY_QUESTION_BANK: Question[] = [
     type: QuestionType.ESSAY,
     text: "اذكر أسباب غزو محمد علي باشا للسودان عام ١٨٢٠م مع الشرح الموجز.",
     correctAnswer: "أسباب غزو محمد علي باشا للسودان:\n١. البحث عن الذهب والمعادن لتمويل مشروعاته وبناء دولته.\n٢. تجنيد الرجال السودانيين الأقوياء لبناء جيش نظامي حديث.\n٣. القضاء على المماليك الفارين إلى دنقلا الذين شكلوا تهديداً لحكمه.\n٤. التخلص من جنوده غير النظاميين (الألبان والأرناؤوط) الذين اعتادوا التمرد والشغب.",
-    explanation: "كتاب التاريخ للصف السادس: أسباب غزو السودان في عهد محمد علي باشا."
+    explanation: "كتاب التاريخ للصف الثاني ثانوي: أسباب غزو السودان في عهد محمد علي باشا."
   },
   {
     id: "essay_u1_2",

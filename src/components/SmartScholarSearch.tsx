@@ -392,7 +392,7 @@ export const SmartScholarSearch: React.FC<SmartScholarSearchProps> = ({ onSelect
                       الباحث المنهجي الذكي
                     </h3>
                     <p className="text-xs text-[#5c4a38] font-sans">
-                      محرك بحث منهجي فوري من كتاب التاريخ والتربية الوطنية للصف السادس
+                      محرك بحث منهجي فوري من كتاب تاريخ السودان وأوروبا الحديث للصف الثاني ثانوي
                     </p>
                   </div>
                 </div>

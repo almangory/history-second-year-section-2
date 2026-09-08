@@ -42,12 +42,13 @@ export interface Message {
 }
 
 const PRESET_HISTORY_QUESTIONS = [
-  'ما هي أسباب غزو محمد علي باشا للسودان عام 1821م؟',
-  'اشرح أحداث معركة كورتي وبطولة الشاعرة مهيرة بت عبود ودور الشايقية في المقاومة؟',
-  'كيف وقعت حادثة حريق شندي وما سبب غضب المك نمر من إسماعيل باشا عام 1822م؟',
-  'صِف التخطيط الهندسي لمدينة بغداد المدورة التي بناها الخليفة أبو جعفر المنصور؟',
-  'ما هي قصة حج ملك مالي منسا موسى عام 1324م وما أثر ثروته الذهبية على العالم؟',
-  'ما هي مقومات الدولة الأربعة وما الفرق الجوهري بين حقوق المواطن وواجباته؟'
+  'ما هي أسباب ودوافع غزو محمد علي باشا للسودان عام ١٨٢٠م؟',
+  'اشرح أحداث معركة كورتي وموقعة بارا واستبسال السودانيين أمام السلاح الناري؟',
+  'كيف وقعت حادثة حريق شندي ومقتل إسماعيل باشا على يد المك نمر عام ١٨٢٢م؟',
+  'وضح خطوات إعلان استقلال السودان من داخل البرلمان عام ١٩٥٥م ورفع العلم عام ١٩٥٦م؟',
+  'ما هي أسباب الثورة الفرنسية عام ١٧٨٩م ودور فلاسفة التنوير وسقوط الباستيل؟',
+  'كيف حقق المستشار بسمارك الوحدة الألمانية بسياسة الدم والحديد عام ١٨٧١م؟',
+  'ما هي أزمة سراجيفو عام ١٩١٤م وما أسباب اندلاع الحرب العالمية الأولى؟'
 ];
 
 const CLOUD_MENTOR_ENDPOINT = 'https://local-ai-arsenal.pages.dev/api/mentor/chat';
@@ -72,12 +73,12 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
   sudan_1821_campaign: {
     id: 'sudan_1821_campaign',
     title: 'خريطة ومسار حملات 1821م ومقاومة السودانيين (كورتي وشندي)',
-    caption: 'مسار جيش إسماعيل باشا على وادي النيل، معركة كورتي وموقف الشايقية، ودخول سنار، ثم حريق شندي 1822م (كتاب التاريخ - الصف السادس)',
+    caption: 'مسار جيش إسماعيل باشا على وادي النيل، معركة كورتي وموقف الشايقية، ودخول سنار، ثم حريق شندي 1822م (كتاب التاريخ - الصف الثاني ثانوي)',
     keyPoints: [
-      'حملة إسماعيل باشا (1821م): تحركت بمحاذاة النيل بحثاً عن الذهب والرجال والسيطرة على منابع النيل.',
-      'معركة كورتي (نوفمبر 1820م): أظهر الشايقية بسالة أسطورية وحمستهم الشاعرة مهيرة بت عبود بقصيدتها الشهيرة: «غني شوفي عيالك يا مهيرة».',
-      'سقوط سنار (يونيو 1821م): استسلام آخر ملوك الفونج (بادي السادس) وانتهاء سلطنة سنار الإسلامية.',
-      'حريق شندي (أكتوبر 1822م): رد المك نمر البطولي على إهانة إسماعيل باشا وإحراق معسكره، وتلاه انتقام الدفتردار الدموي.'
+      'حملة إسماعيل باشا (1821م): تحركت بمحاذاة النيل بحثاً عن الذهب والرجال وتأمين منابع النيل ومطاردة المماليك.',
+      'معركة كورتي (نوفمبر 1820م): أظهر فرسان الشايقية بسالة فائقة، ولكن تفوق السلاح الناري والمدافع حسم المعركة لصالح الغزاة.',
+      'سقوط سنار (يونيو 1821م): استسلام بادي السادس بعد مقتل وزيره محمد ود عدلان، وانتهاء عهد سلطنة الفونج.',
+      'حريق شندي (أكتوبر 1822م): رد المك نمر البطولي على إهانة إسماعيل باشا بإحراق معسكره ليلاً، وتلاه انتقام الدفتردار الدموي.'
     ],
     svg: `<svg viewBox="0 0 740 390" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Cairo',sans-serif;background:#18152c;border-radius:18px;">
       <defs>
@@ -85,22 +86,18 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
           <stop offset="0%" stop-color="#b45309"/>
           <stop offset="100%" stop-color="#78350f"/>
         </linearGradient>
-        <linearGradient id="histGrad2" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#991b1b"/>
-          <stop offset="100%" stop-color="#450a0a"/>
-        </linearGradient>
       </defs>
       
       <!-- عنوان المخطط -->
       <rect x="20" y="15" width="700" height="42" rx="12" fill="#8C6239" />
       <text x="370" y="42" text-anchor="middle" fill="#FAF4ED" font-size="16" font-weight="900">
-        ⚔️ محطات الغزو التركي 1821م وبطولات المقاومة الوطنية السودانية
+        ⚔️ محطات الغزو التركي 1820-1821م وبطولات المقاومة الوطنية السودانية
       </text>
 
       <!-- 1. أسباب الغزو -->
       <g transform="translate(25, 75)">
         <rect width="160" height="250" rx="14" fill="#201a38" stroke="#8C6239" stroke-width="2" />
-        <text x="80" y="30" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="bold">١. دوافع الغزو 1821م</text>
+        <text x="80" y="30" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="bold">١. دوافع الغزو 1820م</text>
         <circle cx="80" cy="75" r="28" fill="#2d244c" />
         <text x="80" y="83" text-anchor="middle" font-size="24">💰</text>
         <text x="80" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">مطامع محمد علي باشا</text>
@@ -119,8 +116,8 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
         <text x="80" y="83" text-anchor="middle" font-size="24">🛡️</text>
         <text x="80" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">شجاعة الشايقية</text>
         <text x="80" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">• مواجهة المدافع بالسيوف</text>
-        <text x="80" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• صمود مهيرة بت عبود</text>
-        <text x="80" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• ملحمة شعرية تاريخية</text>
+        <text x="80" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• رفض تسليم السلاح</text>
+        <text x="80" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• ملحمة بطولية خالدة</text>
         <rect x="15" y="208" width="130" height="26" rx="6" fill="#b45309" />
         <text x="80" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">فداء الوطن والشرف</text>
       </g>
@@ -133,10 +130,10 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
         <text x="80" y="83" text-anchor="middle" font-size="24">🏰</text>
         <text x="80" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">نهاية سلطنة الفونج</text>
         <text x="80" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">• استسلام بادي السادس</text>
-        <text x="80" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• 317 عاماً من حكم سنار</text>
+        <text x="80" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• مقتل محمد ود عدلان</text>
         <text x="80" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• فرض الضرائب الباهظة</text>
         <rect x="15" y="208" width="130" height="26" rx="6" fill="#8C6239" />
-        <text x="80" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">يونيو 1821م</text>
+        <text x="80" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">14 يونيو 1821م</text>
       </g>
 
       <!-- 4. حريق شندي والمك نمر -->
@@ -147,150 +144,160 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
         <text x="82" y="83" text-anchor="middle" font-size="24">🔥</text>
         <text x="82" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">عزة وكرامة المك نمر</text>
         <text x="82" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">• صفعة غليون إسماعيل</text>
-        <text x="82" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• إحراق معسكر إسماعيل ليلاً</text>
-        <text x="82" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• هجرة الجعليين للحبشة</text>
+        <text x="82" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• إحراق مقر إسماعيل ليلاً</text>
+        <text x="82" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• هجرة المك نمر للحبشة</text>
         <rect x="15" y="208" width="135" height="26" rx="6" fill="#991b1b" />
         <text x="82" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">أكتوبر 1822م</text>
       </g>
     </svg>`
   },
 
-  baghdad_round_city: {
-    id: 'baghdad_round_city',
-    title: 'المخطط الهندسي لمدينة بغداد المدورة (دار السلام 145هـ)',
-    caption: 'التحفة المعمارية للخليفة العباسي أبو جعفر المنصور على نهر دجلة بأبوابها الأربعة الشهيرة (كتاب التاريخ - الصف السادس)',
+  sudan_independence_1956: {
+    id: 'sudan_independence_1956',
+    title: 'مسار استقلال السودان ومراحل الحكم الوطني (1956 - 1985م)',
+    caption: 'من مؤتمر الخريجين 1938م وإعلان الاستقلال من البرلمان 1955م إلى ثورة أكتوبر 1964م وانتفاضة أبريل 1985م (كتاب التاريخ - الصف الثاني ثانوي)',
     keyPoints: [
-      'التأسيس: بناها الخليفة أبو جعفر المنصور عام 145هـ (762م) وسماها "مدينة السلام".',
-      'الشكل الدائري: اختار الشكل المستدير لتكون محصنة هندسياً، محاطة بسورين وخندق مائي عريض.',
-      'الأبواب الأربعة: باب الكوفة (جنوب غرب)، باب البصرة (جنوب شرق)، باب خراسان (شمال شرق)، وباب الشام (شمال غرب).',
-      'القلب المركزي: قصر الخليفة (قصر قبة الذهب) بارتفاع 40 متراً يعلوه تمثال الفارس، وبجواره المسجد الجامع الكبير.'
+      'مؤتمر الخريجين العام (1938م): تقديم مذكرة 1942م المطالبة بحق تقرير المصير للسودانيين.',
+      'اتفاقية الحكم الذاتي (1953م): إلغاء الحكم الثنائي وإجراء أول انتخابات برلمانية وتشكيل حكومة الأزهري.',
+      'إعلان الاستقلال (19 ديسمبر 1955م): إجازة إعلان الاستقلال بالإجماع من البرلمان واقتراح عبدالرحمن دبكة.',
+      'رفع العلم (1 يناير 1956م): رفع علم السودان المستقل بسراي الحاكم العام على يد الأزهري ومحجوب.'
     ],
     svg: `<svg viewBox="0 0 740 390" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Cairo',sans-serif;background:#18152c;border-radius:18px;">
       <!-- العنوان -->
-      <rect x="20" y="15" width="700" height="42" rx="12" fill="#8C6239" />
+      <rect x="20" y="15" width="700" height="42" rx="12" fill="#047857" />
       <text x="370" y="42" text-anchor="middle" fill="#FAF4ED" font-size="16" font-weight="900">
-        🏛️ المخطط الهندسي لمدينة بغداد المدورة (دار السلام 145هـ - أبو جعفر المنصور)
+        🇸🇩 مسيرة الاستقلال الوطني وبناء الدولة السودانية المعاصرة (1956 - 1985م)
       </text>
 
-      <!-- الدوائر المركزية للمدينة -->
-      <g transform="translate(370, 225)">
-        <!-- الخندق المائي الخارجي -->
-        <circle r="145" fill="none" stroke="#38bdf8" stroke-width="12" opacity="0.6"/>
-        <text y="-152" text-anchor="middle" fill="#38bdf8" font-size="10" font-weight="bold">الخندق المائي المحيط</text>
-
-        <!-- السور الخارجي والداخلي -->
-        <circle r="130" fill="#261e40" stroke="#f59e0b" stroke-width="5"/>
-        <circle r="105" fill="#1b1530" stroke="#8C6239" stroke-width="3" stroke-dasharray="6,4"/>
-        <text y="-112" text-anchor="middle" fill="#d97706" font-size="9">منازل وسكن العامة والأسواق</text>
-
-        <!-- المركز: قصر الذهب والجامع -->
-        <circle r="55" fill="#312652" stroke="#f59e0b" stroke-width="3"/>
-        <circle cx="0" cy="-5" r="22" fill="#8C6239" />
-        <text y="0" text-anchor="middle" font-size="16">🕌</text>
-        <text y="22" text-anchor="middle" fill="#FAF4ED" font-size="9" font-weight="bold">قصر قبة الذهب والجامع</text>
-
-        <!-- الأبواب الأربعة -->
-        <!-- باب الشام (أعلى اليسار) -->
-        <circle cx="-92" cy="-92" r="10" fill="#ef4444" />
-        <text x="-140" y="-95" fill="#fca5a5" font-size="10" font-weight="bold">باب الشام ↖️</text>
-
-        <!-- باب خراسان (أعلى اليمين) -->
-        <circle cx="92" cy="-92" r="10" fill="#ef4444" />
-        <text x="105" y="-95" fill="#fca5a5" font-size="10" font-weight="bold">↗️ باب خراسان</text>
-
-        <!-- باب الكوفة (أسفل اليسار) -->
-        <circle cx="-92" cy="92" r="10" fill="#ef4444" />
-        <text x="-140" y="105" fill="#fca5a5" font-size="10" font-weight="bold">باب الكوفة ↙️</text>
-
-        <!-- باب البصرة (أسفل اليمين) -->
-        <circle cx="92" cy="92" r="10" fill="#ef4444" />
-        <text x="105" y="105" fill="#fca5a5" font-size="10" font-weight="bold">↘️ باب البصرة</text>
+      <!-- 1. النخبة ومؤتمر الخريجين -->
+      <g transform="translate(25, 75)">
+        <rect width="160" height="250" rx="14" fill="#201a38" stroke="#10b981" stroke-width="2" />
+        <text x="80" y="30" text-anchor="middle" fill="#34d399" font-size="13" font-weight="bold">١. اليقظة الوطنية</text>
+        <circle cx="80" cy="75" r="28" fill="#064e3b" />
+        <text x="80" y="83" text-anchor="middle" font-size="24">📜</text>
+        <text x="80" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">مؤتمر الخريجين 1938</text>
+        <text x="80" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">• نادي الخريجين 1918م</text>
+        <text x="80" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• مذكرة المطالب 1942م</text>
+        <text x="80" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• نشأة الأحزاب الوطنية</text>
+        <rect x="15" y="208" width="130" height="26" rx="6" fill="#047857" />
+        <text x="80" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">حق تقرير المصير</text>
       </g>
 
-      <!-- بطاقة معلومات جانبية -->
-      <g transform="translate(30, 80)">
-        <rect width="160" height="150" rx="10" fill="#201a38" stroke="#8C6239" stroke-width="1.5" />
-        <text x="80" y="24" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="bold">خصائص البناء المعماري</text>
-        <text x="14" y="48" fill="#e2e8f0" font-size="9.5">• الموقع: غرب نهر دجلة</text>
-        <text x="14" y="68" fill="#e2e8f0" font-size="9.5">• القطر: حوالي 2.6 كم</text>
-        <text x="14" y="88" fill="#e2e8f0" font-size="9.5">• مهندسو البناء: النوبختي</text>
-        <text x="14" y="108" fill="#e2e8f0" font-size="9.5">• زمن الإنجاز: 4 سنوات</text>
-        <text x="14" y="128" fill="#f59e0b" font-size="9.5">• سميت «دار السلام»</text>
+      <!-- 2. اتفاقية 1953 والسودنة -->
+      <g transform="translate(200, 75)">
+        <rect width="160" height="250" rx="14" fill="#201a38" stroke="#3b82f6" stroke-width="2" />
+        <text x="80" y="30" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="bold">٢. الحكم الذاتي 1953</text>
+        <circle cx="80" cy="75" r="28" fill="#1e3a8a" />
+        <text x="80" y="83" text-anchor="middle" font-size="24">⚖️</text>
+        <text x="80" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">تصفية الاستعمار</text>
+        <text x="80" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">• اتفاقية 12 يناير 1953</text>
+        <text x="80" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• أول انتخابات برلمانية</text>
+        <text x="80" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• لجنة السودنة 1955م</text>
+        <rect x="15" y="208" width="130" height="26" rx="6" fill="#1d4ed8" />
+        <text x="80" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">أول حكومة للأزهري</text>
+      </g>
+
+      <!-- 3. إعلان الاستقلال ورفع العلم -->
+      <g transform="translate(375, 75)">
+        <rect width="160" height="250" rx="14" fill="#201a38" stroke="#f59e0b" stroke-width="2" />
+        <text x="80" y="30" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">٣. يوم الاستقلال 1956</text>
+        <circle cx="80" cy="75" r="28" fill="#78350f" />
+        <text x="80" y="83" text-anchor="middle" font-size="24">🇸🇩</text>
+        <text x="80" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">السيادة الوطنية</text>
+        <text x="80" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">• برلمان 19 ديسمبر 1955</text>
+        <text x="80" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• رفع العلم 1 يناير 1956</text>
+        <text x="80" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• مجلس السيادة الخماسي</text>
+        <rect x="15" y="208" width="130" height="26" rx="6" fill="#d97706" />
+        <text x="80" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">الحرية الكاملة</text>
+      </g>
+
+      <!-- 4. ثورة أكتوبر وانتفاضة أبريل -->
+      <g transform="translate(550, 75)">
+        <rect width="165" height="250" rx="14" fill="#201a38" stroke="#a855f7" stroke-width="2" />
+        <text x="82" y="30" text-anchor="middle" fill="#c084fc" font-size="13" font-weight="bold">٤. الثورات الشعبية</text>
+        <circle cx="82" cy="75" r="28" fill="#581c87" />
+        <text x="82" y="83" text-anchor="middle" font-size="24">✌️</text>
+        <text x="82" y="125" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">إرادة الشعب العظيم</text>
+        <text x="82" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">• ثورة 21 أكتوبر 1964</text>
+        <text x="82" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">• استشهاد القرشي بالجامعة</text>
+        <text x="82" y="188" text-anchor="middle" fill="#94a3b8" font-size="10">• انتفاضة رجب/أبريل 1985</text>
+        <rect x="15" y="208" width="135" height="26" rx="6" fill="#7e22ce" />
+        <text x="82" y="225" text-anchor="middle" fill="#FAF4ED" font-size="10" font-weight="bold">سوار الذهب وحكومة الجزولي</text>
       </g>
     </svg>`
   },
 
-  mansa_musa_hajj: {
-    id: 'mansa_musa_hajj',
-    title: 'إمبراطورية مالي وحج منسا موسى الذهبي (1324م)',
-    caption: 'رحلة الحج التاريخية الأسطورية التي غيرت اقتصاد العالم وجعلت مالي منارة العلم عبر جامعة سنكوري بتمبكتو (كتاب التاريخ - الصف السادس)',
+  french_revolution_1789: {
+    id: 'french_revolution_1789',
+    title: 'مخطط مراحل الثورة الفرنسية 1789م وحقوق الإنسان والمواطن',
+    caption: 'أسباب الثورة وسقوط سجن الباستيل وإلغاء الإقطاع وإعلان الجمهورية (كتاب التاريخ - الصف الثاني ثانوي)',
     keyPoints: [
-      'ملك مالي العظيم (منسا موسى): تولى الحكم عام 1312م وحكم إمبراطورية شاسعة امتدت من المحيط الأطلسي حتى نهر النيجر.',
-      'رحلة الحج الذهبية (1324م): تحرك بموكب ضم 60,000 شخص ومئات الجمال المحملة بآلاف الكيلوجرامات من سبائك الذهب الخالص.',
-      'أثر الذهب في القاهرة ومكة: وزع الذهب بسخاء أدى لانخفاض سعر الذهب في أسواق الشرق الأوسط لسنوات!',
-      'النهضة الثقافية وتمبكتو: بنى المساجد واستجلب المعماريين والعلماء، وأسس جامعة سنكوري الشهيرة كأكبر منارة علمية بإفريقيا.'
+      'الأسباب والطبقات: استبداد الملكية المطلقة للويس السادس عشر، والنظام الطبقي (الأشراف ورجال الدين والعامة).',
+      'فلاسفة التنوير: مونتسكيو (فصل السلطات)، فولتير (الحرية والنقد)، وروسو (العقد الاجتماعي).',
+      'سقوط الباستيل (14 يوليو 1789م): تحطيم رمز الاستبداد الملكي وإعلان حقوق الإنسان والمواطن.',
+      'الجمهورية وعهد الإرهاب: إعدام لويس السادس عشر بالمقصلة 1793م وحكم اليعاقبة وروبسبير ثم حكومة الإدارة 1795م.'
     ],
     svg: `<svg viewBox="0 0 740 390" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Cairo',sans-serif;background:#18152c;border-radius:18px;">
       <!-- العنوان -->
-      <rect x="20" y="15" width="700" height="42" rx="12" fill="#8C6239" />
+      <rect x="20" y="15" width="700" height="42" rx="12" fill="#1d4ed8" />
       <text x="370" y="42" text-anchor="middle" fill="#FAF4ED" font-size="16" font-weight="900">
-        👑 إمبراطورية مالي الإسلامية وموكب حج منسا موسى الذهبي 1324م
+        🇫🇷 الثورة الفرنسية 1789م والتحول الديمقراطي والجمهوري في أوروبا
       </text>
 
-      <!-- 1. تمبكتو وعاصمة مالي -->
+      <!-- 1. أسباب الثورة وفلاسفة التنوير -->
       <g transform="translate(30, 80)">
-        <rect width="150" height="240" rx="12" fill="#201a38" stroke="#d97706" stroke-width="2" />
-        <text x="75" y="28" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">١. الانطلاق: مالي</text>
-        <circle cx="75" cy="70" r="28" fill="#2d244c" />
-        <text x="75" y="78" text-anchor="middle" font-size="24">🌍</text>
-        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">إمبراطورية الثروة</text>
-        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">مناجم ذهب بامبوك</text>
-        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">مركز تمبكتو التجاري</text>
-        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">جامع وجامعة سنكوري</text>
-        <rect x="15" y="202" width="120" height="24" rx="6" fill="#8C6239" />
-        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">أغنى رجل بالتاريخ</text>
+        <rect width="150" height="240" rx="12" fill="#201a38" stroke="#3b82f6" stroke-width="2" />
+        <text x="75" y="28" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="bold">١. جذور الثورة</text>
+        <circle cx="75" cy="70" r="28" fill="#1e3a8a" />
+        <text x="75" y="78" text-anchor="middle" font-size="24">📖</text>
+        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">فكر التنوير والطبقات</text>
+        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">مونتسكيو وفصل السلطات</text>
+        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">روسو والعقد الاجتماعي</text>
+        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">ظلم الطبقة العامة والضرائب</text>
+        <rect x="15" y="202" width="120" height="24" rx="6" fill="#1d4ed8" />
+        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">الأزمة المالية 1789</text>
       </g>
 
-      <!-- 2. موكب الحج -->
+      <!-- 2. سقوط الباستيل -->
       <g transform="translate(210, 80)">
         <rect width="150" height="240" rx="12" fill="#201a38" stroke="#f59e0b" stroke-width="2" />
-        <text x="75" y="28" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">٢. الموكب الأسطوري</text>
-        <circle cx="75" cy="70" r="28" fill="#2d244c" />
-        <text x="75" y="78" text-anchor="middle" font-size="24">🐪</text>
-        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">60,000 مرافق</text>
-        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">80 جمل يحمل الذهب</text>
-        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">عبر الصحراء الكبرى</text>
-        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">سنة 1324 ميلادية</text>
+        <text x="75" y="28" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">٢. اندلاع الثورة</text>
+        <circle cx="75" cy="70" r="28" fill="#78350f" />
+        <text x="75" y="78" text-anchor="middle" font-size="24">🏰</text>
+        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">سقوط الباستيل</text>
+        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">14 يوليو 1789م</text>
+        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">هدم رمز الاستبداد</text>
+        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">تشكيل الحرس الوطني</text>
         <rect x="15" y="202" width="120" height="24" rx="6" fill="#d97706" />
-        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">انبهار العالم بالموكب</text>
+        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">عيد الحرية القومي</text>
       </g>
 
-      <!-- 3. القاهرة والذهب -->
+      <!-- 3. إعلان حقوق الإنسان -->
       <g transform="translate(390, 80)">
-        <rect width="150" height="240" rx="12" fill="#201a38" stroke="#d97706" stroke-width="2" />
-        <text x="75" y="28" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">٣. في القاهرة والحجاز</text>
-        <circle cx="75" cy="70" r="28" fill="#2d244c" />
-        <text x="75" y="78" text-anchor="middle" font-size="24">✨</text>
-        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">توزيع الذهب بسخاء</text>
-        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">لقاء سلطان المماليك</text>
-        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">انخفاض سعر الذهب</text>
-        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">أداء فريضة الحج بمكة</text>
-        <rect x="15" y="202" width="120" height="24" rx="6" fill="#b45309" />
-        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">كرم وجود تاريخي</text>
+        <rect width="150" height="240" rx="12" fill="#201a38" stroke="#10b981" stroke-width="2" />
+        <text x="75" y="28" text-anchor="middle" fill="#34d399" font-size="12" font-weight="bold">٣. قرارات تاريخية</text>
+        <circle cx="75" cy="70" r="28" fill="#064e3b" />
+        <text x="75" y="78" text-anchor="middle" font-size="24">📜</text>
+        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">إلغاء الإقطاع</text>
+        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">إلغاء ضريبة العشور</text>
+        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">إعلان حقوق الإنسان</text>
+        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">المساواة أمام القانون</text>
+        <rect x="15" y="202" width="120" height="24" rx="6" fill="#047857" />
+        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">الحرية والإخاء والمساواة</text>
       </g>
 
-      <!-- 4. العمارة والنهضة -->
+      <!-- 4. الجمهورية والإرهاب -->
       <g transform="translate(560, 80)">
-        <rect width="150" height="240" rx="12" fill="#201a38" stroke="#10b981" stroke-width="2" />
-        <text x="75" y="28" text-anchor="middle" fill="#34d399" font-size="12" font-weight="bold">٤. نهضة تمبكتو</text>
-        <circle cx="75" cy="70" r="28" fill="#064e3b" />
-        <text x="75" y="78" text-anchor="middle" font-size="24">📚</text>
-        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">عصر العلم والمعمار</text>
-        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">المعماري الساحلي الأندلسي</text>
-        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">جامع جنكريبر التاريخي</text>
-        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">استقطاب العلماء والفقهاء</text>
-        <rect x="15" y="202" width="120" height="24" rx="6" fill="#047857" />
-        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">منارة الحضارة بإفريقيا</text>
+        <rect width="150" height="240" rx="12" fill="#201a38" stroke="#ef4444" stroke-width="2" />
+        <text x="75" y="28" text-anchor="middle" fill="#f87171" font-size="12" font-weight="bold">٤. الجمهورية والإرهاب</text>
+        <circle cx="75" cy="70" r="28" fill="#450a0a" />
+        <text x="75" y="78" text-anchor="middle" font-size="24">⚡</text>
+        <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">المؤتمر الوطني</text>
+        <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">إعدام لويس 16 (1793)</text>
+        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">روبسبير وحزب اليعاقبة</text>
+        <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">حكومة الإدارة 1795م</text>
+        <rect x="15" y="202" width="120" height="24" rx="6" fill="#b91c1c" />
+        <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">ظهور نابليون بونابرت</text>
       </g>
     </svg>`
   },
@@ -298,12 +305,12 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
   industrial_revolution: {
     id: 'industrial_revolution',
     title: 'الثورة الصناعية واختراع الآلة البخارية (جيمس واط 1769م)',
-    caption: 'الانتقال التاريخي من الجهد العضلي والحيواني إلى طاقة البخار والمصانع والقطارات (كتاب التاريخ - الصف السادس)',
+    caption: 'الانتقال التاريخي من الجهد العضلي والحيواني إلى طاقة البخار والمصانع والقطارات والزولفرين (كتاب التاريخ - الصف الثاني ثانوي)',
     keyPoints: [
       'البداية والمكان: انطلقت الثورة الصناعية في إنجلترا في منتصف القرن الثامن عشر الميلادي (1750م).',
-      'اختراع الآلة البخارية: طوّر المهندس الاسكتلندي جيمس واط الآلة البخارية عام 1769م وجعلها قابلة لتشغيل كافة الماكينات.',
-      'تطوير النقل والمواصلات: اختراع القاطرة البخارية للقطارات والسفن البخارية واختصار المسافات بين الشعوب.',
-      'التحول الاجتماعي: نمو المدن، ظهور طبقة العمال وأصحاب المصانع، وزيادة الإنتاج العالمي أضعافاً مضاعفة.'
+      'اختراع الآلة البخارية: طوّر المهندس الاسكتلندي جيمس واط الآلة البخارية عام 1769م وجعلها محركاً للمصانع والقطارات.',
+      'تطوير النقل والمواصلات: اختراع جورج ستيفنسون للقاطرة البخارية عام 1825م وربط الأسواق والموانئ.',
+      'انتشار الثورة في أوروبا: الزولفرين في ألمانيا 1833م، وبلجيكا وفرنسا وأمريكا وبداية التنافس الاستعماري.'
     ],
     svg: `<svg viewBox="0 0 740 390" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Cairo',sans-serif;background:#18152c;border-radius:18px;">
       <!-- العنوان -->
@@ -362,7 +369,7 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
         <text x="75" y="78" text-anchor="middle" font-size="24">🏭</text>
         <text x="75" y="120" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="bold">عصر المصانع والمدن</text>
         <text x="75" y="142" text-anchor="middle" fill="#94a3b8" font-size="10">وفرة السلع وانخفاض السعر</text>
-        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">ظهور الطبقة العمالية</text>
+        <text x="75" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">اتحاد الزولفرين في ألمانيا</text>
         <text x="75" y="182" text-anchor="middle" fill="#94a3b8" font-size="10">بداية التنافس الاستعماري</text>
         <rect x="15" y="202" width="120" height="24" rx="6" fill="#059669" />
         <text x="75" y="218" text-anchor="middle" fill="#FAF4ED" font-size="9.5" font-weight="bold">بناء العالم المعاصر</text>
@@ -371,198 +378,241 @@ export const CURRICULUM_DIAGRAMS: Record<string, DiagramData> = {
   }
 };
 
-// ── 🧠 محرك المعرفة التاريخية المعتمد أوفلاين لمنهج الصف السادس (بخت الرضا) ──
+// ── 🧠 محرك المعرفة التاريخية المعتمد أوفلاين لمنهج التاريخ - الصف الثاني ثانوي (بخت الرضا) ──
 function getOfflineHistoryAnswer(q: string): { reply: string; diagramKey?: string } {
   const norm = q.toLowerCase();
 
-  // 1. حملات 1821م، معركة كورتي، سنار، حريق شندي والمك نمر
+  // 1. الحكم التركي المصري، الغزو، كورتي، سنار، حريق شندي، الإدارة والتعليم
   if (
+    norm.includes('1820') ||
     norm.includes('1821') ||
+    norm.includes('1822') ||
     norm.includes('غزو') ||
     norm.includes('محمد علي') ||
     norm.includes('إسماعيل') ||
     norm.includes('اسماعيل') ||
     norm.includes('كورتي') ||
-    norm.includes('مهيرة') ||
     norm.includes('شندي') ||
     norm.includes('المك نمر') ||
     norm.includes('نمر') ||
     norm.includes('سنار') ||
-    norm.includes('الدفتردار')
+    norm.includes('الدفتردار') ||
+    norm.includes('بارا') ||
+    norm.includes('المقدوم مسلم') ||
+    norm.includes('حكمدار') ||
+    norm.includes('خورشيد') ||
+    norm.includes('طهطاوي') ||
+    norm.includes('الزبير')
   ) {
     return {
       diagramKey: 'sudan_1821_campaign',
-      reply: `يا بطل التاريخ السوداني المجيد 🏛️🇸🇩! هذا الدرس هو أحد أهم دروس كتاب التاريخ للصف السادس (الوحدة الأولى: الغزو التركي والمقاومة الوطنية):
+      reply: `مرحباً بك يا باحث التاريخ في المرحلة الثانوية 🏛️🇸🇩! هذا الموضوع يقع في صلب **الوحدة الأولى: الحكم التركي - المصري للسودان (١٨٢٠ - ١٨٨٥م)**:
 
-1. **دوافع غزو محمد علي باشا للسودان (1821م):**
-   - **الذهب والمعادن:** الاعتقاد الخاطئ بوجود جبال من الذهب في فازوغلي والنيل الأزرق لتمويل جيشه.
-   - **الرجال والجنود:** تجنيد أبناء السودان الأشداء لتكوين جيش مصري حديث يخوض به حروبه التوسعية.
-   - **تأمين منابع النيل ومطاردة المماليك:** القضاء على المماليك الفارين إلى دنقلا.
+١. **دوافع غزو محمد علي باشا للسودان (١٨٢٠م):**
+   - **بناء جيش حديث قوي:** تجنيد أبناء السودان المشهود لهم بالشجاعة والانضباط لبناء إمبراطورية على أنقاض الدولة العثمانية.
+   - **الذهب والموارد الطبيعية:** تمويل مشاريعه العسكرية والزراعية من مناجم الذهب التي اشتهرت منذ الفراعنة.
+   - **توسيع التجارة:** احتكار المحاصيل وتأمين طرق القوافل وخاصة طريق البحر الأحمر.
+   - **القضاء على المماليك:** الفارين إلى شمال السودان بدنقلا بعد مذبحة القلعة لدرء خطرهم عن حدود مصر الجنوبية.
+   - **تأمين مياه النيل:** والسيطرة على حوض النيل لدرء تهديدات الحبشة بتحويل مجراه.
 
-2. **معركة كورتي وبطولة الشايقية (نوفمبر 1820م):**
-   - التقى جيش إسماعيل باشا المزود بالمدافع والبنادق الحديثة بفرسان الشايقية المسلحين بالسيوف والرماح.
-   - حثتهم الشاعرة البطلة **مهيرة بت عبود** بأشعارها الحماسية وهي على ناقتها:
-     *«غني شوفي عيالك يا مهيرة .. ديل ليوث الغاب البتضاري وتغير»*.
-   - رغم تفوق السلاح الناري الغازي، سطر السودانيون أروع ملاحم الشجاعة والشرف.
+٢. **سير الحملتين والبطولات الوطنية:**
+   - **حملة سنار:** بقيادة إسماعيل باشا (٤٠٠٠ مقاتل)، وصدام **معركة كورتي (٤ نوفمبر ١٨٢٠م)** حيث واجه فرسان الشايقية بالسلاح الأبيض مدافع الغزاة ببسالة نادرة، ثم دخول سنار في ١٤ يونيو ١٨٢١م وسقوط سلطنة الفونج بعد اغتيال محمد ود عدلان.
+   - **حملة كردفان:** بقيادة محمد بك الدفتردار، وموقعة **بارا (١٦ أبريل ١٨٢١م)** واستشهاد حاكم كردفان البطل المقدوم مسلم وسقوط الأبيض.
 
-3. **سقوط سنار (1821م):**
-   - دخل إسماعيل باشا مدينة سنار في 12 يونيو 1821م واستسلم له آخر ملوك الفونج (الملك بادي السادس)، فانتهت رسمياً سلطنة سنار (الفونج) بعد 317 عاماً من تأسيسها عام 1504م.
+٣. **مقتل إسماعيل باشا في شندي (أكتوبر ١٨٢٢م / ١٢٣٩هـ):**
+   - طلب إسماعيل من المك نمر والمك مساعد مطالب باهظة وأهان المك نمر بصفعه بالغليون، فأعد المك نمر وليمة وأحاطها بالحطب وأحرق إسماعيل وحرسه ليلاً، وتلتها حملات الدفتردار الانتقامية الدامية.
 
-4. **حادثة حريق شندي والرد الوطني للمك نمر (أكتوبر 1822م):**
-   - وصل إسماعيل باشا إلى شندي وطلب من **المك نمر** و**المك مساعد** مطالب تعجيزية وضرائب خيالية من الخيل والماشية والأموال خلال ساعات، ولما اعتذر المك نمر صفعه إسماعيل بغليونه على وجهه!
-   - خطط المك نمر بحكمة: تظاهر بالامتثال ودعا إسماعيل وقادته لوليمة كبرى وأحاط مقر إقامتهم بالقش والحطب وأشعل النيران ليلاً فهلك إسماعيل باشا وجيشه المباشر.
-   - ثأر الدفتردار بعد ذلك بحملات انتقامية دموية قاسية على مدن وقرى النيل.
+٤. **تأسيس الخرطوم والإدارة والتوسع:**
+   - نقل العاصمة للخرطوم (١٨٢٤-١٨٢٥م) على يد عثمان بك جركس وتطويرها المعماري بعهد خورشيد باشا، واستحداث منصب الحكمدار (١٨٣٤م).
+   - ضم سواكن ومصوع، وضم بحر الغزال ودارفور بعهد إسماعيل والزبير باشا رحمة إثر موقعة منواشي (١٨٧٤م).
 
-💡 **سؤال تحدٍ تفاعلي:** لماذا يعتبر تصرف المك نمر في شندي درساً خالداً في رفض الإهانة والدفاع عن الكرامة السودانية؟ ما رأيك يا بطل؟ 🇸🇩✨`
+💡 **سؤال تحليلي:** كيف مهدت سياسة القسوة والضرائب الباهظة والاستعانة بالأوروبيين في عهد غردون لاندلاع الثورة المهدية عام ١٨٨١م؟ فكّر معمارياً وسياسياً! 🇸🇩✨`
     };
   }
 
-  // 2. الدولة العباسية وبغداد المدورة وأبو جعفر المنصور
+  // 2. استقلال السودان، الحركة الوطنية، الحكومات المتعاقبة، ومشكلة الجنوب (الوحدة الثانية)
   if (
-    norm.includes('بغداد') ||
-    norm.includes('المنصور') ||
-    norm.includes('جعفر') ||
-    norm.includes('عباس') ||
-    norm.includes('العباسية') ||
-    norm.includes('مدورة')
+    norm.includes('استقلال') ||
+    norm.includes('استقلال السودان') ||
+    norm.includes('1956') ||
+    norm.includes('١٩٥٦') ||
+    norm.includes('1955') ||
+    norm.includes('١٩٥٥') ||
+    norm.includes('الأزهري') ||
+    norm.includes('ازهري') ||
+    norm.includes('عبود') ||
+    norm.includes('أكتوبر') ||
+    norm.includes('القرشي') ||
+    norm.includes('نميري') ||
+    norm.includes('مايو') ||
+    norm.includes('سوار الذهب') ||
+    norm.includes('توريت') ||
+    norm.includes('أديس أبابا') ||
+    norm.includes('جون قرنق') ||
+    norm.includes('الجنوب') ||
+    norm.includes('مؤتمر الخريجين') ||
+    norm.includes('اللواء الأبيض')
   ) {
     return {
-      diagramKey: 'baghdad_round_city',
-      reply: `مرحباً بمؤرخنا المبدع 🏛️📜! بناء مدينة بغداد المدورة يعد قمة الهندسة المعمارية في التاريخ الإسلامي:
+      diagramKey: 'sudan_independence_1956',
+      reply: `أهلاً بك يا باحث التاريخ الوطني المعاصر 🇸🇩🤝! هذا المحور يمثل **الوحدة الثانية: لمحات من تاريخ السودان الحديث والمعاصر (١٩٥٥ - ١٩٨٥م)**:
 
-1. **قيام الدولة العباسية (132هـ / 750م):**
-   - سقطت الدولة الأموية في معركة الزاب وقامت الدولة العباسية على يد الخليفة أبي العباس السفاح.
+١. **مسار الاستقلال الوطني (١ يناير ١٩٥٦م):**
+   - تطور الحركة الوطنية: نادي الخريجين بأم درمان (١٩١٨م)، حركة اللواء الأبيض (١٩٢٤م)، ومؤتمر الخريجين العام (١٩٣٨م) ومذكرة ١٩٤٢م المطالبة بحق تقرير المصير.
+   - اتفاقية الحكم الذاتي (١٢ يناير ١٩٥٣م) وإجراء أول انتخابات وتشكيل حكومة إسماعيل الأزهري ولجنة السودنة (مارس ١٩٥٥م).
+   - **الجلسة التاريخية (١٩ ديسمبر ١٩٥٥م):** إعلان استقلال السودان بالإجماع باقتراح النائب عبدالرحمن دبكة.
+   - **يوم الاستقلال (١ يناير ١٩٥٦م):** رفع الأزهري ومحمد أحمد محجوب علم السودان المستقل وإنزال علمي الحكم الثنائي.
 
-2. **بناء بغداد (145هـ / 762م):**
-   - بنى الخليفة الثاني **أبو جعفر المنصور** عاصمة جديدة على الضفة الغربية لنهر دجلة في العراق.
-   - سماها رسمياً **«مدينة السلام»** أو **«دار السلام»**، واشتهرت تاريخياً باسم **«بغداد»**.
+٢. **الحكومات المتعاقبة (١٩٥٥ - ١٩٨٥م):**
+   - **الديمقراطية الأولى (١٩٥٤ - ١٩٥٨م):** وزارات الأزهري ثم عبدالله خليل وائتلاف الأمة والشعب.
+   - **الحكم العسكري الأول - إبراهيم عبود (١٩٥٨ - ١٩٦٤م):** الخطة العشرية، الروصيرص والمناقل، ثم ثورة ٢١ أكتوبر ١٩٦٤م واستشهاد القرشي وتشكيل حكومة سر الختم الخليفة.
+   - **الديمقراطية الثانية (١٩٦٤ - ١٩٦٩م):** وزارات محجوب والصادق المهدي ورئاسة الأزهري لمجلس السيادة.
+   - **عهد مايو - جعفر نميري (١٩٦٩ - ١٩٨٥م):** تأميم الشركات، أحداث الجزيرة أبا، انقلاب ١٩ يوليو ١٩٧١، حركة يوليو ١٩٧٦م، اتفاقية أديس أبابا ١٩٧٢م، ثم انتفاضة ٦ أبريل ١٩٨٥م وانحياز الجيش بقيادة سوار الذهب وحكومة الجزولي دفع الله.
 
-3. **عبقرية التخطيط المدور:**
-   - صُممت على شكل دائرة هندسية منتظمة يحيط بها خندق مائي عميق ثم سوران عظيمان لحمايتها من الأعداء.
-   - أقيمت لها أربعة أبواب رئيسية موجهة للأقاليم:
-     1. **باب الكوفة** (جنوب غرب).
-     2. **باب البصرة** (جنوب شرق).
-     3. **باب خراسان** (شمال شرق).
-     4. **باب الشام** (شمال غرب).
-   - في قلب المدينة تماماً شُيّد **قصر الخليفة (قصر قبة الذهب)** بارتفاع 80 ذراعاً وفوقه تمثال فارس يدور مع الرياح، وبجواره **المسجد الجامع**.
+٣. **تطورات قضية جنوب السودان:**
+   - قانون المناطق المقفولة (١٩٢٢م)، تمرد توريت (أغسطس ١٩٥٥م)، حركة الأنيانيا (١٩٦٣م)، اتفاقية أديس أبابا للحكم الذاتي (١٩٧٢م)، وتأسيس الحركة الشعبية لتحرير السودان (١٩٨٣م) بقيادة د. جون قرنق.
 
-💡 **سؤال ذكاء:** لماذا حرص أبو جعفر المنصور أن يكون قصر الحكم والمسجد في وسط الدائرة تماماً وليس على الأطراف؟ فكّر معمارياً وأمنياً! 📐🏰`
+💡 **سؤال للمناقشة:** كيف أسهم تلاحم النقابات والطلاب والأحزاب في نجاح ثورة أكتوبر ١٩٦٤م وانتفاضة أبريل ١٩٨٥م في استعادة الحكم المدني؟ 🇸🇩✌️`
     };
   }
 
-  // 3. إمبراطورية مالي وحج منسا موسى وتمبكتو
+  // 3. الثورة الفرنسية، فلاسفة التنوير، والنهضة الأوروبية (الوحدة الثالثة)
   if (
-    norm.includes('منسا') ||
-    norm.includes('موسى') ||
-    norm.includes('مالي') ||
-    norm.includes('تمبكتو') ||
-    norm.includes('تومبوكتو') ||
-    norm.includes('حج') ||
-    norm.includes('ذهب')
+    norm.includes('فرنسا') ||
+    norm.includes('فرنسية') ||
+    norm.includes('1789') ||
+    norm.includes('١٧٨٩') ||
+    norm.includes('باستيل') ||
+    norm.includes('روسو') ||
+    norm.includes('مونتسكيو') ||
+    norm.includes('فولتير') ||
+    norm.includes('لويس') ||
+    norm.includes('روبسبير') ||
+    norm.includes('حقوق الإنسان') ||
+    norm.includes('نهضة') ||
+    norm.includes('قسطنطينية') ||
+    norm.includes('إقطاع') ||
+    norm.includes('إقطاعي')
   ) {
     return {
-      diagramKey: 'mansa_musa_hajj',
-      reply: `يا لك من باحث عبقري 👑✨! رحلة ملك مالي المسلم منسا موسى هي إحدى أشهر الرحلات في سجل التاريخ البشري قاطبة:
+      diagramKey: 'french_revolution_1789',
+      reply: `مرحباً بمؤرخ الفكر والتحولات الأوروبية 🇫🇷📜! هذا الموضوع يندرج تحت **الوحدة الثالثة: تاريخ أوروبا الحديث**:
 
-- **إمبراطورية مالي الإسلامية:**
-  - قامت في غرب إفريقيا وازدهرت بفضل سيطرتها على مناجم الذهب وتجارة الملح والقوافل عبر الصحراء الكبرى.
-- **منسا موسى (1312م - 1337م):**
-  - "منسا" تعني بلغة الماندينكا: الملك أو السلطان. ويُصنف تاريخياً بأنه أغنى إنسان عرفته البشرية!
-- **رحلة الحج الكبرى (1324م):**
-  - خرج في موكب ملكي مهيب مكون من **60 ألف شخص** يرتدون الحرير، يتقدمهم 500 حارس يحمل كل منهم عصا من الذهب الخالص.
-  - حملت الجمال عشرات الأطنان من سبائك الذهب، وأنفق موسى الذهب في مكة والمدينة والقاهرة بسخاء لا يُصدق.
-  - أدى كرمه لفيضان أسواق مصر بالحجاز بالذهب فانخفضت قيمته لعقد كامل!
-- **نهضة تمبكتو العلمية والمعمارية:**
-  - عاد ومعه كبار المعماريين والفقهاء (مثل المعماري الأندلسي أبي إسحاق الساحلي).
-  - بنى جامع **جنكريبر** الشهير ووسّع **جامعة سنكوري** في تمبكتو التي أصبحت مقصد الطلاب والعلماء من إفريقيا والعالم الإسلامي لحفظ القرآن والعلوم والطب.
+١. **أسباب الثورة الفرنسية (١٧٨٩م):**
+   - **الاستبداد السياسي:** الحكم الملكي المطلق القائم على 'الحق الإلهي المقدس' وضعف لويس السادس عشر وتردده أمام زوجته ماري أنطوانيت وبلاطه المسرف.
+   - **النظام الطبقي الفاسد:** طبقة الأشراف ورجال الدين (٤٣٠ ألف نسمة يتمتعون بالامتيازات والإعفاء الضريبي)، مقابل الطبقة العامة (٢٥ مليون نسمة يدفعون ٤ أخماس دخلهم ضرائب ومحرومون من الوظائف).
+   - **الأزمة المالية الحادة:** حروب فرنسا وديونها وفشل وزراء المال واستدعاء مجلس طبقات الأمة المعطل منذ ١٦١٤م.
 
-💡 **سؤال استكشافي:** كيف أثبت حج منسا موسى للعالم أن إفريقيا كانت مهداً لحضارات عظمى ومراكز علم متقدمة وليس فقط أراضي مجهولة؟ 🌍📖`
+٢. **فلاسفة التنوير وعوامل الفكر:**
+   - **مونتسكيو:** كتاب 'روح القوانين' ومبدأ فصل السلطات الثلاث.
+   - **فولتير:** السخرية والتهكم على استبداد الكنيسة والملكية والمطالبة بالحرية الفكرية.
+   - **جان جاك روسو:** كتاب 'العقد الاجتماعي' (إنجيل الثورة الفرنسية) وأن السيادة للشعب وحق الأمة في عزل حكامها.
+
+٣. **مسار الثورة والتحول الجمهوري:**
+   - اجتماع فرساي وموقف ميرابو: 'إننا هنا بأمر الأمة ولن نبرح إلا على أسنة الحراب'.
+   - **اقتحام سجن الباستيل (١٤ يوليو ١٧٨٩م):** تحطيم رمز الاستبداد وإعلان وثيقة حقوق الإنسان وإلغاء النظام الإقطاعي وعشور الكنيسة.
+   - إعدام لويس السادس عشر بالمقصلة في ٢١ يناير ١٧٩٣م، وتصاعد عهد الإرهاب بقيادة روبسبير واليعاقبة ثم سقوطه وقيام حكومة الإدارة ١٧٩٥م وظهور نابليون بونابرت.
+
+💡 **سؤال استنتاجي:** ما وجه الشبه بين مبادئ العقد الاجتماعي لروسو ومطالب الثورات السودانية في تقرير المصير وسيادة الشعب؟ 🌍⚖️`
     };
   }
 
-  // 4. الثورة الصناعية وجيمس واط والآلة البخارية
+  // 4. الثورة الصناعية، البخار، والوحدة الإيطالية والألمانية
   if (
     norm.includes('صناعية') ||
-    norm.includes('الثورة') ||
-    norm.includes('واط') ||
-    norm.includes('جيمس') ||
     norm.includes('بخار') ||
-    norm.includes('بخارية') ||
-    norm.includes('مصانع')
+    norm.includes('واط') ||
+    norm.includes('ستيفنسون') ||
+    norm.includes('إيطاليا') ||
+    norm.includes('ايطاليا') ||
+    norm.includes('مازيني') ||
+    norm.includes('غاريبالدي') ||
+    norm.includes('كافور') ||
+    norm.includes('ألمانيا') ||
+    norm.includes('المانيا') ||
+    norm.includes('بسمارك') ||
+    norm.includes('حديد ودم') ||
+    norm.includes('زولفرين') ||
+    norm.includes('سادوا') ||
+    norm.includes('سيدان')
   ) {
     return {
       diagramKey: 'industrial_revolution',
-      reply: `أهلاً بصانع المستقبل 🚂⚙️! درس الثورة الصناعية من أمتع دروس التاريخ الحديث للصف السادس:
+      reply: `أهلاً بك يا رائد الثورات الصناعية والوحدة القومية 🚂⚙️! يتناول هذا المبحث تحولات أوروبا في القرن التاسع عشر:
 
-1. **ما هي الثورة الصناعية؟**
-   - هي حركة التغيير الجذري التي حوّلت أسلوب الإنتاج من **العمل اليدوي والأدوات البسيطة** داخل المنازل والورش، إلى **العمل الآلي واستخدام الماكينات والمصانع الكبرى**.
-2. **مكان وبداية الانطلاق:**
-   - انطلقت في بريطانيا (إنجلترا) في منتصف القرن الثامن عشر الميلادي (حوالي عام 1750م) بفضل توفر الفحم والحديد والاستقرار السياسي.
-3. **معجزة الآلة البخارية (جيمس واط 1769م):**
-   - طوّر المخترع الاسكتلندي **جيمس واط** الآلة البخارية لتصبح قادرة على تدوير الآلات في مصانع الغزل والنسيج ومناجم الفحم بكفاءة هائلة.
-4. **تطور النقل والمواصلات:**
-   - اخترع جورج ستيفنسون **القطار البخاري (القاطرة البخارية)**، وظهرت السفن البخارية، مما سهّل نقل البضائع والركاب عبر القارات والمحيطات.
-5. **نتائج الثورة الصناعية:**
-   - زيادة إنتاج البضائع ورخص أسعارها.
-   - هجرة السكان من الأرياف إلى المدن ونمو المراكز الصناعية الكبرى.
-   - ظهور طبقة أصحاب الأعمال (الرأسماليين) وطبقة العمال.
+١. **الثورة الصناعية وعصر البخار:**
+   - انطلقت في إنجلترا لتراكم رؤوس الأموال، اتساع الأسواق، وفرة الفحم والحديد والاستقرار.
+   - **جيمس واط (١٧٦٩م):** تطوير المحرك البخاري وتدشين عصر الآلات ومصانع النسيج.
+   - **جورج ستيفنسون (١٨٢٥م):** اختراع أول قاطرة بخارية وتأسيس شبكات السكك الحديدية العالمية.
+   - انتشارها في أوروبا وأمريكا ودور اتحاد 'الزولفرين' الجمركي في ألمانيا (١٨٣٣م) في إزالة الحواجز الجمركية.
 
-💡 **سؤال تأملي:** لو لم تُخترع الآلة البخارية في ذلك العصر، كيف كانت ستكون حياتنا اليوم من حيث التنقل والصناعات والأجهزة؟ فكّر معي! 💡🏭`
+٢. **الوحدة الإيطالية (١٨١٥ - ١٨٧٠م):**
+   - حركة القومية: جمعية الكاربوناري، وجمعية إيطاليا الفتاة بقيادة **جوزيف مازيني** (العقل المفكر)، و**غاريبالدي** وجماعة القمصان الحمراء (الذراع المنفذة).
+   - دبلوماسية ملك بيدمنت فكتور عمانوئيل ووزيره السياسي القدير **كافور**، وتوحيد الشمال والوسط والجنوب، ودخول روما في سبتمبر ١٨٧٠م وجعلها عاصمة لإيطاليا واستقلال الفاتيكان.
+
+٣. **الوحدة الألمانية وسياسة 'الدم والحديد' (١٨١٥ - ١٨٧١م):**
+   - تزعمت بروسيا الوحدة بقيادة المستشار **أوتو فون بسمارك** الذي أعلن أن قضايا الساعة تحسم بالدم والحديد لا بالبرلمانات.
+   - حروب بسمارك الثلاث: حرب الدنمارك (١٨٦٤م)، حرب النمسا ومعركة **سادوا (١٨٦٦م)**، وحرب فرنسا ومعركة **سيدان (١٨٧٠م)** وأسر نابليون الثالث، وتتويج وليم الأول إمبراطوراً لألمانيا الموحدة بقصر فرساي في يناير ١٨٧١م.
+
+💡 **سؤال تفكير نقدي:** قارن بين أسلوب كافور في الدبلوماسية والتحالفات وأسلوب بسمارك في سياسة الحديد والدم لتحقيق الوحدة القومية! ⚔️🇩🇪🇮🇹`
     };
   }
 
-  // 5. مقومات الدولة والمواطنة
+  // 5. الحرب العالمية الأولى والحرب العالمية الثانية (الوحدة الرابعة)
   if (
-    norm.includes('مواطنة') ||
-    norm.includes('المواطنة') ||
-    norm.includes('دولة') ||
-    norm.includes('مقومات') ||
-    norm.includes('حقوق') ||
-    norm.includes('واجبات') ||
-    norm.includes('شعب') ||
-    norm.includes('سيادة')
+    norm.includes('حرب عالمية') ||
+    norm.includes('1914') ||
+    norm.includes('١٩١٤') ||
+    norm.includes('1939') ||
+    norm.includes('١٩٣٩') ||
+    norm.includes('سراجيفو') ||
+    norm.includes('فرساي') ||
+    norm.includes('عصبة الأمم') ||
+    norm.includes('هتلر') ||
+    norm.includes('موسوليني') ||
+    norm.includes('نازية') ||
+    norm.includes('فاشية') ||
+    norm.includes('العلمين') ||
+    norm.includes('بيرل هاربر') ||
+    norm.includes('هيروشيما') ||
+    norm.includes('ذرية') ||
+    norm.includes('الأمم المتحدة')
   ) {
     return {
-      reply: `مرحباً بالمواطن السوداني الصالح 🇸🇩🤝! درس مقومات الدولة والتربية الوطنية للصف السادس هو بوصلتك لفهم وطنك ومجتمعك:
+      reply: `مرحباً بك في دراسة كبرى الصراعات الدولية 🌍💣! هذا المحور يغطي **الوحدة الرابعة: الصراع الأوروبي حول التوسع الاستعماري**:
 
-1. **مقومات الدولة الأربعة:**
-   لكي تقوم أي دولة في العالم لابد من توفر أربعة أركان أساسية:
-   - **١. الشعب:** السكان والمواطنون الذين يعيشون معاً وتربطهم وشائج الانتماء.
-   - **٢. الإقليم (الأرض):** الرقعة الجغرافية بحدودها البرية والمائية والجوية.
-   - **٣. الحكومة (السلطة السياسية):** الهيئة الحاكمة التي تضع القوانين وتدير شؤون المجتمع.
-   - **٤. السيادة:** استقلال الدولة التام وقدرتها على فرض القانون داخلياً دون تدخل خارجي.
+١. **الحرب العالمية الأولى (١٩١٤ - ١٩١٨م):**
+   - **الأسباب العامة:** التنافس الاستعماري على الأسواق، الأحلاف العسكرية (الوفاق الثلاثي: بريطانيا وفرنسا وروسيا، ضد التحالف الثلاثي: ألمانيا والنمسا وإيطاليا)، سباق التسلح، وأزمات مراكش ١٩٠٥م والبوسنة ١٩٠٨م وأغادير ١٩١١م.
+   - **السبب المباشر:** اغتيال ولي عهد النمسا الأرشيدوق فرانز فيرديناند وزوجته في **سراجيفو (٢٨ يونيو ١٩١٤م)** على يد طالب صربي.
+   - **أسباب انتصار الحلفاء:** فشل خطة ألمانيا، الحصار البحري، ودخول أمريكا الحرب (١٩١٧م) بعد إغراق الغواصات، وانسحاب روسيا بالثورة البلشفية.
+   - **النتائج:** معاهدة فرساي القاسية ١٩١٩م، سقوط الإمبراطوريات الأربع (الألمانية، النمساوية، الروسية، والعثمانية)، وقيام عصبة الأمم.
 
-2. **الفرق بين الحقوق والواجبات:**
-   - **الحقوق (ما يمنحه لك الوطن):**
-     - حق التعليم المجاني والرعاية الصحية.
-     - حق الأمن والأمان والحرية والمساواة أمام القانون.
-     - حق التعبير والمشاركة الإيجابية.
-   - **الواجبات (ما تقدمه أنت لوطنك):**
-     - الدفاع عن حياض الوطن وصون وحدته.
-     - احترام القوانين ودفع الضرائب والرسوم القانونية.
-     - الحفاظ على الممتلكات العامة والمرافق ونظافة البيئة.
-     - الإخلاص والاجتهاد في الدراسة والعمل لبناء مستقبل السودان.
+٢. **الحرب العالمية الثانية (١٩٣٩ - ١٩٤٥م):**
+   - **الأسباب:** قسوة معاهدة فرساي، قيام الفاشية في إيطاليا (موسوليني) والنازية في ألمانيا (هتلر) وتحدي عصبة الأمم، ومحور روما - برلين - طوكيو.
+   - **اشتعال الحرب:** اجتياح ألمانيا لبولندا في **١ سبتمبر ١٩٣٩م** وإعلان بريطانيا وفرنسا الحرب.
+   - **المنعطفات الكبرى:** غزو روسيا ١٩٤١م، هجوم بيرل هاربر ودخول أمريكا، معركة العلمين بمصر (خريف ١٩٤٢م) وهزيمة روميل، وإنزال نورماندي ١٩٤٤م، وانتحار هتلر واستسلام ألمانيا (مايو ١٩٤٥م).
+   - **السلاح الذري ونهاية الحرب:** إلقاء القنبلة الذرية على هيروشيما (٦ أغسطس ١٩٤٥م) وناكازاكي (٩ أغسطس) واستسلام اليابان.
+   - **النتائج:** تأسيس هيئة الأمم المتحدة ١٩٤٥م، تقسيم ألمانيا لمعسكرين، وظهور الحرب الباردة وتصفية الاستعمار القديم.
 
-💡 **سؤال سقراطي:** لماذا لا تستقيم الدولة إذا أخذ المواطن كل حقوقه وتخلى عن أداء واجباته؟ كيف نصنع وطناً قوياً متماسكاً؟ 🇸🇩❤️`
+💡 **سؤال ختامي:** كيف تحولت معاهدة فرساي لعام ١٩١٩م من معاهدة صلح إلى بذور أشعلت الحرب العالمية الثانية عام ١٩٣٩م؟ 🕊️🌐`
     };
   }
 
   // Fallback general guidance
   return {
-    reply: `أهلاً بك يا بطل التاريخ الحبيب 🏛️📜! يسعدني جداً أن أرافقك في استكشاف كتاب التاريخ والتربية الوطنية للصف السادس (منهج بخت الرضا المعتمد).
+    reply: `أهلاً بك يا باحث التاريخ الحبيب في الصف الثاني ثانوي 🏛️📜! أنا "الأستاذ طارق" — رفيقك ومعلمك الذكي لمقرر التاريخ للمرحلة الثانوية (منهج المركز القومي للمناهج والبحث التربوي - بخت الرضا).
 
-يمكنك سؤالي عن أي درس من الدروس الآتية:
-- ⚔️ **تاريخ السودان والاحتلال التركي:** حملة 1821م، معركة كورتي، صمود مهيرة بت عبود، سقوط سنار، وحريق شندي والمك نمر.
-- 🕌 **الحضارة العباسية والإسلامية:** تخطيط مدينة بغداد المدورة، أبو جعفر المنصور، وبيت الحكمة.
-- 👑 **الممالك الإفريقية الإسلامية:** إمبراطورية مالي وحج منسا موسى الذهبي 1324م، ومملكة سنغاي وتجارة تمبكتو.
-- ⚙️ **عصر النهضة والثورة الصناعية:** اختراع الطباعة، الآلة البخارية لجيمس واط 1769م، وثورة القطارات والمصانع.
-- 🇸🇩 **التربية الوطنية والمواطنة:** أركان الدولة الأربعة، حقوقك وواجباتك كمواطن سوداني مخلص.
+يمكنك سؤالي عن أي وحدة أو درس من وحدات المنهج الأربع:
+- 🇸🇩 **الوحدة الأولى: الحكم التركي - المصري للسودان (١٨٢٠ - ١٨٨٥م):** حملتا سنار وكردفان، كورتي، بارا، حريق شندي والمك نمر، تأسيس الخرطوم، عهد عباس وسعيد وإسماعيل، الزبير باشا ودارفور، وثورات المقاومة.
+- ✌️ **الوحدة الثانية: لمحات من تاريخ السودان المعاصر (١٩٥٥ - ١٩٨٥م):** مؤتمر الخريجين، إعلان الاستقلال من البرلمان ١٩٥٥م ورفع العلم ١٩٥٦م، حكومات عبود وثورة أكتوبر، عهد مايو نميري، انتفاضة أبريل ١٩٨٥م، والتطور الاقتصادي ومشكلة الجنوب.
+- 🏰 **الوحدة الثالثة: تاريخ أوروبا الحديث:** العصور الوسطى والإقطاع، عصر النهضة، الكشوف الجغرافية الكبرى، الثورة الفرنسية ١٧٨٩م، الثورة الصناعية، والوحدة الإيطالية والألمانية.
+- 🌐 **الوحدة الرابعة: الصراع والتوسع الاستعماري:** أزمات وحرب العالمية الأولى (١٩١٤ - ١٩١٨م)، صعود الفاشية والنازية، وأحداث ونتائج الحرب العالمية الثانية (١٩٣٩ - ١٩٤٥م).
 
-💡 **جرّب أن تسألني:** "اشرح لي حريق شندي بالرسم" أو "كيف تم تخطيط مدينة بغداد المدورة؟" وهيا بنا نبحر معاً! 🚀`
+💡 **جرّب أن تسألني:** "اشرح لي أسباب غزو محمد علي للسودان بالرسم" أو "كيف تم إعلان استقلال السودان من داخل البرلمان عام ١٩٥٥م؟" وهيا نبدأ رحلة التفوق! 🚀✨`
   };
 }
 
-// ── 🎯 3 Interactive Challenge Quizzes for Grade 6 History ──────────────────
+// ── 🎯 3 Interactive Challenge Quizzes for Grade 2 Secondary History ───────
 interface HistoryQuizItem {
   id: number;
   question: string;
@@ -575,42 +625,42 @@ interface HistoryQuizItem {
 const HISTORY_QUIZ_QUESTIONS: HistoryQuizItem[] = [
   {
     id: 1,
-    question: 'في أي معركة حثت الشاعرة السودانية مهيرة بت عبود فرسان الشايقية لمقاومة جيش إسماعيل باشا؟',
+    question: 'في أي جلسة تاريخية أعلن نواب البرلمان السوداني استقلال السودان التام من داخل دار البرلمان؟',
     options: [
-      'معركة كورتي (نوفمبر 1820م)',
-      'معركة شندي (أكتوبر 1822م)',
-      'معركة كرري (سبتمبر 1898م)',
-      'معركة سنار (يونيو 1821م)'
+      'جلسة الإثنين ١٩ ديسمبر ١٩٥٥م',
+      'جلسة الخميس ١ يناير ١٩٥٦م',
+      'جلسة السبت ١٢ يناير ١٩٥٣م',
+      'جلسة الأربعاء ٢١ أكتوبر ١٩٦٤م'
     ],
     correctIdx: 0,
-    explanation: 'أشعلت مهيرة بت عبود الحماس في نفوس فرسان الشايقية في معركة كورتي عام 1820م بمحاذاة النيل دفاعاً عن الأرض والعرض.',
-    source: 'كتاب تاريخ السودان - الصف السادس (الوحدة الأولى)'
+    explanation: 'تلا النائب عبدالرحمن دبكة مقترح إعلان الاستقلال في جلسة ١٩ ديسمبر ١٩٥٥م التاريخية وأجيز بالإجماع، ثم رُفع العلم في ١ يناير ١٩٥٦م.',
+    source: 'كتاب التاريخ - الصف الثاني ثانوي (الوحدة الثانية: استقلال السودان)'
   },
   {
     id: 2,
-    question: 'ما هو الشكل الهندسي الفريد الذي اختاره الخليفة أبو جعفر المنصور لبناء مدينة بغداد عام 145هـ؟',
+    question: 'ما هو المبدأ الدستوري الجوهري الذي دعا إليه المفكر الفرنسي مونتسكيو في كتابه "روح القوانين"؟',
     options: [
-      'المخطط الدائري (المدينة المدورة)',
-      'المخطط المربع المحاط بالأبراج',
-      'المخطط الطولي على شاطئ الفرات',
-      'المخطط المثلثي'
+      'الفصل بين السلطات الثلاث (التشريعية والتنفيذية والقضائية)',
+      'نظرية الحق الإلهي المقدس للملوك',
+      'سياسة الدم والحديد للوحدة القومية',
+      'احتكار الدولة للتجارة الخارجية'
     ],
     correctIdx: 0,
-    explanation: 'صمم المنصور مدينة بغداد على شكل دائرة هندسية محكمة لسهولة الدفاع عنها، وجعل قصر قبة الذهب والمسجد في مركزها تماماً.',
-    source: 'كتاب التاريخ - الصف السادس (الوحدة الثانية: الحضارة العباسية)'
+    explanation: 'أكد مونتسكيو أن صيانة حرية المواطنين ومنع الاستبداد لا يتحقق إلا بالفصل التام بين السلطات الثلاث: التشريعية والتنفيذية والقضائية.',
+    source: 'كتاب التاريخ - الصف الثاني ثانوي (الوحدة الثالثة: الثورة الفرنسية)'
   },
   {
     id: 3,
-    question: 'من هو المخترع الاسكتلندي الذي طوّر الآلة البخارية عام 1769م وأطلق شرارة الثورة الصناعية؟',
+    question: 'ما هي الموقعة الحاسمة التي انتصرت فيها بروسيا على النمسا عام ١٨٦٦م ومهدت لتأسيس اتحاد ألمانيا الشمالية؟',
     options: [
-      'جيمس واط',
-      'توماس إديسون',
-      'جورج ستيفنسون',
-      'ألكسندر غراهام بيل'
+      'معركة سادوا (١٨٦٦م)',
+      'معركة سيدان (١٨٧٠م)',
+      'معركة كورتي (١٨٢٠م)',
+      'معركة العلمين (١٩٤٢م)'
     ],
     correctIdx: 0,
-    explanation: 'طوّر جيمس واط الآلة البخارية عام 1769م، مما مكّن المصانع والقطارات والسفن من العمل بالطاقة البخارية بديلاً عن الجهد العضلي.',
-    source: 'كتاب التاريخ - الصف السادس (الوحدة الرابعة: الثورة الصناعية)'
+    explanation: 'حققت بروسيا بقيادة بسمارك نصراً حاسماً على النمسا في معركة سادوا عام ١٨٦٦م وفرضت معاهدة براغ واستبعدت النمسا من شؤون ألمانيا.',
+    source: 'كتاب التاريخ - الصف الثاني ثانوي (الوحدة الثالثة: الوحدة الألمانية)'
   }
 ];
 
@@ -628,9 +678,9 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      text: `أهلاً وسهلاً بك يا بطل التاريخ الحبيب 🏛️📜! أنا "الأستاذ طارق" — رفيقك ومعلمك الذكي لمقرر التاريخ والتربية الوطنية للصف السادس الابتدائي (منهج المركز القومي للمناهج والبحث التربوي - بخت الرضا).
+      text: `أهلاً وسهلاً بك يا بطل التاريخ الحبيب 🏛️📜! أنا "الأستاذ طارق" — رفيقك ومعلمك الذكي لمقرر تاريخ الصف الثاني ثانوي بالمرحلة الثانوية (منهج المركز القومي للمناهج والبحث التربوي - بخت الرضا).
 
-سواءً أردت معرفة تفاصيل الغزو التركي وبطولات الشايقية والمك نمر، أو استكشاف أسرار مدينة بغداد المدورة، أو حج ملك مالي منسا موسى وثروته الذهبية، أو اختراع الآلة البخارية — اسألني وسأشرح لك بالخطوات والرسوم التوضيحية المعتمدة! ⚔️💡`,
+سواءً أردت التعمق في الحكم التركي المصري ومقاومة كورتي وشندي، أو مسيرة الاستقلال الوطني وبرلمان ١٩ ديسمبر ١٩٥٥م وثورة أكتوبر ١٩٦٤م، أو فكر الثورة الفرنسية والوحدة الألمانية لبسمارك، أو خفايا الحربين العالميتين — اسألني وسأشرح لك بالتحليل والمخططات والخرائط التاريخية المعتمدة! ⚔️💡`,
       diagram: CURRICULUM_DIAGRAMS['sudan_1821_campaign']
     }
   ]);
@@ -928,7 +978,7 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
                 الأستاذ طارق (المعلم الذكي للتاريخ) 🏛️📜
               </h2>
               <span className="bg-amber-500/90 text-slate-950 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                الصف السادس الابتدائي
+                الصف الثاني ثانوي (المرحلة الثانوية)
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#FAF4ED]/85 mt-1 font-sans">
@@ -1200,7 +1250,7 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
             <div className="bg-[#121020] rounded-3xl p-5 border border-indigo-950/80 shadow-md">
               <h3 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
                 <Lightbulb className="w-4 h-4 text-amber-400" />
-                <span>أسئلة محورية من منهج الصف السادس</span>
+                <span>أسئلة محورية من منهج الصف الثاني ثانوي</span>
               </h3>
               <p className="text-xs text-slate-400 mb-4 leading-relaxed">
                 اضغط على أي سؤال من الأسئلة التالية لبدء النقاش السقراطي والشرح المباشر:

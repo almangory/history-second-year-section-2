@@ -341,7 +341,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
       effectiveScope === "favorites" ? `الدروس المفضلة ⭐ (${favoriteLessons.length} دروس مختارة)` : 
       effectiveScope === "unit" ? `الوحدة ${effectiveUnitId} - ${units.find(u => u.id === effectiveUnitId)?.title}` : 
       effectiveScope === "lesson" ? `درس محدد: ${units.flatMap(u => u.lessons).find(l => l.id === effectiveLessonId)?.title || ""}` : 
-      "كامل المقرر الدراسي للصف السادس الابتدائي";
+      "كامل المقرر الدراسي للصف الثاني ثانوي";
 
     // Filter diagrams strictly matching the selected scope with ZERO leakage
     let availableDiagrams: typeof DIAGRAMS_LIST = [];
@@ -789,7 +789,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                     امتحانات الشهادة والامتحانات الرسمية
                   </div>
                   <div className={`text-[11px] ${activeSourceTab === "exams" ? "text-amber-100" : "text-slate-500"}`}>
-                    شهادة التعليم الابتدائي والامتحانات النموذجية
+                    امتحانات الشهادة والامتحانات النموذجية المعتمدة
                   </div>
                 </div>
               </div>
@@ -935,7 +935,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                   <span>🏛️ اختر الامتحان الرسمي للحل والطباعة:</span>
                 </h3>
                 <span className="text-xs text-slate-500 font-sans hidden sm:inline">
-                  مطابقة 100% لمقرر الصف السادس الابتدائي المعتمد
+                  مطابقة 100% لمقرر الصف الثاني ثانوي المعتمد
                 </span>
               </div>
 
@@ -1441,11 +1441,11 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                   {!removeWatermark && (
                     <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.05] select-none z-0">
                       <div className="text-center font-black text-slate-800 rotate-[-35deg] text-3xl sm:text-5xl tracking-widest whitespace-nowrap uppercase leading-none select-none">
-                        تاريخ الصف السادس الابتدائي <br />
-                        تاريخ الصف السادس الابتدائي <br />
-                        تاريخ الصف السادس الابتدائي <br />
-                        تاريخ الصف السادس الابتدائي <br />
-                        تاريخ الصف السادس الابتدائي
+                        تاريخ الصف الثاني ثانوي <br />
+                        تاريخ الصف الثاني ثانوي <br />
+                        تاريخ الصف الثاني ثانوي <br />
+                        تاريخ الصف الثاني ثانوي <br />
+                        تاريخ الصف الثاني ثانوي
                       </div>
                     </div>
                   )}
@@ -1456,16 +1456,16 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                       <div className="flex items-center gap-3">
                         <img 
                           src="/logo.png" 
-                          alt="شعار منصة نقلة للمناهج التعليمية الإلكترونية" 
+                          alt="شعار منصة المناهج التعليمية الإلكترونية" 
                           className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-xs shrink-0" 
                         />
                         <div>
                           <h1 className="text-lg sm:text-xl font-black text-slate-950 tracking-tight flex items-center gap-1.5">
-                            <span>ورقة عمل التاريخ والتربية الوطنية 🏛️</span>
-                            <span className="text-[10px] sm:text-[11px] border border-slate-900 text-slate-900 font-sans font-bold px-2 py-0.5 rounded">الصف السادس</span>
+                            <span>ورقة عمل تاريخ السودان وأوروبا الحديث 🏛️</span>
+                            <span className="text-[10px] sm:text-[11px] border border-slate-900 text-slate-900 font-sans font-bold px-2 py-0.5 rounded">الصف الثاني ثانوي</span>
                           </h1>
                           <p className="text-[10px] sm:text-[11px] text-slate-600 font-sans mt-0.5 font-medium leading-none">
-                            منصة نقلة للمناهج التعليمية الإلكترونية - بخت الرضا
+                            منصة المناهج التعليمية الإلكترونية - بخت الرضا
                           </p>
                         </div>
                       </div>
@@ -1770,7 +1770,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
 
                   {/* Worksheet Footer */}
                   <div className="relative z-10 border-t border-slate-300 pt-3 mt-6 flex justify-between items-center text-[10px] text-slate-500 font-sans">
-                    <div>منصة تاريخ السودان والتربية الوطنية للصف السادس • تم الحل والتصحيح التفاعلي عبر الموقع</div>
+                    <div>منصة تاريخ السودان وأوروبا الحديث للصف الثاني ثانوي • تم الحل والتصحيح التفاعلي عبر الموقع</div>
                     <div className="font-bold">كراسة أوراق العمل - المنهج المعتمد</div>
                   </div>
                 </div>

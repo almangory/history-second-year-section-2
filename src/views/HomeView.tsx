@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { 
   BookOpen, 
   Sparkles, 
@@ -60,13 +60,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="space-y-3 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/20 backdrop-blur-sm border border-white/20 text-amber-200 text-xs font-bold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>مقرر التاريخ والتربية الوطنية - بخت الرضا</span>
+              <span>منهج التاريخ المعتمد - المرحلة الثانوية (بخت الرضا)</span>
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight">
-              أهلاً بك يا بطل التاريخ في الصف السادس! 🇸🇩
+              أهلاً بك في منصة تاريخ الصف الثاني ثانوي! 🇸🇩
             </h1>
             <p className="text-sm sm:text-base text-amber-100 leading-relaxed">
-              رحلة تفاعلية ممتعة لاستكشاف تاريخ السودان، الحضارة العباسية، ممالك إفريقيا العظيمة، النهضة الأوروبية، وقيم التربية الوطنية.
+              رحلة تفاعلية تفصيلية لدراسة تاريخ السودان الحديث (الحكم التركي المصري، الاستقلال والثورات الوطنية) وتاريخ أوروبا الحديث والمعاصر (النهضة، الثورة الفرنسية، الثورة الصناعية، الوحدتان الإيطالية والألمانية، والحربان العالميتان).
             </p>
 
             {/* Quick Action Buttons */}

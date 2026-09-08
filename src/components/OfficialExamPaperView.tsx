@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * 
  * عارض الامتحانات الرسمية وأوراق العمل المعتمدة A4
- * منصة نقلة للمناهج التعليمية الإلكترونية - تاريخ وتربية وطنية الصف السادس
+ * منصة المناهج التعليمية الإلكترونية - تاريخ الصف الثاني ثانوي
  */
 
 import React, { useState, useEffect, useRef } from "react";
@@ -363,10 +363,10 @@ export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
             {!removeWatermark && (
               <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-[0.04] select-none z-0">
                 <div className="text-center font-black text-slate-900 rotate-[-35deg] text-3xl sm:text-5xl tracking-widest whitespace-nowrap uppercase leading-loose select-none">
-                  منصة نقلة للمناهج التعليمية الإلكترونية <br />
-                  تاريخ وتربية وطنية - الصف السادس <br />
+                  منصة المناهج التعليمية الإلكترونية <br />
+                  تاريخ السودان وأوروبا الحديث - الصف الثاني ثانوي <br />
                   وزارة التربية والتعليم - بخت الرضا <br />
-                  منصة نقلة للمناهج التعليمية الإلكترونية
+                  منصة المناهج التعليمية الإلكترونية
                 </div>
               </div>
             )}
@@ -773,10 +773,10 @@ export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
             {/* A4 FOOTER */}
             <div className="relative z-10 border-t border-slate-300 pt-3 mt-8 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-500 font-sans gap-2">
               <div>
-                منصة نقلة للمناهج التعليمية الإلكترونية • المركز القومي للمناهج والبحث التربوي (بخت الرضا)
+                منصة المناهج التعليمية الإلكترونية • المركز القومي للمناهج والبحث التربوي (بخت الرضا)
               </div>
               <div className="font-bold">
-                كراسة الامتحانات الرسمية المعتمدة • الصف السادس الابتدائي
+                كراسة الامتحانات الرسمية المعتمدة • الصف الثاني ثانوي
               </div>
             </div>
           </div>

@@ -1050,7 +1050,7 @@ export default function App() {
             userAnswer: logged.userOption,
             correctAnswer: q.correctAnswer,
             isCorrect: logged.correct,
-            explanation: q.explanation || "الإجابة الصحيحة مبرهنة في كتاب التاريخ المدرسي للصف السادس الابتدائي بالسودان."
+            explanation: q.explanation || "الإجابة الصحيحة مبرهنة في كتاب التاريخ المدرسي للصف الثاني ثانوي بالسودان."
           };
         });
 
@@ -1200,7 +1200,7 @@ export default function App() {
                 المُؤرِّخ الصَّغير التفاعلي
               </h1>
               <p className="text-slate-600 text-sm md:text-base font-sans">
-                باصِرة رقمية ذكية لكتاب التاريخ المعتمد للصف السادس الابتدائي
+                باصِرة رقمية ذكية لكتاب التاريخ المعتمد للصف الثاني ثانوي
               </p>
             </div>
 
@@ -1340,7 +1340,7 @@ export default function App() {
             <div className="text-right hidden sm:block">
               <h1 className="text-lg md:text-xl font-black font-serif text-amber-900 flex items-center gap-2">
                 <span>المُؤَرِّخُ الصَّغِيرُ</span>
-                <span className="text-[10px] bg-amber-100 text-amber-900 font-sans px-2 py-0.5 rounded-full border border-amber-300 font-bold">الصف السادس</span>
+                <span className="text-[10px] bg-amber-100 text-amber-900 font-sans px-2 py-0.5 rounded-full border border-amber-300 font-bold">الصف الثاني ثانوي</span>
               </h1>
               <p className="text-[10px] text-slate-600 font-medium">منصة تاريخ المناهج التفاعلية • بخت الرضا</p>
             </div>
@@ -3543,7 +3543,7 @@ export default function App() {
               </button>
 
               <p className="text-xs text-slate-500">
-                💡 جميع الأسئلة مأخوذة ومطابقة 100% لكتاب التاريخ والتربية الوطنية للصف السادس
+                💡 جميع الأسئلة مأخوذة ومطابقة 100% لكتاب تاريخ السودان وأوروبا الحديث للصف الثاني ثانوي
               </p>
             </div>
           </div>

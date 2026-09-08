@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Clock, Filter, Calendar, Sparkles, BookOpen, Compass, Shield, Award } from "lucide-react";
 import { UNITS } from "../data";
 import { TimelineEvent } from "../types";
@@ -34,13 +34,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onSelectUnit, onPlay
         <div className="relative z-10 space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black">
             <Clock className="w-3.5 h-3.5" />
-            <span>السجل التاريخي الشامل لمقرر الصف السادس</span>
+            <span>السجل التاريخي الشامل لمقرر الصف الثاني ثانوي</span>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-100 tracking-tight">
             الخط الزمني للأحداث التاريخية ⏳
           </h1>
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed">
-            استعرض الترتيب الزمني الدقيق لأهم المعارك والفتوحات والمخترعات ونشأة الدول من سنة 132 هجرية وحتى التاريخ الحديث.
+            استعرض الترتيب الزمني الدقيق لأهم أحداث تاريخ السودان وأوروبا الحديث والمعاصر (١٨٢٠ - ١٩٨٥م).
           </p>
         </div>
       </div>

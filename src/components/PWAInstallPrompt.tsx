@@ -139,9 +139,9 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onPlaySound 
                   تطبيق الويب التفاعلي PWA
                 </span>
                 <h3 className="font-serif font-black text-lg text-amber-900">
-                  تاريخ السودان والتربية الوطنية
+                  تاريخ السودان وأوروبا الحديث
                 </h3>
-                <p className="text-xs text-slate-600">الصف السادس الابتدائي 🇸🇩</p>
+                <p className="text-xs text-slate-600">الصف الثاني ثانوي 🇸🇩</p>
               </div>
             </div>
 
