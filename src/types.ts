@@ -55,6 +55,9 @@ export interface Unit {
   lessons: Lesson[];
   timeline: TimelineEvent[];
   flashcards: Flashcard[];
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDuration?: string;
 }
 
 export interface Achievement {

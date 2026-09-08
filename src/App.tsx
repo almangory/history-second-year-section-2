@@ -20,6 +20,7 @@ import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { ClassicLessonReader } from "./components/ClassicLessonReader";
 import { NavigationDock, ActiveTabType } from "./components/NavigationDock";
 import { TimelineView } from "./views/TimelineView";
+import { UnitVideoPlayer } from "./components/UnitVideoPlayer";
 import { speechEngine } from "./utils/speechUtils";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -267,7 +268,7 @@ export default function App() {
 
 
   // Lesson Inner Navigation States
-  const [lessonActiveSubTab, setLessonActiveSubTab] = useState<"lessons" | "timeline" | "flashcards">("lessons");
+  const [lessonActiveSubTab, setLessonActiveSubTab] = useState<"lessons" | "timeline" | "flashcards" | "video">("lessons");
   const [currentLessonIdx, setCurrentLessonIdx] = useState(0);
   const [bookPageIndex, setBookPageIndex] = useState(0); // For paginating lesson parts (0 to 3)
   const [pageFlipDirection, setPageFlipDirection] = useState<1 | -1>(1); // For realistic 3D paper flipping direction
@@ -1784,9 +1785,27 @@ export default function App() {
 
                         {/* Extra indicators */}
                         <div className="pt-3 border-t border-amber-100 flex items-center justify-between text-xs font-medium text-slate-600">
-                          <span className="font-sans text-slate-500">الدروس: {unit.lessons.length}</span>
+                          <div className="flex items-center gap-2 font-sans">
+                            <span className="text-slate-500">الدروس: {unit.lessons.length}</span>
+                            {unit.videoUrl && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePlaySound("click");
+                                  setSelectedUnitId(unit.id);
+                                  setLessonActiveSubTab("video");
+                                  setCurrentTab("unit");
+                                }}
+                                className="bg-amber-100/90 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 transition shadow-2xs hover:scale-105 cursor-pointer"
+                                title="مشاهدة شرح الوحدة بالفيديو"
+                              >
+                                <Video className="w-3 h-3 text-amber-700 shrink-0" />
+                                <span>فيديو الشرح 🎬</span>
+                              </button>
+                            )}
+                          </div>
                           <span className="font-sans flex items-center gap-1 text-slate-800 font-bold group-hover:translate-x-[-4px] transition duration-200">
-                            <span>تصحف تفاعلياً</span>
+                            <span>تصفح تفاعلياً</span>
                             <ArrowRight className="w-3.5 h-3.5 transform rotate-180 text-amber-700" />
                           </span>
                         </div>
@@ -2069,6 +2088,22 @@ export default function App() {
                     <span>بطاقات المراجعة</span>
                   </button>
                   <button
+                    onClick={() => {
+                      handlePlaySound("click");
+                      setLessonActiveSubTab("video");
+                      setQuizMode("none");
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                      lessonActiveSubTab === "video" && quizMode === "none"
+                        ? "bg-amber-600 text-white shadow-sm ring-2 ring-amber-400/40"
+                        : "bg-white hover:bg-amber-50 dark:bg-[#1a1732] dark:hover:bg-[#231f44] text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700"
+                    }`}
+                  >
+                    <Video className={`w-4 h-4 ${lessonActiveSubTab === "video" && quizMode === "none" ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
+                    <span>شرح الوحدة بالفيديو</span>
+                    <span className="bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-200 text-[10px] px-1.5 py-0.2 rounded font-bold">🎬</span>
+                  </button>
+                  <button
                     onClick={() => startComprehensiveQuiz(selectedUnit.id)}
                     className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition flex items-center gap-1.5 cursor-pointer shadow-sm ml-1"
                     title="بدء اختبار الوحدة"
@@ -2103,6 +2138,19 @@ export default function App() {
                         {favoriteLessons.includes(less.id) && <Heart className="w-4 h-4 text-red-500 fill-red-500 shrink-0" />}
                       </button>
                     ))}
+
+                    {selectedUnit.videoUrl && (
+                      <button
+                        onClick={() => {
+                          handlePlaySound("click");
+                          setLessonActiveSubTab("video");
+                        }}
+                        className="w-full text-center p-2.5 mt-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
+                      >
+                        <Video className="w-4 h-4 text-amber-200" />
+                        <span>شاهد شرح الوحدة بالفيديو 🎬</span>
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -3272,6 +3320,19 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* CURRICULUM VIDEO EXPLANATION SUBTAB */}
+            {quizMode === "none" && lessonActiveSubTab === "video" && (
+              <UnitVideoPlayer
+                unit={selectedUnit}
+                onStartQuiz={() => startComprehensiveQuiz(selectedUnit.id)}
+                onGoToLessons={() => setLessonActiveSubTab("lessons")}
+                onGoToTimeline={() => setLessonActiveSubTab("timeline")}
+                onGoToFlashcards={() => setLessonActiveSubTab("flashcards")}
+                onSelectLesson={(idx) => setCurrentLessonIdx(idx)}
+                onPlaySound={handlePlaySound}
+              />
             )}
           </div>
         )}

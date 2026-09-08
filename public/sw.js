@@ -75,6 +75,12 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
+  // Video and Audio Media Streams (HTTP Range / 206 Partial Content)
+  // Let browser handle media streaming natively for smooth seeking & scrubbing
+  if (url.pathname.match(/\.(mp4|webm|ogg|mp3|wav)$/i) || request.headers.get("range")) {
+    return;
+  }
+
   // Strategy A: Cloud AI Mentor & Backend APIs -> Network Only with graceful offline JSON fallback
   if (url.pathname.startsWith("/api/") || url.hostname.includes("local-ai-arsenal.pages.dev")) {
     event.respondWith(
