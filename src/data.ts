@@ -1605,16 +1605,6 @@ export const BADGES_LIST = [
   }
 ];
 
-export const HISTORIC_CITIES = [
-  { name: "سنار", lat: 13.565, lng: 33.567 },
-  { name: "الخرطوم", lat: 15.5007, lng: 32.5599 },
-  { name: "شندي", lat: 16.694, lng: 33.433 },
-  { name: "فاس", lat: 34.0181, lng: -5.0078 },
-  { name: "القيروان", lat: 35.6781, lng: 10.0963 },
-  { name: "القاهرة", lat: 30.0444, lng: 31.2357 },
-  { name: "بغداد", lat: 33.3152, lng: 44.3661 },
-  { name: "سامراء", lat: 34.1982, lng: 43.8742 },
-  { name: "تيمبكتو", lat: 16.7666, lng: -3.0026 },
-  { name: "كلوة", lat: -8.9333, lng: 39.5167 }
-];
+export { HISTORIC_CITIES, HISTORIC_CITIES_FULL } from "./data/historicCitiesData";
+
 

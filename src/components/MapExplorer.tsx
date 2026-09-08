@@ -3,11 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import L from "leaflet";
-import { HISTORIC_CITIES } from "../data";
+import { HISTORIC_CITIES_FULL } from "../data";
+import { HistoricCity } from "../types";
 import { playSound } from "./SoundEffects";
-import { MapPin, Award, Check, X, HelpCircle, Compass, Layers, RotateCcw } from "lucide-react";
+import {
+  MapPin,
+  Award,
+  Check,
+  X,
+  HelpCircle,
+  Compass,
+  Layers,
+  RotateCcw,
+  Search,
+  BookOpen,
+  Sparkles,
+  Filter,
+  CheckCircle2,
+} from "lucide-react";
 
 interface MapExplorerProps {
   score: number;
@@ -15,139 +30,109 @@ interface MapExplorerProps {
   onUnlockBadge: (badgeId: string) => void;
 }
 
-// Helper coordinate position tweaks to prevent map labels overlaying on each other
-const getLabelPlacementClasses = (cityName: string) => {
-  switch (cityName) {
-    case "الخرطوم":
-      return "left-7 top-1/2 -translate-y-1/2 whitespace-nowrap";
-    case "كلوة":
-      return "right-7 top-1/2 -translate-y-1/2 whitespace-nowrap";
-    case "شندي":
-      return "bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap";
-    case "بغداد":
-      return "bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap";
-    default:
-      return "top-7 left-1/2 -translate-x-1/2 whitespace-nowrap";
-  }
-};
+// Map layer configuration using 100% free, watermark-free tile providers
+const MAP_LAYERS = [
+  {
+    id: "osm",
+    label: "الخريطة التعليمية القياسية",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    icon: Compass,
+  },
+  {
+    id: "hot",
+    label: "الخريطة الإنسانية الدافئة",
+    url: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by Humanitarian OpenStreetMap Team',
+    icon: Layers,
+  },
+  {
+    id: "satellite",
+    label: "الأقمار الصناعية والتضاريس",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+    icon: Layers,
+  },
+  {
+    id: "topo",
+    label: "خريطة المعالم الطبوغرافية",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC",
+    icon: Layers,
+  },
+] as const;
+
+type MapStyleId = (typeof MAP_LAYERS)[number]["id"];
+
+const UNIT_FILTERS = [
+  { id: 0, label: "جميع الوحدات (30 معلماً)", center: [20.0, 20.0] as [number, number], zoom: 3 },
+  { id: 1, label: "الوحدة 1: تاريخ السودان الحديث", center: [14.5, 31.5] as [number, number], zoom: 6 },
+  { id: 2, label: "الوحدة 2: الدولة العباسية", center: [33.5, 44.0] as [number, number], zoom: 5 },
+  { id: 3, label: "الوحدة 3: الحضارة الإسلامية في إفريقيا", center: [15.0, 15.0] as [number, number], zoom: 4 },
+  { id: 4, label: "الوحدة 4: عصر النهضة والثورة الصناعية", center: [30.0, 25.0] as [number, number], zoom: 4 },
+  { id: 5, label: "الوحدة 5: الهوية والسيادة الوطنية", center: [17.5, 34.5] as [number, number], zoom: 6 },
+];
 
 export const MapExplorer: React.FC<MapExplorerProps> = ({ score, setScore, onUnlockBadge }) => {
-  const [selectedCity, setSelectedCity] = useState<typeof HISTORIC_CITIES[0] | null>(null);
+  const [selectedCity, setSelectedCity] = useState<HistoricCity | null>(null);
   const [answeredCities, setAnsweredCities] = useState<Record<string, boolean>>({});
-  const [currentCityQuestion, setCurrentCityQuestion] = useState<{
-    text: string;
-    options: string[];
-    correct: string;
-    description: string;
-  } | null>(null);
   const [userAnswer, setUserAnswer] = useState<string | null>(null);
   const [quizResult, setQuizResult] = useState<"correct" | "wrong" | null>(null);
 
+  // Filter & Search states
+  const [activeUnitFilter, setActiveUnitFilter] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   // Map settings
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  const [mapStyle, setMapStyle] = useState<"osm" | "satellite" | "voyager" | "dark">("voyager");
+  const [mapStyle, setMapStyle] = useState<MapStyleId>("osm");
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletMapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
 
-  // Map styling choices dictionary
-  const mapLayers = [
-    { id: "voyager", label: "خريطة الألوان الأثرية", icon: Layers },
-    { id: "osm", label: "خرائط الحدود السياسية", icon: Compass },
-    { id: "satellite", label: "خريطة القمر الصناعي", icon: Layers },
-    { id: "dark", label: "خرائط الفضاء الداكنة", icon: Layers }
-  ] as const;
+  // Filter cities by active unit and search query
+  const filteredCities = useMemo(() => {
+    return HISTORIC_CITIES_FULL.filter((city) => {
+      const matchUnit = activeUnitFilter === 0 || city.unitId === activeUnitFilter;
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return matchUnit;
+      const matchSearch =
+        city.name.toLowerCase().includes(q) ||
+        city.historicalTitle.toLowerCase().includes(q) ||
+        city.country.toLowerCase().includes(q) ||
+        city.lessonTitle.toLowerCase().includes(q) ||
+        city.description.toLowerCase().includes(q);
+      return matchUnit && matchSearch;
+    });
+  }, [activeUnitFilter, searchQuery]);
 
-  // Bonus quizzes tied to cities
-  const cityQuizzes: Record<string, { text: string; options: string[]; correct: string; description: string }> = {
-    "سنار": {
-      text: "أي مملكة عظيمة اتخذت من 'سنار' عاصمة لها وكان يطلق عليها السلطنة الزرقاء؟",
-      options: ["مملكة الفونج", "دولة الأدارسة", "مملكة مالي", "دولة الأغالبة"],
-      correct: "مملكة الفونج",
-      description: "صحيح! سنار كانت العاصمة الشامخة لـ مملكة الفونج حتى سقوطها عام 1821م."
-    },
-    "الخرطوم": {
-      text: "في أي ملتقى جرافي تقع مدينة الخرطوم عاصمة السودان الحبيبة؟",
-      options: ["ملتقى البحر الأحمر والخليج العربي", "ملتقى النيلين الأبيض والأزرق", "ملتقى النهر والملح", "جبال النوبة"],
-      correct: "ملتقى النيلين الأبيض والأزرق",
-      description: "أحسنت! هذا الموقع الاستراتيجي المميز جعلها الميناء والعاصمة الإدارية الأهم منذ 1824م."
-    },
-    "شندي": {
-      text: "ما اسم الملك الشجاع الذي قاد ثورة وغضب شندي التاريخي وحاصر ديوان إسماعيل باشا؟",
-      options: ["الملك جعفر", "الملك نمر", "الملك عثمان", "سندياتا"],
-      correct: "الملك نمر",
-      description: "ممتاز! الملك نمر ملك الجعليين حرق إسماعيل باشا في شندي رداً على تهديداته للأهالي."
-    },
-    "فاس": {
-      text: "من الذي أسس مدينة 'فاس' لتكون عاصمة لمملكته بشمال إفريقيا عام 789م؟",
-      options: ["الأدارسة", "العباسيون", "الفاطميون", "صلاح الدين"],
-      correct: "الأدارسة",
-      description: "صحيح! الأدارسة اتخذوا فاس عاصمة أثرية مشعة بالعلم والمنشآت."
-    },
-    "القيروان": {
-      text: "أي من الدويلات الإسلامية اتخذت من القيروان عاصمة وأثبتت ريادتها بالبحر الأبيض المتوسط؟",
-      options: ["الأغالبة", "الأدارسة", "ممالك الهوسا", "سلطنة دارفور"],
-      correct: "الأغالبة",
-      description: "بالفعل! دولة الأغالبة أسست القيروان في تونس كقاعدة لفتوحاتها البحرية المذهلة."
-    },
-    "القاهرة": {
-      text: "من القائد الفاطمي المغوار الذي شيد أسوار مدينة القاهرة وأسس الجامع الأزهر الشريف عام 969م؟",
-      options: ["جوهر الصقلي", "هولاكو", "عبيد الله المهدي", "الزبير ود رحمة"],
-      correct: "جوهر الصقلي",
-      description: "بطل رائع! الأمير الصقلي جوهر شيد القاهرة وخط جامع الأزهر بأمر الخليفة المعز."
-    },
-    "بغداد": {
-      text: "أي خليفة عباسي يعتبر باني ومصمم مدينة بغداد دائرية الشكل لسهولة حمايتها ودعم عمرانها؟",
-      options: ["أبو جعفر المنصور", "أبو العباس السفاح", "المأمون", "المعتصم"],
-      correct: "أبو جعفر المنصور",
-      description: "عبقري تاريخي! أبو جعفر المنصور هو المصمم وباني بغداد لتصبح عاصمة الخلافة الشامخة."
-    },
-    "سامراء": {
-      text: "لماذا قام الخليفة المعتصم ببناء مدينة سامراء (سر من رأى) العريقة كعاصمة ثانية؟",
-      options: ["لجمع الكتب وتصفيتها", "لتكون عاصمة عسكرية بديلة لإسكان جنده الأتراك", "لمحاربة الرقيق بالهند", "لإدخال زراعة المنسوجات"],
-      correct: "لتكون عاصمة عسكرية بديلة لإسكان جنده الأتراك",
-      description: "رائع جداً! سامراء شُيدت خصوصاً لتجنب الاحتكاك والفتن وتوسعة السلاح التركي العتيد."
-    },
-    "تيمبكتو": {
-      text: "من الملك الإفريقي الشهير الذي جلب المهندسين والعلماء لتشييد مساجد وقصور تيمبكتو عاصمة مالي العلمية؟",
-      options: ["منسا موسى", "إبراهيم بن الأغلب", "إدريس بن عبد الله", "الخديوي عباس"],
-      correct: "منسا موسى",
-      description: "تاريخي مدهش! منسا موسى عاد من الحج ومعه نخبة المفكرين والمهندسين وجعل تيمبكتو عاصمة عالمية."
-    },
-    "كلوة": {
-      text: "أي الأمير شيد سلطنة كلوة على الساحل الشرقي لإفريقيا لتتحكم في تجارة الذهب العظيمة؟",
-      options: ["علي بن حسن الشيرازي", "عثمان دان فوديو", "الملك نمر", "الدفتدار"],
-      correct: "علي بن حسن الشيرازي",
-      description: "ممتاز! الأمير الشيرازي أسس هذه السلطنة الفارسية ونظم العمران والمنازل الحجرية بكلوة."
-    }
-  };
+  // Total solved count
+  const solvedCount = Object.keys(answeredCities).filter((k) => answeredCities[k]).length;
 
-  // Initialize Map
+  // Initialize Leaflet Map instance
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Create Leaflet instance centered at geographic centroid of the studied kingdoms
     const map = L.map(mapRef.current, {
       center: [20.0, 20.0],
       zoom: 3,
       minZoom: 2,
-      maxZoom: 13,
-      zoomControl: false, // Customized controls on right bottom instead
+      maxZoom: 14,
+      zoomControl: false,
     });
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
     leafletMapRef.current = map;
     setMapInstance(map);
 
-    // Initial tile layer setup
-    const layer = L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    // Initial OSM Tile Layer (Watermark-free)
+    const initialLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18,
     }).addTo(map);
-    tileLayerRef.current = layer;
+    tileLayerRef.current = initialLayer;
 
-    // Map resize handling
     const resizeObserver = new ResizeObserver(() => {
       map.invalidateSize();
     });
@@ -162,7 +147,7 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ score, setScore, onUnl
     };
   }, []);
 
-  // Update Tile Layers when Style toggles
+  // Update Tile Layer upon style change
   useEffect(() => {
     if (!mapInstance) return;
 
@@ -170,105 +155,104 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ score, setScore, onUnl
       tileLayerRef.current.remove();
     }
 
-    let tileUrl = "";
-    let attribution = "";
-
-    switch (mapStyle) {
-      case "osm":
-        tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-        attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-        break;
-      case "satellite":
-        tileUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-        attribution = "Tiles &copy; Esri &mdash; Source: Esri Shaded Imagery";
-        break;
-      case "dark":
-        tileUrl = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-        attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
-        break;
-      case "voyager":
-      default:
-        tileUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-        attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
-        break;
-    }
-
-    const layer = L.tileLayer(tileUrl, {
-      attribution,
+    const currentLayerConfig = MAP_LAYERS.find((l) => l.id === mapStyle) || MAP_LAYERS[0];
+    const newLayer = L.tileLayer(currentLayerConfig.url, {
+      attribution: currentLayerConfig.attribution,
       maxZoom: 18,
     }).addTo(mapInstance);
 
-    tileLayerRef.current = layer;
+    tileLayerRef.current = newLayer;
   }, [mapInstance, mapStyle]);
 
-  const handleCitySelect = (city: typeof HISTORIC_CITIES[0]) => {
+  // Handle City Selection
+  const handleCitySelect = (city: HistoricCity) => {
     playSound("click");
     setSelectedCity(city);
     setUserAnswer(null);
     setQuizResult(null);
-    setCurrentCityQuestion(cityQuizzes[city.name] || null);
 
-    // Animate map transition to center selected city beautifully
     if (leafletMapRef.current) {
-      leafletMapRef.current.setView([city.lat, city.lng], 5, {
+      leafletMapRef.current.setView([city.lat, city.lng], 6, {
+        animate: true,
+        duration: 1.2,
+      });
+    }
+  };
+
+  // Switch Unit Filter & fly to regional centroid
+  const handleUnitFilterChange = (filterId: number) => {
+    playSound("click");
+    setActiveUnitFilter(filterId);
+    const filterObj = UNIT_FILTERS.find((f) => f.id === filterId);
+    if (filterObj && leafletMapRef.current) {
+      leafletMapRef.current.setView(filterObj.center, filterObj.zoom, {
         animate: true,
         duration: 1.5,
       });
     }
   };
 
-  // Populate Interactive Markers dynamically on Map Instance matching React State
+  // Populate Interactive Leaflet Markers
   useEffect(() => {
     if (!mapInstance) return;
 
-    // Remove existing markers
+    // Clear existing markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
-    HISTORIC_CITIES.forEach((city) => {
-      const isSelected = selectedCity?.name === city.name;
+    filteredCities.forEach((city) => {
+      const isSelected = selectedCity?.id === city.id;
       const isSolved = answeredCities[city.name];
-      const labelPosClass = getLabelPlacementClasses(city.name);
 
-      // Render the same visually gorgeous markup with custom dynamic coloring
+      // Color coding per unit
+      const unitBadgeColors: Record<number, { bg: string; border: string; ring: string }> = {
+        1: { bg: "bg-emerald-600", border: "border-emerald-300", ring: "ring-emerald-400/30" },
+        2: { bg: "bg-indigo-600", border: "border-indigo-300", ring: "ring-indigo-400/30" },
+        3: { bg: "bg-amber-600", border: "border-amber-300", ring: "ring-amber-400/30" },
+        4: { bg: "bg-rose-600", border: "border-rose-300", ring: "ring-rose-400/30" },
+        5: { bg: "bg-teal-600", border: "border-teal-300", ring: "ring-teal-400/30" },
+      };
+
+      const unitColor = unitBadgeColors[city.unitId] || { bg: "bg-amber-600", border: "border-amber-300", ring: "ring-amber-400/30" };
+
       const markerHTML = `
-        <div class="relative flex items-center justify-center cursor-pointer select-none" style="transform: translate(-16px, -16px); width: 32px; height: 32px;">
-          ${!isSolved && !isSelected ? '<span class="absolute -inset-1 rounded-full bg-red-500/50 opacity-75 animate-ping"></span>' : ""}
+        <div class="relative flex items-center justify-center cursor-pointer select-none group" style="transform: translate(-18px, -18px); width: 36px; height: 36px;">
+          ${!isSolved && !isSelected ? '<span class="absolute -inset-1 rounded-full bg-amber-500/40 opacity-75 animate-ping"></span>' : ""}
           
-          <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+          <div class="w-9 h-9 rounded-full border-2 flex items-center justify-center shadow-lg transition-all duration-200 ${
             isSelected
-              ? "bg-amber-400 border-yellow-200 scale-125 shadow-lg ring-4 ring-amber-500/20 text-slate-950 font-bold"
+              ? "bg-amber-500 border-white scale-125 ring-4 ring-amber-500/40 text-slate-950 font-black shadow-xl z-30"
               : isSolved
-              ? "bg-emerald-600 border-emerald-400 text-white shadow-md"
-              : "bg-red-600 border-red-300 text-white hover:bg-red-500 hover:scale-110 shadow-md"
+              ? "bg-emerald-600 border-emerald-200 text-white shadow-md z-10"
+              : `${unitColor.bg} ${unitColor.border} text-white hover:scale-110 z-20`
           }">
             ${
               isSolved
-                ? '<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>'
-                : `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" class="${
-                    isSelected ? "text-slate-950" : "text-white"
-                  }"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
+                ? '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+                : isSelected
+                ? '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" class="text-slate-950"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
+                : `<span class="text-[11px] font-black leading-none">${city.unitId}</span>`
             }
           </div>
           
-          <!-- Marker Tooltip Title Label - Richly styled and stable -->
-          <span class="absolute px-2.5 py-0.5 rounded text-[10px] md:text-[11px] font-sans font-extrabold border shadow-md transition-all pointer-events-none ${labelPosClass} ${
+          <!-- Label pill -->
+          <div class="absolute top-10 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md text-[11px] font-bold border shadow-md whitespace-nowrap transition-all pointer-events-none ${
             isSelected
-              ? "bg-amber-400 border-yellow-200 text-slate-950 scale-110 z-30 font-black"
+              ? "bg-amber-500 border-amber-600 text-slate-950 scale-105 z-30 shadow-lg font-black"
               : isSolved
-              ? "bg-emerald-950/95 border-emerald-500/40 text-emerald-300 z-10"
-              : "bg-[#110e1a]/95 border-indigo-950/90 text-amber-200/90"
+              ? "bg-emerald-800 text-white border-emerald-600 z-10 opacity-90"
+              : "bg-white text-slate-900 border-amber-300 shadow z-20 group-hover:scale-105"
           }">
             ${city.name}
-          </span>
+          </div>
         </div>
       `;
 
       const customIcon = L.divIcon({
         html: markerHTML,
-        className: "custom-leaflet-marker",
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        className: "custom-historic-marker",
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
 
       const marker = L.marker([city.lat, city.lng], { icon: customIcon })
@@ -279,10 +263,12 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ score, setScore, onUnl
 
       markersRef.current.push(marker);
     });
-  }, [mapInstance, selectedCity, answeredCities]);
+  }, [mapInstance, filteredCities, selectedCity, answeredCities]);
 
   const handleResetView = () => {
     playSound("click");
+    setActiveUnitFilter(0);
+    setSearchQuery("");
     if (mapInstance) {
       mapInstance.setView([20.0, 20.0], 3, {
         animate: true,
@@ -292,26 +278,35 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ score, setScore, onUnl
   };
 
   const handleAnswerSubmit = (option: string) => {
-    if (!currentCityQuestion || !selectedCity) return;
+    if (!selectedCity) return;
 
     setUserAnswer(option);
-    const isCorrect = option === currentCityQuestion.correct;
+    const isCorrect = option === selectedCity.quiz.correct;
 
     if (isCorrect) {
       playSound("success");
       setQuizResult("correct");
 
-      // Award points only if not previously awarded
-      if (!answeredCities[selectedCity.name]) {
+      const isNew = !answeredCities[selectedCity.name];
+      if (isNew) {
         setScore((prev) => prev + 15);
-        setAnsweredCities((prev) => ({ ...prev, [selectedCity.name]: true }));
-      }
+        const updated = { ...answeredCities, [selectedCity.name]: true };
+        setAnsweredCities(updated);
 
-      // Check if all cities have been explored and solved
-      const updatedAnswers = { ...answeredCities, [selectedCity.name]: true };
-      const solvedCount = Object.keys(updatedAnswers).filter((k) => updatedAnswers[k]).length;
-      if (solvedCount >= HISTORIC_CITIES.length) {
-        onUnlockBadge("africa_explorer");
+        // Check unit badges
+        const unitSolved = (unitId: number) =>
+          HISTORIC_CITIES_FULL.filter((c) => c.unitId === unitId).every((c) => updated[c.name]);
+
+        if (unitSolved(1)) onUnlockBadge("historian_sudan");
+        if (unitSolved(2)) onUnlockBadge("abbasid_scholar");
+        if (unitSolved(3)) onUnlockBadge("african_explorer");
+        if (unitSolved(4)) onUnlockBadge("renaissance_man");
+        if (unitSolved(5)) onUnlockBadge("patriot_shield");
+
+        // Master explorer when all 30 are solved
+        if (Object.keys(updated).filter((k) => updated[k]).length >= HISTORIC_CITIES_FULL.length) {
+          onUnlockBadge("master_explorer");
+        }
       }
     } else {
       playSound("fail");
@@ -320,156 +315,287 @@ export const MapExplorer: React.FC<MapExplorerProps> = ({ score, setScore, onUnl
   };
 
   return (
-    <div id="map-explorer-container" className="bg-[#121020] rounded-2xl border border-indigo-950/80 shadow-xl p-6 overflow-hidden">
+    <div id="map-explorer-container" className="bg-white/95 rounded-2xl border border-amber-200/80 shadow-xl p-4 md:p-6 text-slate-800">
       {/* Header section */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-indigo-950/50 gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between pb-4 border-b border-amber-100 gap-4">
         <div>
-          <h2 className="text-2xl font-bold font-sans text-amber-400 flex items-center gap-2">
-            <Compass className="w-7 h-7 text-amber-500 animate-pulse" />
-            البوصلة التفاعلية: خريطة المعالم التاريخية المفتوحة
-          </h2>
-          <p className="text-slate-300 text-sm mt-1 font-sans">
-            اكتشف حدود الدول والممالك بدقة الجغرافيا الواقعية مقارنة بالخرائط المعاصرة كما في كتب التاريخ. انقر على المدن لحل التحديات وكسب الجوائز!
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="bg-[#1a1738] px-4 py-2 rounded-xl flex items-center gap-2 border border-indigo-950">
-            <Award className="w-5 h-5 text-amber-400" />
-            <span className="text-slate-200 font-bold text-sm font-sans">
-              المدن المستكشفة: {Object.keys(answeredCities).length} / {HISTORIC_CITIES.length}
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-amber-100 text-amber-800 border border-amber-200">
+              <Compass className="w-6 h-6 animate-pulse" />
             </span>
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                خريطة المعرفة التاريخية الشاملة
+                <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">
+                  30 معلماً تاريخياً
+                </span>
+              </h2>
+              <p className="text-slate-600 text-xs md:text-sm mt-0.5">
+                تغطي كافة دروس كتاب التاريخ والتربية الوطنية للصف السادس (بخت الرضا). استكشف المواقع الجغرافية، وعِش تفاصيل الأحداث وأجب عن التحديات!
+              </p>
+            </div>
           </div>
+        </div>
+
+        {/* Global Progress & Badges */}
+        <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+          <div className="bg-amber-50/80 px-4 py-2 rounded-xl flex items-center gap-3 border border-amber-200 shadow-sm">
+            <Award className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <div className="text-[11px] text-slate-500 font-semibold">المعالم المكتشفة والمحلولة:</div>
+              <div className="text-sm font-black text-slate-900 font-sans">
+                {solvedCount} / {HISTORIC_CITIES_FULL.length}{" "}
+                <span className="text-xs text-amber-700 font-normal">
+                  ({Math.round((solvedCount / HISTORIC_CITIES_FULL.length) * 100)}%)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleResetView}
+            className="bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border border-slate-300 hover:border-amber-400 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+            title="إعادة ضبط الخريطة"
+          >
+            <RotateCcw className="w-4 h-4 text-amber-600" />
+            <span className="hidden sm:inline">إعادة ضبط</span>
+          </button>
         </div>
       </div>
 
-      {/* Map Controls Panel */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-[#16132b]/50 p-3 rounded-xl border border-indigo-950/40 my-4">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 scrollbar-none select-none">
-          <span className="text-slate-400 text-xs font-semibold shrink-0">نمط العرض:</span>
-          {mapLayers.map((layer) => {
-            const TileIcon = layer.icon;
-            const isSelected = mapStyle === layer.id;
+      {/* Unit Filters & Search Bar */}
+      <div className="my-4 space-y-3">
+        {/* Unit Filter Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none select-none">
+          <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0 ml-1">
+            <Filter className="w-3.5 h-3.5 text-amber-600" /> تصفية بالوحدة:
+          </span>
+          {UNIT_FILTERS.map((f) => {
+            const isSelected = activeUnitFilter === f.id;
             return (
               <button
-                key={layer.id}
-                onClick={() => {
-                  playSound("click");
-                  setMapStyle(layer.id);
-                }}
-                className={`text-[11px] px-3 py-1.5 rounded-lg border transition cursor-pointer flex items-center gap-1 shrink-0 ${
+                key={f.id}
+                onClick={() => handleUnitFilterChange(f.id)}
+                className={`text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer font-bold shrink-0 flex items-center gap-1.5 ${
                   isSelected
-                    ? "bg-amber-500 border-amber-400 text-slate-950 font-extrabold"
-                    : "bg-[#121020] hover:bg-[#1a1738] border-indigo-950 text-slate-300"
+                    ? "bg-amber-600 border-amber-600 text-white shadow-sm"
+                    : "bg-slate-50 hover:bg-amber-50/80 border-slate-200 text-slate-700"
                 }`}
               >
-                <TileIcon className="w-3.5 h-3.5" />
-                <span>{layer.label}</span>
+                <span>{f.label}</span>
               </button>
             );
           })}
         </div>
 
-        <button
-          onClick={handleResetView}
-          className="bg-indigo-950/60 hover:bg-indigo-950 text-slate-200 hover:text-amber-400 border border-indigo-900/50 hover:border-amber-500/40 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center justify-center gap-1 shadow-sm shrink-0"
-          title="إعادة ضبط التركيز الجغرافي"
-        >
-          <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
-          <span>إعادة تركيز الخريطة</span>
-        </button>
+        {/* Search & Map Layer Mode Controls */}
+        <div className="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ابحث عن مدينة، معركة، مملكة، أو شاهد تاريخي..."
+              className="w-full bg-white border border-slate-300 rounded-lg pr-9 pl-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Map Layer Mode Selector */}
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none select-none">
+            <span className="text-[11px] text-slate-500 font-semibold shrink-0 ml-1">نمط الخريطة:</span>
+            {MAP_LAYERS.map((layer) => {
+              const LayerIcon = layer.icon;
+              const isSelected = mapStyle === layer.id;
+              return (
+                <button
+                  key={layer.id}
+                  onClick={() => {
+                    playSound("click");
+                    setMapStyle(layer.id);
+                  }}
+                  className={`text-[11px] px-2.5 py-1 rounded-md border transition cursor-pointer flex items-center gap-1 shrink-0 ${
+                    isSelected
+                      ? "bg-amber-500 border-amber-600 text-white font-bold"
+                      : "bg-white hover:bg-slate-100 border-slate-300 text-slate-700"
+                  }`}
+                >
+                  <LayerIcon className="w-3 h-3" />
+                  <span>{layer.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Interactive Leaflet Map Wrapper */}
-        <div className="lg:col-span-2 bg-[#09080f] border border-indigo-950/60 rounded-xl relative h-[480px] overflow-hidden shadow-inner">
+      {/* Main Grid: Map on Left/Top, Details on Right/Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Leaflet Map Canvas */}
+        <div className="lg:col-span-7 xl:col-span-8 bg-slate-100 border border-slate-300 rounded-xl relative h-[450px] lg:h-[580px] overflow-hidden shadow-inner">
           <div ref={mapRef} id="map-canvas" className="w-full h-full" />
+          
+          {/* Quick overlay counter */}
+          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm border border-slate-200 px-3 py-1 rounded-lg text-xs font-bold text-slate-700 shadow-sm pointer-events-none z-[500]">
+            المعالم المعروضة: {filteredCities.length} من {HISTORIC_CITIES_FULL.length}
+          </div>
         </div>
 
         {/* Informative City Details & Quiz Card */}
-        <div className="bg-[#15122b]/90 border border-indigo-950/80 rounded-xl p-5 flex flex-col justify-start min-h-[300px]">
+        <div className="lg:col-span-5 xl:col-span-4 bg-white border border-amber-200 rounded-xl p-4 md:p-5 flex flex-col justify-between shadow-sm min-h-[450px]">
           {selectedCity ? (
-            <div className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
-              <div className="pb-3 border-b border-indigo-950/50">
-                <span className="bg-amber-500/10 text-amber-300 text-xs px-2.5 py-0.5 rounded-full font-bold border border-amber-500/20 font-sans">
-                  {selectedCity.country}
-                </span>
-                <h3 className="text-2xl font-bold font-serif text-amber-400 mt-1">
-                  مدينة {selectedCity.name}
+            <div className="space-y-4 animate-[fadeIn_0.2s_ease-out]">
+              {/* Header */}
+              <div className="pb-3 border-b border-amber-100">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="bg-amber-100 text-amber-800 text-[11px] px-2.5 py-0.5 rounded-full font-bold border border-amber-200">
+                    {selectedCity.unitTitle}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
+                    <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+                    {selectedCity.lessonTitle}
+                  </span>
+                </div>
+
+                <h3 className="text-xl md:text-2xl font-bold font-serif text-slate-900 leading-tight">
+                  {selectedCity.name}
                 </h3>
+                <div className="text-xs font-bold text-amber-700 mt-0.5">
+                  {selectedCity.historicalTitle}
+                </div>
+                <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-600">
+                  <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    📍 {selectedCity.country}
+                  </span>
+                  <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    ⏳ {selectedCity.era}
+                  </span>
+                </div>
               </div>
 
-              <p className="text-slate-200 text-sm leading-relaxed font-serif">
+              {/* Description */}
+              <div className="text-slate-700 text-xs md:text-sm leading-relaxed font-serif bg-amber-50/40 p-3 rounded-lg border border-amber-100">
                 {selectedCity.description}
-              </p>
+              </div>
 
-              {/* Bonus Quiz Section */}
-              {currentCityQuestion && (
-                <div className="bg-[#181532]/90 rounded-xl border border-indigo-950 p-4 mt-4 space-y-3">
-                  <div className="flex items-center gap-1.5 text-slate-200 font-bold text-xs">
-                    <HelpCircle className="w-4 h-4 text-amber-400" />
-                    <span className="font-sans">تحدي المعرفة الخاص بالمدينة:</span>
+              {/* Curriculum Evidence Note */}
+              <div className="bg-blue-50/70 border border-blue-200 p-2.5 rounded-lg text-xs text-blue-900 flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">الشاهد المنهجي (كتاب بخت الرضا): </span>
+                  <span>{selectedCity.curriculumEvidence}</span>
+                </div>
+              </div>
+
+              {/* Interactive Challenge Quiz */}
+              <div className="bg-slate-50 rounded-xl border border-slate-200 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between text-slate-800 font-bold text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <HelpCircle className="w-4 h-4 text-amber-600" />
+                    <span>تحدي المعرفة السريع (+15 نقطة):</span>
                   </div>
-
-                  <p className="text-amber-300 text-sm font-semibold font-serif leading-relaxed">
-                    {currentCityQuestion.text}
-                  </p>
-
-                  <div className="space-y-2 mt-2 font-serif">
-                    {currentCityQuestion.options.map((option, oIdx) => {
-                      const isUserChoice = userAnswer === option;
-                      const isCorrectAnswer = option === currentCityQuestion.correct;
-
-                      let btnStyle = "bg-[#131126] hover:bg-[#1c183a] border border-indigo-950/80 text-slate-100 hover:scale-[1.01]";
-                      if (userAnswer) {
-                        if (isCorrectAnswer) {
-                          btnStyle = "bg-emerald-950/80 border-emerald-500/40 text-emerald-300";
-                        } else if (isUserChoice) {
-                          btnStyle = "bg-red-950/80 border-red-500/40 text-red-300";
-                        } else {
-                          btnStyle = "bg-[#131126]/30 border-indigo-950/30 text-slate-600 opacity-60";
-                        }
-                      }
-
-                      return (
-                        <button
-                          key={oIdx}
-                          disabled={!!userAnswer}
-                          onClick={() => handleAnswerSubmit(option)}
-                          className={`w-full text-right p-2.5 rounded-lg border text-xs font-medium ease-out duration-150 transition-all flex items-center justify-between ${btnStyle}`}
-                        >
-                          <span>{option}</span>
-                          {userAnswer && isCorrectAnswer && <Check className="w-4 h-4 text-emerald-400" />}
-                          {userAnswer && isUserChoice && !isCorrectAnswer && <X className="w-4 h-4 text-red-400" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Feedback Message */}
-                  {quizResult === "correct" && (
-                    <div className="bg-emerald-950/60 text-emerald-300 border border-emerald-900/30 p-2.5 rounded-lg text-xs font-medium text-center animate-bounce font-sans">
-                      🎉 مذهل! إجابة صحيحة. حصلت على 15+ نقاط معرفة!
-                    </div>
-                  )}
-                  {quizResult === "wrong" && (
-                    <div className="bg-red-950/60 text-red-300 border border-red-900/40 p-2.5 rounded-lg text-xs font-medium text-center font-sans">
-                      ❌ أوه! حاول مجدداً مع تصفح معلومات المدينة جيداً.
-                    </div>
+                  {answeredCities[selectedCity.name] && (
+                    <span className="text-emerald-700 font-bold text-[11px] flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> تم الإنجاز
+                    </span>
                   )}
                 </div>
-              )}
+
+                <p className="text-slate-800 text-xs md:text-sm font-semibold leading-relaxed">
+                  {selectedCity.quiz.text}
+                </p>
+
+                <div className="space-y-1.5">
+                  {selectedCity.quiz.options.map((option, oIdx) => {
+                    const isUserChoice = userAnswer === option;
+                    const isCorrectAnswer = option === selectedCity.quiz.correct;
+
+                    let btnStyle = "bg-white hover:bg-amber-50 border-slate-200 text-slate-800 hover:border-amber-300";
+                    if (userAnswer) {
+                      if (isCorrectAnswer) {
+                        btnStyle = "bg-emerald-100 border-emerald-400 text-emerald-900 font-bold";
+                      } else if (isUserChoice) {
+                        btnStyle = "bg-rose-100 border-rose-400 text-rose-900 font-bold";
+                      } else {
+                        btnStyle = "bg-slate-100 border-slate-200 text-slate-400 opacity-60";
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={oIdx}
+                        disabled={!!userAnswer}
+                        onClick={() => handleAnswerSubmit(option)}
+                        className={`w-full text-right p-2 rounded-lg border text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${btnStyle}`}
+                      >
+                        <span>{option}</span>
+                        {userAnswer && isCorrectAnswer && <Check className="w-4 h-4 text-emerald-600" />}
+                        {userAnswer && isUserChoice && !isCorrectAnswer && <X className="w-4 h-4 text-rose-600" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Feedback Message */}
+                {quizResult === "correct" && (
+                  <div className="bg-emerald-100 text-emerald-900 border border-emerald-300 p-2 rounded-lg text-xs font-bold text-center animate-bounce">
+                    🎉 إجابة صحيحة وممتازة! نلت +15 نقطة في رصيدك المعرفي!
+                  </div>
+                )}
+                {quizResult === "wrong" && (
+                  <div className="bg-rose-100 text-rose-900 border border-rose-300 p-2 rounded-lg text-xs font-semibold text-center">
+                    ❌ إجابة خاطئة. الإجابة الصحيحة هي: {selectedCity.quiz.correct}.
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 my-auto text-slate-400">
-              <Compass className="w-14 h-14 text-amber-500 animate-[spin_10s_linear_infinite] mb-3 opacity-80" />
-              <h3 className="font-serif font-bold text-lg text-amber-400">
-                بانتظار انطلاق المسافر
-              </h3>
-              <p className="text-xs text-slate-300 mt-1 max-w-[200px] leading-relaxed font-sans">
-                انقر على أي مدينة تاريخية على الخريطة لعرض تفاصيلها النادرة وحل تحدياتها وكسب أوسمة الأبطال!
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 my-auto text-slate-500">
+              <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mb-3 text-amber-600 shadow-sm">
+                <Compass className="w-8 h-8 animate-[spin_12s_linear_infinite]" />
+              </div>
+              <h4 className="font-serif font-bold text-lg text-slate-900">
+                بانتظار اختيار معلم تاريخي
+              </h4>
+              <p className="text-xs text-slate-500 mt-1 max-w-[240px] leading-relaxed">
+                انقر على أي من الأعلام والمعالم التاريخية الثلاثين المنتشرة على الخريطة لتكبير موقعها وتصفح أحداثها وحل تحديها!
               </p>
             </div>
           )}
+
+          {/* Footer Quick Landmark Navigator Carousel/Pills */}
+          <div className="pt-3 mt-4 border-t border-slate-100">
+            <div className="text-[11px] font-bold text-slate-400 mb-1.5 flex items-center justify-between">
+              <span>انتقال سريع لأشهر المعالم:</span>
+              <span>{filteredCities.length} متوفر</span>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {filteredCities.slice(0, 10).map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleCitySelect(c)}
+                  className={`text-[11px] px-2 py-0.5 rounded border whitespace-nowrap transition cursor-pointer ${
+                    selectedCity?.id === c.id
+                      ? "bg-amber-600 border-amber-600 text-white font-bold"
+                      : answeredCities[c.name]
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                      : "bg-slate-50 hover:bg-amber-50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

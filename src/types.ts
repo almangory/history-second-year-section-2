@@ -131,3 +131,26 @@ export interface OfficialExam {
   sections: ExamSection[];
 }
 
+export interface HistoricCity {
+  id: string;
+  name: string;
+  historicalTitle: string;
+  unitId: number;
+  unitTitle: string;
+  lessonId: string;
+  lessonTitle: string;
+  country: string;
+  lat: number;
+  lng: number;
+  era: string;
+  description: string;
+  curriculumEvidence: string;
+  quiz: {
+    text: string;
+    options: string[];
+    correct: string;
+    description: string;
+  };
+}
+
+
