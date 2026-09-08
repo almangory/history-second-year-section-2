@@ -23,6 +23,8 @@ interface OfficialExamPaperViewProps {
   removeWatermark: boolean;
   onToggleFullscreen?: () => void;
   isFullscreen?: boolean;
+  externalZoomScale?: number;
+  onRegisterActions?: (actions: { evaluate: () => void; reset: () => void; isEvaluated: boolean }) => void;
 }
 
 export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
@@ -33,7 +35,9 @@ export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
   onModeChange,
   removeWatermark,
   onToggleFullscreen,
-  isFullscreen = false
+  isFullscreen = false,
+  externalZoomScale,
+  onRegisterActions
 }) => {
   // Student answers mapping: composite key `questionId` or `${questionId}-subKey` -> answer value
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -52,6 +56,20 @@ export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Compute effective zoom scale prioritizing external scale if provided
+  const effectiveZoomScale = externalZoomScale !== undefined ? externalZoomScale : zoomScale;
+
+  // Register actions with parent component
+  useEffect(() => {
+    if (onRegisterActions) {
+      onRegisterActions({
+        evaluate: handleEvaluate,
+        reset: handleReset,
+        isEvaluated: isEvaluated
+      });
+    }
+  }, [answers, isEvaluated, onRegisterActions]);
 
   // Reset evaluation when exam shifts
   useEffect(() => {
@@ -194,91 +212,93 @@ export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
 
   return (
     <div ref={containerRef} className="space-y-6 text-right font-sans" dir="rtl">
-      {/* 1. TOP EXAM CONTROL TOOLBAR (Hidden in Print) */}
-      <div className="no-print bg-white rounded-2xl border border-amber-200/90 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 select-none">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold border border-amber-300 shrink-0">
-            <Award className="w-6 h-6 text-amber-700" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full">
-                الامتحان المعتمد
-              </span>
-              <span className="text-slate-500 text-xs font-sans">
-                الدرجة الكلية: {exam.totalMarks} درجة • الزمن: {exam.duration}
-              </span>
+      {/* 1. TOP EXAM CONTROL TOOLBAR (Hidden in Print and Fullscreen) */}
+      {!isFullscreen && (
+        <div className="no-print bg-white rounded-2xl border border-amber-200/90 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 select-none">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold border border-amber-300 shrink-0">
+              <Award className="w-6 h-6 text-amber-700" />
             </div>
-            <h3 className="font-serif font-black text-slate-900 text-base sm:text-lg mt-0.5">
-              {exam.title}
-            </h3>
-            <p className="text-xs text-amber-800 font-bold">
-              {exam.subtitle}
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full">
+                  الامتحان المعتمد
+                </span>
+                <span className="text-slate-500 text-xs font-sans">
+                  الدرجة الكلية: {exam.totalMarks} درجة • الزمن: {exam.duration}
+                </span>
+              </div>
+              <h3 className="font-serif font-black text-slate-900 text-base sm:text-lg mt-0.5">
+                {exam.title}
+              </h3>
+              <p className="text-xs text-amber-800 font-bold">
+                {exam.subtitle}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => onModeChange("print")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                worksheetMode === "print"
+                  ? "bg-amber-600 text-white shadow-xs font-black"
+                  : "bg-slate-100 text-slate-700 hover:bg-amber-50"
+              }`}
+            >
+              📄 نموذج A4 الرسمي
+            </button>
+
+            <button
+              onClick={() => onModeChange("interactive")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                worksheetMode === "interactive"
+                  ? "bg-amber-600 text-white shadow-xs font-black"
+                  : "bg-slate-100 text-slate-700 hover:bg-amber-50"
+              }`}
+            >
+              🧩 نمط البطاقات التفاعلية
+            </button>
+
+            <button
+              onClick={handleEvaluate}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span>{isEvaluated ? "إعادة التصحيح" : "تصحيح الامتحان ✅"}</span>
+            </button>
+
+            {isEvaluated && (
+              <button
+                onClick={handleReset}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs px-3 py-2 rounded-xl transition cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            <button
+              onClick={handlePrint}
+              className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <Printer className="w-4 h-4" />
+              <span className="hidden sm:inline">طباعة الامتحان</span>
+              <span className="sm:hidden">طباعة</span>
+            </button>
+
+            {onToggleFullscreen && (
+              <button
+                onClick={onToggleFullscreen}
+                className="bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 text-xs p-2 rounded-xl transition cursor-pointer"
+                title="ملء الشاشة"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => onModeChange("print")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              worksheetMode === "print"
-                ? "bg-amber-600 text-white shadow-xs font-black"
-                : "bg-slate-100 text-slate-700 hover:bg-amber-50"
-            }`}
-          >
-            📄 نموذج A4 الرسمي
-          </button>
-
-          <button
-            onClick={() => onModeChange("interactive")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              worksheetMode === "interactive"
-                ? "bg-amber-600 text-white shadow-xs font-black"
-                : "bg-slate-100 text-slate-700 hover:bg-amber-50"
-            }`}
-          >
-            🧩 نمط البطاقات التفاعلية
-          </button>
-
-          <button
-            onClick={handleEvaluate}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-          >
-            <CheckSquare className="w-4 h-4" />
-            <span>{isEvaluated ? "إعادة التصحيح" : "تصحيح الامتحان ✅"}</span>
-          </button>
-
-          {isEvaluated && (
-            <button
-              onClick={handleReset}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs px-3 py-2 rounded-xl transition cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          )}
-
-          <button
-            onClick={handlePrint}
-            className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden sm:inline">طباعة الامتحان</span>
-            <span className="sm:hidden">طباعة</span>
-          </button>
-
-          {onToggleFullscreen && (
-            <button
-              onClick={onToggleFullscreen}
-              className="bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 text-xs p-2 rounded-xl transition cursor-pointer"
-              title="ملء الشاشة"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* 2. EVALUATION BANNER (When Graded) */}
       {isEvaluated && scoreResult && (
@@ -330,8 +350,8 @@ export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
         <div 
           className="space-y-8 flex flex-col items-center transition-transform duration-200 origin-top w-full"
           style={{
-            transform: zoomScale !== 1 ? `scale(${zoomScale})` : undefined,
-            width: zoomScale !== 1 ? `${(100 / zoomScale).toFixed(1)}%` : "100%",
+            transform: effectiveZoomScale !== 1 ? `scale(${effectiveZoomScale})` : undefined,
+            width: effectiveZoomScale !== 1 ? `${(100 / effectiveZoomScale).toFixed(1)}%` : "100%",
             maxWidth: "100%"
           }}
         >
