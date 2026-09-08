@@ -59,7 +59,7 @@ import {
   Unlock,
   Check
 } from "lucide-react";
-import { Pause, Settings, Trash2, Image, Video, Radio, Volume1, X, Maximize2, Minimize2 } from "lucide-react";
+import { Pause, Settings, Trash2, Image, Video, Radio, Volume1, X, Maximize2, Minimize2, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function App() {
   // Firebase Auth states
@@ -126,6 +126,9 @@ export default function App() {
     const saved = localStorage.getItem("sub_historian_favorites");
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Collapsible toggle state for favorite lessons index on dashboard (hidden by default)
+  const [isFavoritesIndexOpen, setIsFavoritesIndexOpen] = useState<boolean>(false);
 
   // Lightbox Modal for Fullscreen Historical Illustrations
   const [selectedLightboxImage, setSelectedLightboxImage] = useState<{ src: string; title: string } | null>(null);
@@ -1638,40 +1641,86 @@ export default function App() {
           <div className="space-y-8 animate-[fadeIn_0.3s_ease-out]">
 
 
-            {/* FAVORITE LESSONS QUICK ACCESS */}
+            {/* FAVORITE LESSONS QUICK ACCESS (Collapsible) */}
             {favoriteLessons.length > 0 && (
-              <div className="bg-white rounded-2xl border border-amber-200/90 shadow-sm p-5 space-y-3">
-                <h4 className="text-sm font-sans font-extrabold text-amber-800 flex items-center gap-1.5 border-b border-amber-200/60 pb-2">
-                  <Heart className="w-4 h-4 text-red-500 fill-red-500 shrink-0" />
-                  <span>فهرس الدروس والوحدات المفضلة لديك ({favoriteLessons.length}) ⭐</span>
-                </h4>
-                <div className="flex flex-wrap gap-2.5">
-                  {UNITS.flatMap(u => u.lessons)
-                    .filter(l => favoriteLessons.includes(l.id))
-                    .map(l => {
-                      const unit = UNITS.find(u => u.lessons.some(les => les.id === l.id));
-                      return (
-                        <button
-                          key={l.id}
-                          onClick={() => {
-                            if (unit) {
-                              handlePlaySound("click");
-                              setSelectedUnitId(unit.id);
-                              const idx = unit.lessons.findIndex(les => les.id === l.id);
-                              setCurrentLessonIdx(idx >= 0 ? idx : 0);
-                              setCurrentTab("unit");
-                            }
-                          }}
-                          className="bg-amber-50/70 hover:bg-amber-100 border border-amber-300/80 px-3 py-2 rounded-xl text-xs text-slate-800 transition flex items-center gap-1.5 cursor-pointer max-w-xs truncate shadow-xs"
-                        >
-                          <span className="text-[10px] bg-amber-500/15 text-amber-800 px-1.5 py-0.5 rounded leading-none font-bold">
-                            الوحدة {unit?.id || "6"}
-                          </span>
-                          <span className="font-serif font-semibold truncate text-[11px]">{l.title}</span>
-                        </button>
-                      );
-                    })}
-                </div>
+              <div className="bg-white rounded-2xl border border-amber-200/90 shadow-sm overflow-hidden transition-all duration-300">
+                {/* Clickable Header Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handlePlaySound("click");
+                    setIsFavoritesIndexOpen(prev => !prev);
+                  }}
+                  className="w-full text-right p-3.5 sm:p-4 md:p-5 flex items-center justify-between gap-3 hover:bg-amber-50/70 transition cursor-pointer select-none"
+                  aria-expanded={isFavoritesIndexOpen}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 border border-amber-300 flex items-center justify-center shrink-0 shadow-2xs">
+                      <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-sans font-extrabold text-amber-900 flex items-center gap-1.5">
+                        <span>فهرس الدروس والوحدات المفضلة لديك ({favoriteLessons.length}) ⭐</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-500 hidden sm:block mt-0.5">
+                        {isFavoritesIndexOpen
+                          ? "انقر هنا لإخفاء القائمة وتوفير مساحة العرض"
+                          : "انقر هنا لإظهار قائمة الدروس المفضلة والوصول السريع إليها"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-xl transition-all border ${
+                      isFavoritesIndexOpen 
+                        ? "bg-amber-600 text-white border-amber-600 shadow-xs" 
+                        : "bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200"
+                    }`}>
+                      {isFavoritesIndexOpen ? "إخفاء القائمة 🔼" : "عرض المفضلة 🔽"}
+                    </span>
+                    <div className={`p-1 rounded-lg text-amber-800 transition-transform duration-200 ${isFavoritesIndexOpen ? "rotate-180" : ""}`}>
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </div>
+                </button>
+
+                {/* Collapsible Content */}
+                {isFavoritesIndexOpen && (
+                  <div className="p-4 sm:p-5 pt-0 border-t border-amber-100 bg-amber-50/20 space-y-3 animate-[fadeIn_0.25s_ease-out]">
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-3">
+                      <span>اضغط على أي درس مفضل للانتقال إليه مباشرة:</span>
+                      <span className="font-bold text-amber-800">{favoriteLessons.length} دروس محفوظة</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2.5">
+                      {UNITS.flatMap(u => u.lessons)
+                        .filter(l => favoriteLessons.includes(l.id))
+                        .map(l => {
+                          const unit = UNITS.find(u => u.lessons.some(les => les.id === l.id));
+                          return (
+                            <button
+                              key={l.id}
+                              onClick={() => {
+                                if (unit) {
+                                  handlePlaySound("click");
+                                  setSelectedUnitId(unit.id);
+                                  const idx = unit.lessons.findIndex(les => les.id === l.id);
+                                  setCurrentLessonIdx(idx >= 0 ? idx : 0);
+                                  setCurrentTab("unit");
+                                }
+                              }}
+                              className="bg-white hover:bg-amber-100/80 border border-amber-300/80 px-3 py-2 rounded-xl text-xs text-slate-800 transition flex items-center gap-1.5 cursor-pointer max-w-xs truncate shadow-xs hover:shadow-sm hover:scale-102 active:scale-98"
+                            >
+                              <span className="text-[10px] bg-amber-500/15 text-amber-800 px-1.5 py-0.5 rounded leading-none font-bold">
+                                الوحدة {unit?.id || "6"}
+                              </span>
+                              <span className="font-serif font-semibold truncate text-[11px]">{l.title}</span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
