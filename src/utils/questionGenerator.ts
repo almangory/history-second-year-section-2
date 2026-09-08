@@ -226,6 +226,20 @@ export function getQuestionFactSignature(text: string): string {
   return tokens.slice(0, 8).join("_");
 }
 
+export interface GeneratorOptions {
+  type: "lesson" | "unit" | "comprehensive" | "favorites";
+  unitId?: number;
+  lessonId?: string;
+  favoriteLessons?: string[];
+  typesSelected: {
+    mcq: boolean;
+    tf: boolean;
+    blank: boolean;
+    match: boolean;
+    essay: boolean;
+  };
+}
+
 /**
  * Procedural generation engine that pulls authentically from the rich question bank
  * and generates clean, curriculum-aligned questions matching Sudanese 6th Grade History syllabus
@@ -233,19 +247,15 @@ export function getQuestionFactSignature(text: string): string {
  */
 export const generateDynamicQuestions = (
   targetCount: number,
-  config: {
-    type: "lesson" | "unit" | "comprehensive";
-    unitId?: number;
-    lessonId?: string;
-    typesSelected: {
-      mcq: boolean;
-      tf: boolean;
-      blank: boolean;
-      match: boolean;
-      essay: boolean;
-    };
-  }
+  config: GeneratorOptions
 ): Question[] => {
+  // If favorites is requested but no lessons are favorited, return empty immediately
+  if (config.type === "favorites") {
+    if (!config.favoriteLessons || config.favoriteLessons.length === 0) {
+      return [];
+    }
+  }
+
   // 1. Build base pool from verified static questions
   let pool: Question[] = [...QUESTIONS];
 
@@ -253,6 +263,9 @@ export const generateDynamicQuestions = (
     pool = pool.filter(q => q.unitId === config.unitId);
   } else if (config.type === "lesson" && config.lessonId) {
     pool = pool.filter(q => q.lessonId === config.lessonId);
+  } else if (config.type === "favorites" && config.favoriteLessons) {
+    const favSet = new Set(config.favoriteLessons);
+    pool = pool.filter(q => q.lessonId && favSet.has(q.lessonId));
   }
 
   // Include authentic essay questions if essay type is selected
@@ -261,6 +274,9 @@ export const generateDynamicQuestions = (
     essayPool = essayPool.filter(q => q.unitId === config.unitId);
   } else if (config.type === "lesson" && config.lessonId) {
     essayPool = essayPool.filter(q => q.lessonId === config.lessonId);
+  } else if (config.type === "favorites" && config.favoriteLessons) {
+    const favSet = new Set(config.favoriteLessons);
+    essayPool = essayPool.filter(q => q.lessonId && favSet.has(q.lessonId));
   }
 
   if (config.typesSelected.essay) {
@@ -301,25 +317,29 @@ export const generateDynamicQuestions = (
     }
   }
 
-  // 2. If more questions are required, systematically expand from lesson keypoints, content sentences, and timelines
-  let targetUnits = config.unitId ? UNITS.filter(u => u.id === config.unitId) : UNITS;
-  let targetLessons: typeof UNITS[0]['lessons'] = [];
+  // 2. If more questions are required, systematically expand strictly within target scope
+  let targetUnits: Unit[] = [];
+  let targetLessons: (Unit['lessons'][0])[] = [];
 
   if (config.type === "lesson" && config.lessonId) {
     targetLessons = UNITS.flatMap(u => u.lessons).filter(l => l.id === config.lessonId);
-    if (targetLessons.length > 0) {
-      const parentU = UNITS.find(u => u.lessons.some(l => l.id === config.lessonId));
-      if (parentU) targetUnits = [parentU];
-    }
+    const parentU = UNITS.find(u => u.lessons.some(l => l.id === config.lessonId));
+    if (parentU) targetUnits = [parentU];
   } else if (config.type === "unit" && config.unitId) {
     targetUnits = UNITS.filter(u => u.id === config.unitId);
     targetLessons = targetUnits.flatMap(u => u.lessons);
-  } else {
-    targetLessons = targetUnits.flatMap(u => u.lessons);
+  } else if (config.type === "favorites" && config.favoriteLessons && config.favoriteLessons.length > 0) {
+    const favSet = new Set(config.favoriteLessons);
+    targetLessons = UNITS.flatMap(u => u.lessons).filter(l => favSet.has(l.id));
+    targetUnits = UNITS.filter(u => u.lessons.some(l => favSet.has(l.id)));
+  } else if (config.type === "comprehensive") {
+    targetUnits = [...UNITS];
+    targetLessons = UNITS.flatMap(u => u.lessons);
   }
 
+  // Strictly enforce scope: never leak outside questions if target lessons is empty
   if (targetLessons.length === 0) {
-    targetLessons = targetUnits.flatMap(u => u.lessons);
+    return results.slice(0, targetCount);
   }
 
   // Gather all discrete fact statements from target lessons (keypoints + full content sentences)
@@ -354,16 +374,18 @@ export const generateDynamicQuestions = (
     }
   }
 
-  // Also include timeline milestones for unit scope
-  for (const u of targetUnits) {
-    if (u.timeline) {
-      for (const t of u.timeline) {
-        const dummyLesson = u.lessons[0] || targetLessons[0];
-        rawFacts.push({
-          statement: `في عام (${t.year}): ${t.title} - ${t.description}`,
-          lesson: dummyLesson,
-          parentUnit: u
-        });
+  // Timeline milestones ONLY for unit or comprehensive scope (NEVER for single lesson or favorites to prevent leaks)
+  if (config.type === "unit" || config.type === "comprehensive") {
+    for (const u of targetUnits) {
+      if (u.timeline) {
+        for (const t of u.timeline) {
+          const dummyLesson = u.lessons[0] || targetLessons[0];
+          rawFacts.push({
+            statement: `في عام (${t.year}): ${t.title} - ${t.description}`,
+            lesson: dummyLesson,
+            parentUnit: u
+          });
+        }
       }
     }
   }
@@ -416,7 +438,7 @@ export const generateDynamicQuestions = (
           const otherKp = otherL.keyPoints[0] || otherL.title;
           qText = `ضع علامة (صواب) أو (خطأ): ارتبط حدث (${lesson.title}) بـ: "${otherKp}"`;
           ans = "خطأ";
-          exp = `العبارة غير صحيحة، لأن هذه المعلومة تخص درس (${otherL.title}) في نفس الوحدة المقررة.`;
+          exp = `العبارة غير صحيحة، لأن هذه المعلومة تخص درس (${otherL.title}) في المنهج المقرر.`;
         } else {
           // In a single lesson, construct a negation or incorrect assertion within the lesson
           qText = `ضع علامة (صواب) أو (خطأ): ينفي درس (${lesson.title}) أن: "${kp}"`;

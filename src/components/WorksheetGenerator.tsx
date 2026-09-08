@@ -198,7 +198,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
   // Filters Settings State
   const [scopeType, setScopeType] = useState<"all" | "unit" | "lesson" | "favorites">("all");
   const [selectedUnitId, setSelectedUnitId] = useState<number>(1);
-  const [selectedLessonId, setSelectedLessonId] = useState<string>("");
+  const [selectedLessonId, setSelectedLessonId] = useState<string>(() => units[0]?.lessons[0]?.id || "u1_l1");
   const [pageCount, setPageCount] = useState<number>(1);
 
   // Question type selections
@@ -279,24 +279,41 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
   useEffect(() => {
     const parent = units.find(u => u.id === selectedUnitId);
     if (parent && parent.lessons.length > 0) {
-      setSelectedLessonId(parent.lessons[0].id);
+      if (!parent.lessons.some(l => l.id === selectedLessonId)) {
+        setSelectedLessonId(parent.lessons[0].id);
+      }
     }
-  }, [selectedUnitId, units]);
+  }, [selectedUnitId, units, selectedLessonId]);
 
-  // Build the worksheet data according to filters
-  const handleGenerateWorksheets = () => {
+  // Build the worksheet data according to filters with STRICT SCOPE ISOLATION
+  const handleGenerateWorksheets = (overrideOptions?: {
+    scopeType?: "all" | "unit" | "lesson" | "favorites";
+    unitId?: number;
+    lessonId?: string;
+  }) => {
     onPlaySound("levelup");
     setIsEvaluated(false);
     setEvaluationScore(null);
     setUserAnswers({});
 
+    const effectiveScope = overrideOptions?.scopeType ?? scopeType;
+    const effectiveUnitId = overrideOptions?.unitId ?? selectedUnitId;
+    const effectiveLessonId = overrideOptions?.lessonId ?? (selectedLessonId || units.find(u => u.id === effectiveUnitId)?.lessons[0]?.id || units[0]?.lessons[0]?.id || "u1_l1");
+
+    // If favorites is selected and empty, clear pages and show empty state
+    if (effectiveScope === "favorites" && favoriteLessons.length === 0) {
+      setGeneratedPages([]);
+      return;
+    }
+
     const itemsPerPage = 4;
     const maxNeededQuestions = pageCount * itemsPerPage;
 
     const selectedQuestions = generateDynamicQuestions(maxNeededQuestions, {
-      type: scopeType === "favorites" ? "comprehensive" : scopeType === "unit" ? "unit" : scopeType === "lesson" ? "lesson" : "comprehensive",
-      unitId: scopeType === "unit" ? selectedUnitId : undefined,
-      lessonId: scopeType === "lesson" ? selectedLessonId : undefined,
+      type: effectiveScope === "favorites" ? "favorites" : effectiveScope === "unit" ? "unit" : effectiveScope === "lesson" ? "lesson" : "comprehensive",
+      unitId: effectiveScope === "unit" ? effectiveUnitId : undefined,
+      lessonId: effectiveScope === "lesson" ? effectiveLessonId : undefined,
+      favoriteLessons: favoriteLessons,
       typesSelected: {
         mcq: typesSelected.mcq,
         tf: typesSelected.tf,
@@ -307,20 +324,21 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
     });
 
     const scopeLabel = 
-      scopeType === "favorites" ? "الدروس المفضلة ⭐" : 
-      scopeType === "unit" ? `الوحدة ${selectedUnitId} - ${units.find(u => u.id === selectedUnitId)?.title}` : 
-      scopeType === "lesson" ? `درس محدد: ${units.flatMap(u => u.lessons).find(l => l.id === selectedLessonId)?.title}` : 
+      effectiveScope === "favorites" ? `الدروس المفضلة ⭐ (${favoriteLessons.length} دروس مختارة)` : 
+      effectiveScope === "unit" ? `الوحدة ${effectiveUnitId} - ${units.find(u => u.id === effectiveUnitId)?.title}` : 
+      effectiveScope === "lesson" ? `درس محدد: ${units.flatMap(u => u.lessons).find(l => l.id === effectiveLessonId)?.title || ""}` : 
       "كامل المقرر الدراسي للصف السادس الابتدائي";
 
-    // Filter diagrams strictly matching the selected scope
-    let availableDiagrams = DIAGRAMS_LIST;
-    if (scopeType === "unit") {
-      availableDiagrams = DIAGRAMS_LIST.filter(d => d.unitId === selectedUnitId);
-    } else if (scopeType === "lesson") {
-      const lessonMatch = DIAGRAMS_LIST.filter(d => d.lessonId === selectedLessonId);
-      availableDiagrams = lessonMatch.length > 0 ? lessonMatch : DIAGRAMS_LIST.filter(d => d.unitId === selectedUnitId);
-    } else if (scopeType === "favorites") {
+    // Filter diagrams strictly matching the selected scope with ZERO leakage
+    let availableDiagrams: typeof DIAGRAMS_LIST = [];
+    if (effectiveScope === "unit") {
+      availableDiagrams = DIAGRAMS_LIST.filter(d => d.unitId === effectiveUnitId);
+    } else if (effectiveScope === "lesson") {
+      availableDiagrams = DIAGRAMS_LIST.filter(d => d.lessonId === effectiveLessonId);
+    } else if (effectiveScope === "favorites") {
       availableDiagrams = DIAGRAMS_LIST.filter(d => d.lessonId && favoriteLessons.includes(d.lessonId));
+    } else {
+      availableDiagrams = DIAGRAMS_LIST;
     }
 
     const compiled: CompiledWorksheet[] = [];
@@ -995,10 +1013,12 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
             <select
               value={scopeType}
               onChange={(e) => {
+                const newScope = e.target.value as any;
                 onPlaySound("click");
-                setScopeType(e.target.value as any);
+                setScopeType(newScope);
+                handleGenerateWorksheets({ scopeType: newScope });
               }}
-              className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
+              className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer font-bold"
             >
               <option value="all">كامل المنهج الدراسي 📘</option>
               <option value="favorites">الدروس المفضلة ⭐ ({favoriteLessons.length})</option>
@@ -1014,10 +1034,12 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
               <select
                 value={selectedUnitId}
                 onChange={(e) => {
+                  const newUnit = parseInt(e.target.value, 10);
                   onPlaySound("click");
-                  setSelectedUnitId(parseInt(e.target.value, 10));
+                  setSelectedUnitId(newUnit);
+                  handleGenerateWorksheets({ unitId: newUnit });
                 }}
-                className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
+                className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer font-bold"
               >
                 {units.map((unit) => (
                   <option key={unit.id} value={unit.id}>
@@ -1036,10 +1058,18 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                 <select
                   value={selectedUnitId}
                   onChange={(e) => {
+                    const newUnit = parseInt(e.target.value, 10);
+                    const newLesson = units.find(u => u.id === newUnit)?.lessons[0]?.id || "";
                     onPlaySound("click");
-                    setSelectedUnitId(parseInt(e.target.value, 10));
+                    setSelectedUnitId(newUnit);
+                    if (newLesson) {
+                      setSelectedLessonId(newLesson);
+                      handleGenerateWorksheets({ unitId: newUnit, lessonId: newLesson });
+                    } else {
+                      handleGenerateWorksheets({ unitId: newUnit });
+                    }
                   }}
-                  className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
+                  className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer font-bold"
                 >
                   {units.map((unit) => (
                     <option key={unit.id} value={unit.id}>
@@ -1054,10 +1084,12 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
                 <select
                   value={selectedLessonId}
                   onChange={(e) => {
+                    const newLesson = e.target.value;
                     onPlaySound("click");
-                    setSelectedLessonId(e.target.value);
+                    setSelectedLessonId(newLesson);
+                    handleGenerateWorksheets({ lessonId: newLesson });
                   }}
-                  className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 font-sans cursor-pointer"
+                  className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 font-sans cursor-pointer font-bold"
                 >
                   {units
                     .find((u) => u.id === selectedUnitId)
@@ -1088,6 +1120,19 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
               </span>
             </div>
           </div>
+
+          {/* Informational banner when favoriteLessons is empty and favorites scope is picked */}
+          {scopeType === "favorites" && favoriteLessons.length === 0 && (
+            <div className="col-span-full bg-amber-50 border border-amber-300 rounded-xl p-3.5 flex items-center gap-3 text-xs text-amber-900 shadow-xs">
+              <span className="text-2xl shrink-0">⭐</span>
+              <div>
+                <strong className="block text-amber-950 text-xs sm:text-sm">لم تقم بتحديد أي دروس في المفضلة بعد:</strong>
+                <p className="text-slate-600 mt-0.5 text-[11px] sm:text-xs">
+                  يمكنك النقر على رمز النجمة ⭐ بجوار أي درس في شاشة الدروس لتفضيله، وسيتم توليد أوراق عمل مخصصة لدروسك المفضلة حصراً.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Question Type Selection Checkboxes */}
@@ -1875,6 +1920,25 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* EMPTY STATE WHEN NO PAGES GENERATED */}
+      {generatedPages.length === 0 && (
+        <div className="bg-white rounded-2xl border-2 border-dashed border-amber-300 p-8 sm:p-12 text-center space-y-3 shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-3xl">
+            {scopeType === "favorites" ? "⭐" : "📄"}
+          </div>
+          <h4 className="font-bold text-amber-950 text-base sm:text-lg font-serif">
+            {scopeType === "favorites" 
+              ? "لم تقم بتحديد أي درس في المفضلة بعد" 
+              : "لا توجد أسئلة كافية مطابقة للخيارات المحددة"}
+          </h4>
+          <p className="text-slate-600 text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
+            {scopeType === "favorites"
+              ? "لتوليد ورقة عمل خاصة بدروسك المفضلة، انتقل إلى شاشة الدروس واضغط على رمز النجمة ⭐ بجانب أي درس تريده، وستظهر أوراق عمل مخصصة له هنا مباشرة دون أي أسئلة خارجية."
+              : "يرجى تفعيل المزيد من أنواع الأسئلة (اختيار متعدد، صح وخطأ، إكمال فراغات، مقالي) أو اختيار وحدة أو درس آخر لتوليد ورقة العمل."}
+          </p>
         </div>
       )}
         </div>
