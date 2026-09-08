@@ -350,7 +350,8 @@ export const UNITS: Unit[] = [
           "إنشاء الجامع الأزهر ودار الحكمة كصروح علمية وثقافية كبرى في القاهرة.",
           "سقوط الخلافة الفاطمية سنة ٥٦٧ هـ / ١١٧١ م على يد الناصر صلاح الدين الأيوبي."
         ],
-        illustration: "GhanaKingdom"
+        illustration: "GhanaKingdom",
+        image: "/assets/lessons/u3_l2.jpg"
       },
       {
         id: "u3_l3",
@@ -451,7 +452,8 @@ export const UNITS: Unit[] = [
           "كوبرنيكس يقود ثورة الفلك بإثبات دوران الأرض والكواكب حول الشمس.",
           "رواد الفن الإيطالي: ليوناردو دافنشي (الموناليزا والعشاء الأخير)، وميكائيل أنجلو في النحت والعمارة."
         ],
-        illustration: "RenaissanceArts"
+        illustration: "RenaissanceArts",
+        image: "/assets/lessons/u4_l1.jpg"
       },
       {
         id: "u4_l2",
@@ -478,7 +480,8 @@ export const UNITS: Unit[] = [
           "فاسكو دي جاما يصل الهند عام ١٤٩٨م، وكولومبس يكتشف أمريكا عام ١٤٩٢م، وماجلان يثبت كروية الأرض بطوافه حولها (١٥١٩ - ١٥٢٢م).",
           "انتقال مركز التجارة العالمية للمحيط الأطلسي وتدفق الثروات وتأسيس الإمبراطوريات الاستعمارية."
         ],
-        illustration: "GeographicDiscoveries"
+        illustration: "GeographicDiscoveries",
+        image: "/assets/lessons/u4_l2.jpg"
       },
       {
         id: "u4_l3",
@@ -507,7 +510,8 @@ export const UNITS: Unit[] = [
           "رواد الكهرباء والاتصالات: فارادي (الدينامو الكهربائي)، غراهام بيل (الهاتف)، ماركوني (اللاسلكي)، ورودلف ديزل (محرك الديزل).",
           "نتائج الثورة الصناعية: زيادة الإنتاج، نمو المدن، ظهور الطبقة العاملة والنقابات، وتصاعد التنافس الاستعماري."
         ],
-        illustration: "SteamEngine"
+        illustration: "SteamEngine",
+        image: "/assets/lessons/u4_l3.jpg"
       }
     ],
     timeline: [
@@ -559,7 +563,8 @@ export const UNITS: Unit[] = [
           "تاريخ الدولة في السودان عريق عبر آلاف السنين: كرمة، نبتة، مروي، الفونج، دارفور، والمهدية.",
           "المواطن هو الفرد المقيم بالدولة وتجمعه بها رابطة المواطنة والمساواة الكاملة في الحقوق والواجبات."
         ],
-        illustration: "SudanGeography"
+        illustration: "SudanGeography",
+        image: "/assets/lessons/u5_l1.jpg"
       },
       {
         id: "u5_l2",
@@ -584,7 +589,8 @@ export const UNITS: Unit[] = [
           "الحكومة هي السلطة الشرعية المنظمة لحياة المجتمع والمانعة للفوضى.",
           "الدستور هو القانون الأعلى المنظم لشكل الحكم وحقوق وواجبات الجميع."
         ],
-        illustration: "SudanLocalGovernance"
+        illustration: "SudanLocalGovernance",
+        image: "/assets/lessons/u5_l2.jpg"
       },
       {
         id: "u5_l3",
@@ -609,7 +615,8 @@ export const UNITS: Unit[] = [
           "الوزارات الخدمية: الصحة، والتربية والتعليم، والمياه والكهرباء.",
           "وزارة المالية تدير التمويل والمشاريع، ووزارة الخارجية ترعى السفارات والعلاقات الدبلوماسية."
         ],
-        illustration: "NationalSovereignty"
+        illustration: "NationalSovereignty",
+        image: "/assets/lessons/u5_l3.jpg"
       },
       {
         id: "u5_l4",
@@ -639,7 +646,8 @@ export const UNITS: Unit[] = [
           "الواجبات الثمانية: احترام الدستور، الدفاع عن الوطن، حفظ الممتلكات، التنمية، الوحدة الوطنية، الخدمة العسكرية، حماية البيئة، والالتزام بالواجبات العامة.",
           "المواطن الصالح يوازن بين التمتع بحقوقه الدستورية المشروعة وأداء واجباته الوطنية بإخلاص."
         ],
-        illustration: "CivicRights"
+        illustration: "CivicRights",
+        image: "/assets/lessons/u5_l4.jpg"
       }
     ],
     timeline: [
