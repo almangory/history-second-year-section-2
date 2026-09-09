@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  * 
  * Progressive Web App (PWA) Offline-First Service Worker
- * منصة تاريخ السودان والتربية الوطنية - الصف السادس الابتدائي
+ * منصة مادة التاريخ - الصف الثاني ثانوي - المنهج السوداني
  */
 
-const CACHE_VERSION = "sudan-grade6-history-v7";
+const CACHE_VERSION = "sudan-sec2-history-v1";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const TILES_CACHE = `${CACHE_VERSION}-tiles`;

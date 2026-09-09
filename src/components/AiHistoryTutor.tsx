@@ -853,44 +853,66 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
     let diagramToAttach: DiagramData | null = null;
 
     // 1. Check if query requests a diagram
-    if (textToSend.includes('رسم') || textToSend.includes('صورة') || textToSend.includes('مخطط') || textToSend.includes('خريطة')) {
-      if (textToSend.includes('بغداد') || textToSend.includes('المنصور') || textToSend.includes('مدورة')) {
-        diagramToAttach = CURRICULUM_DIAGRAMS['baghdad_round_city'];
-      } else if (textToSend.includes('منسا') || textToSend.includes('موسى') || textToSend.includes('مالي') || textToSend.includes('تمبكتو')) {
-        diagramToAttach = CURRICULUM_DIAGRAMS['mansa_musa_hajj'];
-      } else if (textToSend.includes('صناعية') || textToSend.includes('واط') || textToSend.includes('بخار') || textToSend.includes('قطار')) {
+    if (textToSend.includes('رسم') || textToSend.includes('صورة') || textToSend.includes('مخطط') || textToSend.includes('خريطة') || textToSend.includes('دياجرام')) {
+      if (textToSend.includes('استقلال') || textToSend.includes('أزهري') || textToSend.includes('خريجين') || textToSend.includes('علم') || textToSend.includes('أكتوبر') || textToSend.includes('أبريل')) {
+        diagramToAttach = CURRICULUM_DIAGRAMS['sudan_independence_1956'];
+      } else if (textToSend.includes('فرنسية') || textToSend.includes('باستيل') || textToSend.includes('تنوير') || textToSend.includes('لويس') || textToSend.includes('نابليون')) {
+        diagramToAttach = CURRICULUM_DIAGRAMS['french_revolution_1789'];
+      } else if (textToSend.includes('صناعية') || textToSend.includes('واط') || textToSend.includes('بخار') || textToSend.includes('قطار') || textToSend.includes('آلة')) {
         diagramToAttach = CURRICULUM_DIAGRAMS['industrial_revolution'];
       } else {
         diagramToAttach = CURRICULUM_DIAGRAMS['sudan_1821_campaign'];
       }
     }
 
-    // 2. Call Cloud Edge Mentor API (24/7 Zero-downtime)
+    // 2. Call local /api/chat first (which knows Grade 2 Secondary and uses GEMINI_API_KEY if present or local Grade 2 engine)
     try {
       const historyPayload = messages.slice(-4).map((m) => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.text
       }));
 
-      const res = await fetch(CLOUD_MENTOR_ENDPOINT, {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: textToSend,
-          stage: 'history',
-          subject: 'تاريخ',
           history: historyPayload
         })
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.reply) {
-          answerText = data.reply;
+        if (data.reply || data.text) {
+          answerText = data.reply || data.text;
         }
       }
     } catch (err) {
-      console.warn('Cloud API fallback to local history engine:', err);
+      console.warn('Local /api/chat error, trying cloud fallback:', err);
+      try {
+        const res = await fetch(CLOUD_MENTOR_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: textToSend,
+            stage: 'history_sec2',
+            subject: 'تاريخ_ثاني_ثانوي',
+            history: messages.slice(-4).map((m) => ({
+              role: m.role === 'user' ? 'user' : 'assistant',
+              content: m.text
+            }))
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.reply || data.text) {
+            answerText = data.reply || data.text;
+          }
+        }
+      } catch (cloudErr) {
+        console.warn('Cloud API fallback to local history engine:', cloudErr);
+      }
     }
 
     // 3. Seamless Offline Knowledge Fallback
@@ -1227,7 +1249,7 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
                   type="text"
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
-                  placeholder="اسأل الأستاذ طارق: 'لماذا غزا إسماعيل باشا السودان؟' أو 'اشرح بغداد بالرسم'..."
+                  placeholder="اسأل الأستاذ طارق: 'لماذا غزا إسماعيل باشا السودان؟' أو 'اشرح استقلال السودان بالرسم'..."
                   className="flex-1 bg-[#121020] border border-indigo-950/80 focus:border-amber-500/80 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none text-right font-sans"
                   disabled={isLoading}
                 />

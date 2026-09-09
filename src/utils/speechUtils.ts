@@ -1,5 +1,5 @@
-﻿/**
- * Arabic Text-to-Speech Engine for Sudan Grade 6 History Lessons
+/**
+ * Arabic Text-to-Speech Engine for Sudan Grade 2 Secondary History Lessons
  * Supports speech synthesis, pause/resume, custom rates, and voice selection.
  */
 

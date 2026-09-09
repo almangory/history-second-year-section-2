@@ -502,9 +502,9 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
       );
     }
 
-    // الدرس الثالث: تأسيس مدينة بغداد المدورة (قصر الذهب وأبواب بغداد الأربعة)
-    case "BaghdadRound":
-    case "BaghdadRoundCity":
+    // القلاع الإقطاعية وحصون العصور الوسطى في أوروبا
+    case "MedievalFeudalCastle":
+    case "Fortress":
     case "Tower": {
       return (
         <div className={containerClass}>
@@ -521,7 +521,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
             <path d="M380 0 C340 70, 390 150, 350 240 L500 240 L500 0 Z" fill="#0284c7" opacity="0.5" />
             <text x="440" y="125" fill="#e0f2fe" fontSize="11" fontWeight="bold" fontFamily="serif">نهر دجلة</text>
 
-            {/* Concentric 3-Tier Circular Walls of Baghdad (المدينة المدورة لأبي جعفر المنصور) */}
+            {/* Medieval Feudal Fortress Walls and Bastions (أسوار الحصون الإقطاعية) */}
             <g transform="translate(180, 125)">
               {/* Outer Deep Ditch & Outer Wall */}
               <circle cx="0" cy="0" r="75" fill="#0369a1" opacity="0.3" />
@@ -535,7 +535,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
               <circle cx="0" cy="0" r="14" fill="#059669" stroke="#34d399" strokeWidth="1.5" />
               <circle cx="0" cy="0" r="4" fill="#fbbf24" />
 
-              {/* Four Main Gates Axes (أبواب بغداد الأربعة: الكوفة، البصرة، خراسان، الشام) */}
+              {/* Fortress Main Gates (بوابات القلعة الإقطاعية) */}
               {/* North-South Gate axis */}
               <line x1="0" y1="-72" x2="0" y2="72" stroke="#fbbf24" strokeWidth="2" strokeDasharray="4 2" />
               {/* East-West Gate axis */}
@@ -556,7 +556,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
 
             {/* Header Badge */}
             <rect x="120" y="14" width="260" height="26" rx="13" fill="#0c4a6e" stroke="#facc15" strokeWidth="1.5" opacity="0.95" />
-            <text x="250" y="32" textAnchor="middle" fill="#fef08a" fontSize="11" fontWeight="bold" fontFamily="serif">مدينة بغداد المدورة (مدينة السلام) ١٤٥هـ</text>
+            <text x="250" y="32" textAnchor="middle" fill="#fef08a" fontSize="11" fontWeight="bold" fontFamily="serif">القلاع الإقطاعية وحصون العصور الوسطى في أوروبا</text>
           </svg>
         </div>
       );
@@ -625,14 +625,15 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
 
             {/* Header Badge */}
             <rect x="120" y="14" width="260" height="26" rx="13" fill="#2e1065" stroke="#c084fc" strokeWidth="1.5" opacity="0.95" />
-            <text x="250" y="32" textAnchor="middle" fill="#e9d5ff" fontSize="11" fontWeight="bold" fontFamily="serif">بيت الحكمة ببغداد وحركة الترجمة والعلوم</text>
+            <text x="250" y="32" textAnchor="middle" fill="#e9d5ff" fontSize="11" fontWeight="bold" fontFamily="serif">المؤسسات التعليمية ومدرسة رفاعة الطهطاوي بالخرطوم ١٨٥٣م</text>
           </svg>
         </div>
       );
     }
 
-    // الدرس الخامس: سقوط الدولة العباسية وسقوط بغداد سنة ٦٥٦هـ / ١٢٥٨م
-    case "FallOfBaghdad": {
+    // جبهات المعارك والخنادق في الحرب العالمية الأولى
+    case "WorldWarOneTrenches":
+    case "StormingBastille1789": {
       return (
         <div className={containerClass}>
           <svg viewBox="0 0 500 240" className="w-full h-full max-h-48" strokeLinecap="round" strokeLinejoin="round">
@@ -650,7 +651,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
             <circle cx="230" cy="40" r="50" fill="#27272a" opacity="0.7" />
             <circle cx="320" cy="55" r="45" fill="#18181b" opacity="0.5" />
 
-            {/* Flaming Walls of Baghdad (أسوار بغداد المتهاوية) */}
+            {/* Battlefields and Fortifications (جبهات القتال والتحصينات) */}
             <g transform="translate(60, 90)">
               <rect x="0" y="40" width="180" height="50" fill="#27272a" stroke="#71717a" strokeWidth="2" />
               <polygon points="40,40 60,10 80,40" fill="#dc2626" />
@@ -677,7 +678,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
 
             {/* Header Badge */}
             <rect x="120" y="14" width="260" height="26" rx="13" fill="#450a0a" stroke="#ef4444" strokeWidth="1.5" opacity="0.95" />
-            <text x="250" y="32" textAnchor="middle" fill="#fca5a5" fontSize="11" fontWeight="bold" fontFamily="serif">سقوط بغداد وغزو المغول ٦٥٦هـ / ١٢٥٨م</text>
+            <text x="250" y="32" textAnchor="middle" fill="#fca5a5" fontSize="11" fontWeight="bold" fontFamily="serif">جبهات القتال والخنادق في الحرب العالمية الأولى</text>
           </svg>
         </div>
       );
@@ -815,9 +816,9 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
       );
     }
 
-    // الدرس الثالث: مملكة مالي ورحلة حج منسا موسى الذهبية ١٣٢٤م
-    case "MaliEmpire":
-    case "GoldMali":
+    // قوافل التجارة وحملات جنوب وغرب السودان
+    case "ZubeirPashaCampaign":
+    case "SudanDevelopmentProjects":
     case "Scroll": {
       return (
         <div className={containerClass}>
@@ -837,7 +838,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
             {/* Golden Dunes */}
             <path d="M0 160 Q160 135 320 165 T500 155 L500 240 L0 240 Z" fill="#d97706" />
 
-            {/* Mansa Musa Emperor Profile / Crown (إمبراطور مالي منسا موسى وحج ١٣٢٤م) */}
+            {/* Caravan Leadership and Flag (راية القوافل والريادة) */}
             <g transform="translate(60, 55)">
               {/* Royal Crown */}
               <polygon points="40,25 50,5 65,18 80,5 95,18 110,5 120,25" fill="#facc15" stroke="#ca8a04" strokeWidth="2" />
@@ -870,7 +871,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
 
             {/* Header Badge */}
             <rect x="120" y="14" width="260" height="26" rx="13" fill="#451a03" stroke="#facc15" strokeWidth="1.5" opacity="0.95" />
-            <text x="250" y="32" textAnchor="middle" fill="#fef08a" fontSize="11" fontWeight="bold" fontFamily="serif">مملكة مالي ورحلة حج منسا موسى ١٣٢٤م</text>
+            <text x="250" y="32" textAnchor="middle" fill="#fef08a" fontSize="11" fontWeight="bold" fontFamily="serif">قوافل التجارة والمسارات التاريخية في السودان</text>
           </svg>
         </div>
       );
@@ -1338,7 +1339,7 @@ export const SVGIllustration: React.FC<SVGProps> = ({ className = "w-full h-48",
       );
     }
 
-    // أهرامات مروي والبجراوية وتاريخ كوش القديم
+    // التراث والآثار التاريخية السودانية
     case "SudanPyramids":
     case "Phone":
     default: {
