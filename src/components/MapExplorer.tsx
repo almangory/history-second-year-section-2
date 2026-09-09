@@ -65,12 +65,11 @@ const MAP_LAYERS = [
 type MapStyleId = (typeof MAP_LAYERS)[number]["id"];
 
 const UNIT_FILTERS = [
-  { id: 0, label: "جميع الوحدات (30 معلماً)", center: [20.0, 20.0] as [number, number], zoom: 3 },
-  { id: 1, label: "الوحدة 1: تاريخ السودان الحديث", center: [14.5, 31.5] as [number, number], zoom: 6 },
-  { id: 2, label: "الوحدة 2: الدولة العباسية", center: [33.5, 44.0] as [number, number], zoom: 5 },
-  { id: 3, label: "الوحدة 3: الحضارة الإسلامية في إفريقيا", center: [15.0, 15.0] as [number, number], zoom: 4 },
-  { id: 4, label: "الوحدة 4: عصر النهضة والثورة الصناعية", center: [30.0, 25.0] as [number, number], zoom: 4 },
-  { id: 5, label: "الوحدة 5: الهوية والسيادة الوطنية", center: [17.5, 34.5] as [number, number], zoom: 6 },
+  { id: 0, label: "جميع الوحدات (21 معلماً تاريخياً)", center: [20.0, 20.0] as [number, number], zoom: 3 },
+  { id: 1, label: "الوحدة 1: الحكم التركي المصري للسودان", center: [15.5, 32.5] as [number, number], zoom: 6 },
+  { id: 2, label: "الوحدة 2: تاريخ السودان الحديث والمعاصر", center: [15.0, 31.5] as [number, number], zoom: 6 },
+  { id: 3, label: "الوحدة 3: تاريخ أوروبا الحديث", center: [46.0, 8.0] as [number, number], zoom: 4 },
+  { id: 4, label: "الوحدة 4: التوسع الاستعماري والحروب العالمية", center: [48.0, 15.0] as [number, number], zoom: 4 },
 ];
 
 export const MapExplorer: React.FC<MapExplorerProps> = ({ score, setScore, onUnlockBadge }) => {
