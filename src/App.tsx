@@ -146,6 +146,45 @@ export default function App() {
     });
   };
 
+  // 🇸🇩 لاقط جلسة الدخول الموحد من منصة المناهج السودانية (Naqla SSO Receiver)
+  useEffect(() => {
+    try {
+      const hash = window.location.hash;
+      if (hash && hash.includes("naqla_sso=")) {
+        const params = new URLSearchParams(hash.replace(/^#/, ""));
+        const ssoData = params.get("naqla_sso");
+        if (ssoData) {
+          const user = JSON.parse(decodeURIComponent(escape(atob(ssoData))));
+          if (user && user.ts && Date.now() - user.ts < 10 * 60 * 1000) {
+            const autoName = user.username || user.name || user.displayName || "";
+            if (autoName) {
+              setUserName(autoName);
+              localStorage.setItem("sub_historian_name", autoName);
+            }
+            localStorage.setItem("sudan_auth_user", JSON.stringify(user));
+            localStorage.setItem("currentUser", JSON.stringify(user));
+            localStorage.setItem("user", JSON.stringify(user));
+            params.delete("naqla_sso");
+            const cleanHash = params.toString() ? "#" + params.toString() : "";
+            window.history.replaceState(null, "", window.location.pathname + window.location.search + cleanHash);
+          }
+        }
+      } else {
+        const savedSudanUser = localStorage.getItem("sudan_auth_user");
+        if (savedSudanUser && !userName) {
+          const parsed = JSON.parse(savedSudanUser);
+          const autoName = parsed.username || parsed.name || parsed.displayName;
+          if (autoName) {
+            setUserName(autoName);
+            localStorage.setItem("sub_historian_name", autoName);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("SSO receiver error:", err);
+    }
+  }, [userName]);
+
   // 1. Google Sign-In & Auth State Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -156,8 +195,8 @@ export default function App() {
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            setUserName(data.name || user.displayName || "مستكشف");
-            setUserAvatar(data.avatar || "explorer");
+            setUserName(data.name || user.displayName || "طالب التاريخ");
+            setUserAvatar(data.avatar || "scholar");
             setScore(data.score ?? 100);
             setUnlockedBadges(data.unlockedBadges || []);
             if (data.lastQuizResult) {
@@ -165,8 +204,8 @@ export default function App() {
             }
           } else {
             // New user login with Google - create profile in Firestore
-            const defaultName = user.displayName || "بطل تاريخي";
-            const defaultAvatar = "explorer";
+            const defaultName = user.displayName || "طالب التاريخ";
+            const defaultAvatar = "scholar";
             const initialScore = 100;
             const initialBadges: string[] = [];
 
@@ -693,7 +732,7 @@ export default function App() {
       }
 
       // Case D: already on the dashboard home (prevent exiting accidentally without confirmation)
-      const confirmClose = window.confirm("هل تود حقاً الخروج من منصة المؤرخ الصغير وإغلاق الموقع؟");
+      const confirmClose = window.confirm("هل تود حقاً الخروج من منصة تاريخ الصف الثاني ثانوي وإغلاق الموقع؟");
       if (confirmClose) {
         // Exits standard history step
         window.history.go(-1);
@@ -1157,7 +1196,7 @@ export default function App() {
     return (
       <div className={`min-h-screen bg-[#faf8f5] flex flex-col items-center justify-center font-serif text-slate-800 gap-3 ${theme === "sepia" ? "sepia-theme" : "light-theme"}`}>
         <Sparkles className="w-10 h-10 text-amber-600 animate-spin" />
-        <p className="text-sm font-sans text-slate-600">جاري تحميل سجل البطل...</p>
+        <p className="text-sm font-sans text-slate-600">جاري تحميل سجل الطالب والمقرر...</p>
       </div>
     );
   }
@@ -1218,7 +1257,7 @@ export default function App() {
                   required
                   value={inputName}
                   onChange={(e) => setInputName(e.target.value)}
-                  placeholder="أدخل اسمك الكريم هنا لنبدأ المغامرة..."
+                  placeholder="أدخل اسمك الكريم هنا للبدء..."
                   className="w-full bg-[#fdfcf9] border-2 border-amber-300 focus:border-amber-500 rounded-xl px-4 py-3 text-center text-slate-800 text-sm sm:text-base placeholder-slate-400/80 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition font-sans"
                 />
               </div>
@@ -1250,6 +1289,23 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-[#faf8f5] text-slate-900 font-sans flex flex-col pb-mobile-nav transition-colors duration-200 ${theme === "sepia" ? "sepia-theme" : "light-theme"}`}>
+      {/* 🇸🇩 شريط الربط الموحد والسيو للمنصة الرئيسية (SEO Backlink Bar) */}
+      <div className="bg-gradient-to-r from-[#064E3B] to-[#047857] text-white px-4 py-1.5 text-xs font-sans flex items-center justify-between border-b border-emerald-900/40 shadow-xs z-50">
+        <div className="flex items-center gap-2 font-bold text-[11.5px] sm:text-xs">
+          <span>🇸🇩</span>
+          <span>منظومة المناهج السودانية التفاعلية | منصة نقلة</span>
+        </div>
+        <a
+          href="https://sudan-interactive-curricula.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-200 hover:text-white font-extrabold text-[11px] sm:text-[11.5px] flex items-center gap-1 transition-colors"
+        >
+          <span>العودة للمنصة الرئيسية</span>
+          <span>↗</span>
+        </a>
+      </div>
+
       {/* Visual top bar */}
       <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 shrink-0"></div>
 
@@ -1258,7 +1314,7 @@ export default function App() {
         <div className="bg-amber-800 text-amber-50 px-4 py-2 text-xs font-sans text-center flex items-center justify-center gap-2 border-b border-amber-900 shadow-sm shrink-0 select-none animate-[fadeIn_0.3s_ease-out]">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
           <span className="font-bold">📡 وضع عدم الاتصال (أوفلاين) نشط</span>
-          <span className="hidden sm:inline">— كامل نصوص الدروس الـ 21، والامتحانات، وأوراق العمل، والمؤثرات الصوتية تعمل بكامل طاقتها بدون إنترنت!</span>
+          <span className="hidden sm:inline">— كامل نصوص الدروس الـ 19، والامتحانات، وأوراق العمل، والمؤثرات الصوتية تعمل بكامل طاقتها بدون إنترنت!</span>
         </div>
       )}
 
@@ -1279,7 +1335,7 @@ export default function App() {
             />
             <div className="text-right hidden sm:block">
               <h1 className="text-lg md:text-xl font-black font-serif text-amber-900 flex items-center gap-2">
-                <span>المُؤَرِّخُ الصَّغِيرُ</span>
+                <span>المُؤَرِّخ</span>
                 <span className="text-[10px] bg-amber-100 text-amber-900 font-sans px-2 py-0.5 rounded-full border border-amber-300 font-bold">الصف الثاني ثانوي</span>
               </h1>
               <p className="text-[10px] text-slate-600 font-medium">منصة تاريخ المناهج التفاعلية • بخت الرضا</p>
@@ -3874,7 +3930,7 @@ export default function App() {
                   <div className="bg-emerald-50 text-emerald-900 p-5 rounded-2xl border border-emerald-200 text-center space-y-4 max-w-md mx-auto animate-[fadeIn_0.5s_ease-out] shadow-xs">
                     <Trophy className="w-12 h-12 text-emerald-600 mx-auto" />
                     <div>
-                      <h4 className="font-serif font-bold text-lg">أحسنت التوصيل يا بطل! 🎖️</h4>
+                      <h4 className="font-serif font-bold text-lg">أحسنت التوصيل والربط التاريخي المتقن! 🎖️</h4>
                       <p className="text-xs text-slate-600 mt-1">طابقت كافة الشخصيات والحقائق بالوصف والتواريخ المطابقة لها بنجاح!</p>
                     </div>
                     <span className="bg-amber-100 text-amber-900 font-bold text-sm px-4 py-1.5 rounded-full inline-block border border-amber-300">

@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { 
   HelpCircle, 
   CheckCircle2, 
@@ -427,7 +427,7 @@ export const QuizArenaView: React.FC<QuizArenaViewProps> = ({
 
           <div className="space-y-2">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-100">
-              أحسنت يا بطل التاريخ! 🌟
+              أحسنت يا باحث التاريخ المتميز! 🌟
             </h2>
             <p className="text-slate-300 text-sm sm:text-base">
               لقد أتممت هذا الاختبار بنجاح وجمعت رصيداً جديداً من النقاط.

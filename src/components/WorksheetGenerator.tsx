@@ -1472,7 +1472,7 @@ export const WorksheetGenerator: React.FC<WorksheetGeneratorProps> = ({
 
                       <div className="text-right text-[10px] sm:text-[11px] text-slate-700 font-sans space-y-0.5 border-r-2 sm:border-r-0 sm:border-l-2 border-slate-300 pr-2 sm:pr-0 sm:pl-3">
                         <div>التاريخ: .....................</div>
-                        <div>اسم التلميذ: .......................................</div>
+                        <div>اسم الطالب: .......................................</div>
                         <div>المدرسة: .......................................</div>
                       </div>
                     </div>

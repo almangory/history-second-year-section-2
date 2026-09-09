@@ -420,7 +420,7 @@ export const OfficialExamPaperView: React.FC<OfficialExamPaperViewProps> = ({
                     <div className="flex justify-between border-b border-slate-300 pb-0.5">
                       <strong>الدرجة الكلية:</strong> <span>{exam.totalMarks} درجة</span>
                     </div>
-                    <div>اسم التلميذ: .................................</div>
+                    <div>اسم الطالب: .................................</div>
                     <div>المدرسة: .......................................</div>
                     <div>رقم الجلوس: ...................................</div>
                   </div>

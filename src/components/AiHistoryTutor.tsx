@@ -678,7 +678,7 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      text: `أهلاً وسهلاً بك يا بطل التاريخ الحبيب 🏛️📜! أنا "الأستاذ طارق" — رفيقك ومعلمك الذكي لمقرر تاريخ الصف الثاني ثانوي بالمرحلة الثانوية (منهج المركز القومي للمناهج والبحث التربوي - بخت الرضا).
+      text: `أهلاً وسهلاً بك عزيزي طالب التاريخ 🏛️📜! أنا "الأستاذ طارق" — رفيقك ومعلمك الذكي لمقرر تاريخ الصف الثاني ثانوي بالمرحلة الثانوية (منهج المركز القومي للمناهج والبحث التربوي - بخت الرضا).
 
 سواءً أردت التعمق في الحكم التركي المصري ومقاومة كورتي وشندي، أو مسيرة الاستقلال الوطني وبرلمان ١٩ ديسمبر ١٩٥٥م وثورة أكتوبر ١٩٦٤م، أو فكر الثورة الفرنسية والوحدة الألمانية لبسمارك، أو خفايا الحربين العالميتين — اسألني وسأشرح لك بالتحليل والمخططات والخرائط التاريخية المعتمدة! ⚔️💡`,
       diagram: CURRICULUM_DIAGRAMS['sudan_1821_campaign']
@@ -1365,7 +1365,7 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between border-b border-indigo-950 pb-4">
             <div>
-              <span className="text-xs font-bold text-amber-400">تحدي المؤرخ الصغير 🎯</span>
+              <span className="text-xs font-bold text-amber-400">تحدي المؤرخ الذكي 🎯</span>
               <h3 className="text-lg font-bold text-slate-100 mt-1 font-serif">
                 السؤال {currentQuizIndex + 1} من {HISTORY_QUIZ_QUESTIONS.length}
               </h3>
@@ -1431,7 +1431,7 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
                 {selectedAnswerIdx === HISTORY_QUIZ_QUESTIONS[currentQuizIndex].correctIdx ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>إجابة صحيحة ومتميزة يا بطل! (+25 XP) 🎉</span>
+                    <span>إجابة صحيحة ودقيقة ومتميزة! (+25 XP) 🎉</span>
                   </>
                 ) : (
                   <>
