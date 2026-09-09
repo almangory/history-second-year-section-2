@@ -113,7 +113,7 @@ export default function App() {
     return localStorage.getItem("sub_historian_name") || "";
   });
   const [userAvatar, setUserAvatar] = useState<string>(() => {
-    return localStorage.getItem("sub_historian_avatar") || "explorer";
+    return localStorage.getItem("sub_historian_avatar") || "scholar";
   });
   const [score, setScore] = useState<number>(() => {
     const saved = localStorage.getItem("sub_historian_score");
@@ -821,15 +821,13 @@ export default function App() {
 
   // Avatar Icons helper
   const renderAvatar = (avatarType: string, sz: string = "w-12 h-12") => {
-    const list: Record<string, string> = {
-      explorer: "🤠",
-      scholar: "👳",
-      knight: "🛡️",
-      teacher: "👩‍🏫"
-    };
     return (
-      <div className={`${sz} bg-amber-100 rounded-full flex items-center justify-center text-2xl border border-amber-300 shadow-sm shrink-0`}>
-        {list[avatarType] || "🤠"}
+      <div className={`${sz} bg-amber-50 rounded-full flex items-center justify-center overflow-hidden border-2 border-amber-300 shadow-sm shrink-0`}>
+        <img 
+          src="/assets/sudan-bot-avatar.png" 
+          alt="أفاتار الطالب" 
+          className="w-full h-full object-cover" 
+        />
       </div>
     );
   };
