@@ -1171,134 +1171,74 @@ export default function App() {
           <button
             onClick={cycleTheme}
             title={theme === "sepia" ? "التحويل للوضع المشرق" : "التحويل لوضع القراءة السيبيا"}
-            className="p-2.5 rounded-xl border border-amber-300 bg-white text-amber-700 hover:scale-110 active:scale-95 transition cursor-pointer shadow-md"
+            className="p-2 sm:p-2.5 rounded-xl border border-amber-300/80 bg-white text-amber-600 hover:scale-105 active:scale-95 transition cursor-pointer shadow-xs"
           >
-            {theme === "sepia" ? <BookOpen className="w-5 h-5 text-amber-800" /> : <Sun className="w-5 h-5 text-amber-600" />}
+            {theme === "sepia" ? <BookOpen className="w-5 h-5 text-amber-800" /> : <Sun className="w-5 h-5 text-amber-500" />}
           </button>
         </div>
 
-        {/* Animated Background Ornaments */}
-        <div className="absolute top-10 left-10 w-48 h-48 bg-amber-100/50 rounded-full filter blur-3xl opacity-50 animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-64 h-64 bg-orange-100/40 rounded-full filter blur-2xl opacity-40 animate-pulse"></div>
-
-        <div className="bg-white border border-amber-200 max-w-xl w-full rounded-3xl shadow-xl p-8 md:p-12 relative text-right">
+        {/* Card Container matching exact screenshot */}
+        <div className="bg-white border border-amber-200/80 max-w-md w-full rounded-[2rem] shadow-xl p-7 sm:p-9 relative">
           {/* Internal Vintage Border */}
-          <div className="absolute inset-3 border border-amber-200/50 rounded-2xl pointer-events-none"></div>
+          <div className="absolute inset-3 border border-amber-300/70 rounded-2xl pointer-events-none"></div>
 
-          <div className="text-center space-y-6 relative">
-            {/* Header Stamp / Brand Logo */}
-            <div className="mx-auto flex justify-center pb-1">
+          <div className="relative z-10 flex flex-col items-center text-center">
+            {/* Top-right Logo inside the card */}
+            <div className="w-full flex justify-end mb-1">
               <img
                 src="/logo.png"
-                alt="منصة نقلة لتاريخ المناهج التفاعلية"
-                className="h-20 md:h-24 w-auto object-contain drop-shadow-sm"
+                alt="منصة نقلة للمناهج التعليمية"
+                className="h-14 sm:h-16 w-auto object-contain"
               />
             </div>
 
-            <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-amber-800 font-serif leading-tight">
-                المُؤرِّخ الصَّغير التفاعلي
+            {/* Title Section */}
+            <div className="space-y-1">
+              <h1 className="text-3xl sm:text-4xl font-black text-slate-800 font-serif tracking-normal">
+                المُؤَرِّخ
               </h1>
-              <p className="text-slate-600 text-sm md:text-base font-sans">
-                باصِرة رقمية ذكية لكتاب التاريخ المعتمد للصف الثاني ثانوي
+              <p className="text-xs sm:text-sm text-slate-700 font-sans font-medium">
+                كتاب التاريخ المعتمد للصف الثاني ثانوي
               </p>
             </div>
 
-            {/* Google Sign-In Wall Option */}
-            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-6 text-center space-y-4">
-              <div className="flex items-center justify-center gap-2 text-amber-800">
-                <Sparkles className="w-5 h-5 text-amber-600" />
-                <span className="font-bold text-sm font-sans">التسجيل السحابي والذكاء الاصطناعي</span>
-              </div>
-              <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                سجل دخولك باستخدام Google لحفظ نقاط وتقدم دراستك في السحاب ولتفعيل حوار المعلم التاريخي الذكي فوراً!
-              </p>
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    handlePlaySound("click");
-                    await signInWithGoogle();
-                  } catch (e) {
-                    console.error("Popup Sign in fail", e);
-                  }
-                }}
-                className="mx-auto w-fit bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-sans font-bold text-xs py-3 px-6 rounded-xl flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer shadow-sm"
-              >
-                {/* Google Logo SVG */}
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#EA4335" d="M12 5.04c1.7 0 3.23.58 4.43 1.73l3.31-3.3C17.74 1.54 15.01 1 12 1 7.15 1 3.1 3.94 1.25 8.16l3.96 3.07C6.15 7.6 8.78 5.04 12 5.04z" />
-                  <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.56l3.66 2.84c2.14-1.97 3.75-4.87 3.75-8.51z" />
-                  <path fill="#FBBC05" d="M5.21 11.23c-.24-.72-.38-1.5-.38-2.3s.14-1.58.38-2.3L1.25 8.16C.45 9.77 0 11.58 0 13.5s.45 3.73 1.25 5.34l3.96-3.07c-.24-.72-.38-1.5-.38-2.3s.14-1.58.38-2.3z" />
-                  <path fill="#34A853" d="M12 23c3.24 0 5.96-1.07 7.95-2.91l-3.66-2.84c-1.01.68-2.31 1.09-3.79 1.09-3.22 0-5.85-2.56-6.79-6.19l-3.96 3.07C3.1 20.06 7.15 23 12 23z" />
-                </svg>
-                <span>الدخول الفوري السريع بحساب Google</span>
-              </button>
-            </div>
+            {/* Prominent Subject Banner */}
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 font-sans tracking-tight my-8 sm:my-10">
+              المنهج السوداني
+            </h2>
 
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-slate-200"></div>
-              <span className="flex-shrink mx-4 text-xs text-slate-500 font-sans">أو الاستمرار كضيف دون مزايا الذكاء الاصطناعي</span>
-              <div className="flex-grow border-t border-slate-200"></div>
-            </div>
-
-            <form onSubmit={handleStartGame} className="space-y-6">
-              <div className="space-y-2 text-right">
-                <label className="block text-sm font-bold text-slate-700 pr-1">
-                  مرحباً بك يا بطل! ما هو اسمك الكريم؟
+            {/* Input & Form */}
+            <form onSubmit={handleStartGame} className="w-full space-y-4">
+              <div className="space-y-1.5 text-right">
+                <label className="block text-xs sm:text-sm font-medium text-slate-600 font-sans pr-1">
+                  مرحباً بك، ما هو اسمك الكريم؟
                 </label>
                 <input
                   type="text"
                   required
                   value={inputName}
                   onChange={(e) => setInputName(e.target.value)}
-                  placeholder="أدخل اسمك الكريم هنا لتبدأ المغامرة..."
-                  className="w-full bg-amber-50/50 hover:bg-amber-50 border-2 border-amber-200 rounded-xl px-4 py-3.5 text-center text-slate-900 text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition font-sans"
+                  placeholder="أدخل اسمك الكريم هنا لنبدأ المغامرة..."
+                  className="w-full bg-[#fdfcf9] border-2 border-amber-300 focus:border-amber-500 rounded-xl px-4 py-3 text-center text-slate-800 text-sm sm:text-base placeholder-slate-400/80 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition font-sans"
                 />
               </div>
 
-              {/* Avatar Selector */}
-              <div className="space-y-3">
-                <span className="block text-sm font-bold text-slate-700 text-right pr-1">
-                  اختر رمز شخصية بطل التاريخ الخاص بك:
-                </span>
-                <div className="grid grid-cols-4 gap-3">
-                  {[
-                    { id: "explorer", label: "المستكشف", emoji: "🤠" },
-                    { id: "scholar", label: "المؤرخ", emoji: "👳" },
-                    { id: "knight", label: "الفارس", emoji: "🛡️" },
-                    { id: "teacher", label: "الرسام", emoji: "👩‍🏫" }
-                  ].map((av) => (
-                    <button
-                      key={av.id}
-                      type="button"
-                      onClick={() => {
-                        handlePlaySound("click");
-                        setSelectedAvatarDraft(av.id);
-                      }}
-                      className={`p-3.5 rounded-xl border-2 flex flex-col items-center gap-1.5 transition cursor-pointer ${
-                        selectedAvatarDraft === av.id
-                          ? "bg-amber-600 text-white border-amber-600 shadow-md scale-105"
-                          : "bg-amber-50/70 border-amber-200 hover:bg-amber-100 text-slate-700"
-                      }`}
-                    >
-                      <span className="text-3xl">{av.emoji}</span>
-                      <span className="text-[11px] font-sans font-bold">{av.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Vertical spacing matching screenshot */}
+              <div className="h-6 sm:h-10"></div>
 
+              {/* Launch Button */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-serif font-bold text-lg py-4 rounded-xl shadow-md transition duration-200 cursor-pointer"
+                className="w-full bg-[#d95d08] hover:bg-[#c05105] active:scale-[0.99] text-white font-bold text-sm sm:text-base py-3.5 sm:py-4 rounded-xl shadow-md transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 font-sans"
               >
-                انطلاق في رحلة التاريخ الممتعة 🚀
+                <span>انطلاق في رحلة التاريخ الممتعة</span>
+                <span>🚀</span>
               </button>
             </form>
 
-            <p className="text-[11px] text-slate-500 font-sans pt-2 leading-relaxed">
-              استكشف بوابات التاريخ الإسلامي وعصر السودان الذهبي، أحدث التغييرات بالألغاز والألعاب مع نقاط المعرفة!
+            {/* Sub-caption footer text */}
+            <p className="text-[10px] text-slate-400 font-sans pt-4 leading-relaxed max-w-xs sm:max-w-sm">
+              استكشف بوابات التاريخ الرسمي ومنهج السودان الأصيل بخت الرضا التفاعلي مع المؤرخ الذكي
             </p>
           </div>
         </div>
