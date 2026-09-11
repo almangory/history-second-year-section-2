@@ -7,18 +7,11 @@
   const urlParamStage = (new URLSearchParams(window.location.search)).get('stage');
   let activeStage = (scriptStage || urlParamStage || 'general').toLowerCase();
 
-  const defaultTitle = activeStage === 'kg' ? 'المعلّم الذكي للبراعم والروضة 🧸' : (activeStage === 'chemistry' ? '🧪 معلّم كيمياء الشهادة السودانية الذكي ⚗️' : (activeStage === 'geography' ? '🌍 معلم جغرافيا الصف الثاني ثانوي الذكي 🇸🇩' : ((activeStage === 'history' || activeStage === 'history_sec2') ? '🏛️ معلم تاريخ الثاني ثانوي الذكي 🇸🇩' : 'المعلّم والمدرّب الذاتي الذكي 🎓')));
+  const defaultTitle = activeStage === 'kg' ? 'المعلّم الذكي للبراعم والروضة 🧸' : (activeStage === 'chemistry' ? '🧪 معلّم كيمياء الشهادة السودانية الذكي ⚗️' : (activeStage === 'geography' ? '🌍 معلم جغرافيا الصف السادس الذكي 🇸🇩' : (activeStage === 'history' ? '🏛️ معلم تاريخ الصف السادس الذكي 🇸🇩' : 'المعلّم والمدرّب الذاتي الذكي 🎓')));
   const TITLE = currentScript && currentScript.getAttribute('data-title') ? currentScript.getAttribute('data-title') : defaultTitle;
   const PRIMARY_COLOR = currentScript && currentScript.getAttribute('data-color') ? currentScript.getAttribute('data-color') : (activeStage === 'kg' ? '#f59e0b' : (activeStage === 'chemistry' ? '#0284c7' : (activeStage === 'geography' ? '#4A6741' : (activeStage === 'history' ? '#8C6239' : '#4f46e5'))));
 
   async function resolveMentorEndpoint() {
-    const custom = currentScript ? currentScript.getAttribute('data-api-url') : null;
-    if (custom && custom !== 'auto' && custom.trim() !== '') {
-      return custom;
-    }
-    // Return relative /api/chat if running in app
-    return '/api/chat';
-    /*
     const custom = currentScript ? currentScript.getAttribute('data-api-url') : null;
     if (custom && custom !== 'auto' && custom.trim() !== '' && !custom.includes('xxxx.') && !custom.includes('something.')) {
       return custom.replace(/\/+$/, '') + (custom.includes('/api/mentor/chat') ? '' : '/api/mentor/chat');
@@ -36,7 +29,6 @@
     } catch (e) {}
 
     return cachedApiEndpoint || CLOUD_FALLBACK_ENDPOINT;
-    */
   }
 
   // Inject Styles
@@ -684,7 +676,7 @@
   // Floating Button
   const btn = document.createElement('button');
   btn.className = 'mentor-floating-btn';
-  btn.innerHTML = `<span>${activeStage === 'kg' ? '🧸' : (activeStage === 'geography' ? '🌍' : (activeStage === 'history' ? '🏛️' : '🎓'))}</span> <span id="m-btn-label">${TITLE}</span>`;
+  btn.innerHTML = `<span>${activeStage === 'kg' ? '🧸' : (activeStage === 'arabic' ? '📖' : (activeStage === 'geography' ? '🌍' : (activeStage === 'history' ? '🏛️' : '🎓')))}</span> <span id="m-btn-label">${TITLE}</span>`;
   document.body.appendChild(btn);
 
   // Modal Container
@@ -694,10 +686,10 @@
     <div class="mentor-header">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span id="m-hdr-icon" style="font-size:20px;">${activeStage === 'kg' ? '🧸' : (activeStage === 'geography' ? '🌍' : (activeStage === 'history' ? '🏛️' : '🎓'))}</span>
+          <span id="m-hdr-icon" style="font-size:20px;">${activeStage === 'kg' ? '🧸' : (activeStage === 'arabic' ? '📖' : (activeStage === 'geography' ? '🌍' : (activeStage === 'history' ? '🏛️' : '🎓')))}</span>
           <div>
             <div id="m-hdr-title" style="font-weight:700; font-size:14px;">${TITLE}</div>
-            <div id="m-hdr-sub" style="font-size:10px; color:#a5b4fc;">${activeStage === 'kg' ? 'معلم سوداني • أسلوب البراعم ومرحلة الروضة 🧸🎨' : (activeStage === 'chemistry' ? 'معلم سوداني • كيمياء الشهادة السودانية 🧪' : (activeStage === 'geography' ? 'معلم سوداني • جغرافيا المرحلة الثانوية 🌍🇸🇩' : ((activeStage === 'history' || activeStage === 'history_sec2') ? 'معلم سوداني • تاريخ الصف الثاني ثانوي 🏛️🇸🇩' : 'معلم سوداني')))}</div>
+            <div id="m-hdr-sub" style="font-size:10px; color:#a5b4fc;">${activeStage === 'kg' ? 'معلم سوداني • أسلوب البراعم ومرحلة الروضة 🧸🎨' : (activeStage === 'arabic' ? 'معلم سوداني • لغة عربية، نحو، بلاغة وقراءة 📖✍️' : (activeStage === 'chemistry' ? 'معلم سوداني • كيمياء الشهادة السودانية 🧪' : (activeStage === 'geography' ? 'معلم سوداني • جغرافيا الصف السادس الابتدائي 🌍🇸🇩' : (activeStage === 'history' ? 'معلم سوداني • تاريخ الصف السادس الابتدائي 🏛️🇸🇩' : 'معلم سوداني'))))}</div>
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
@@ -705,7 +697,7 @@
             🎙️ 👨 عثمان
           </button>
           <button id="m-stage-btn" title="التبديل بين وضع الروضة والتعليم العام" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#fef08a; border-radius:8px; padding:3px 8px; font-size:11px; cursor:pointer; font-weight:bold; transition:all 0.2s;">
-            ${activeStage === 'kg' ? '🧸 وضع الروضة' : (activeStage === 'chemistry' ? '🧪 كيمياء الشهادة' : (activeStage === 'geography' ? '🌍 جغرافيا ثانوي' : ((activeStage === 'history' || activeStage === 'history_sec2') ? '🏛️ تاريخ 2 ثانوي' : '🎓 التعليم العام')))}
+            ${activeStage === 'kg' ? '🧸 وضع الروضة' : (activeStage === 'arabic' ? '📖 لغة عربية' : (activeStage === 'chemistry' ? '🧪 كيمياء الشهادة' : (activeStage === 'geography' ? '🌍 جغرافيا 6' : (activeStage === 'history' ? '🏛️ تاريخ 6' : '🎓 التعليم العام'))))}
           </button>
           <button id="mentor-max-btn" title="تكبير / استعادة الإطار" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; border-radius:8px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:all 0.2s;">⛶</button>
           <button id="mentor-close-btn" title="إغلاق" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; border-radius:8px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:all 0.2s;">✕</button>
@@ -713,58 +705,70 @@
       </div>
       <div class="mentor-stats-bar">
         <span>🌟 <strong id="m-xp">50 XP</strong></span>
-        <span>��️ <strong id="m-level">${activeStage === 'kg' ? 'برعم ذكي 🌟' : (activeStage === 'chemistry' ? 'عالم كيمياء واعد 🧪' : (activeStage === 'geography' ? 'جغرافي واعد 🌍' : ((activeStage === 'history' || activeStage === 'history_sec2') ? 'باحث تاريخ واعد 🏛️' : 'مبتدئ شغوف 🌟')))}</strong></span>
+        <span>🎖️ <strong id="m-level">${activeStage === 'kg' ? 'برعم ذكي 🌟' : (activeStage === 'arabic' ? 'فارس لغة الضاد 📖' : (activeStage === 'chemistry' ? 'عالم كيمياء واعد 🧪' : (activeStage === 'geography' ? 'جغرافي واعد 🌍' : (activeStage === 'history' ? 'مؤرخ واعد 🏛️' : 'مبتدئ شغوف 🌟'))))}</strong></span>
         <span>🔥 <strong id="m-streak">0</strong></span>
       </div>
     </div>
 
     
-    <!-- 📞 واجهة المكالمة الصوتية المباشرة المستمرة (Continuous Voice-to-Voice Call) -->
+    <!-- 📞 واجهة المكالمة الصوتية المباشرة المتطورة (Enhanced Duplex Voice Call Engine) -->
     <div class="mentor-call-overlay" id="m-call-overlay">
-      <div style="width:100%; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:10px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:18px;">📞</span>
-          <span style="font-weight:700; font-size:13px; color:#fff;">مكالمة صوتية مباشرة (صوت إلى صوت)</span>
+          <span style="font-weight:700; font-size:13px; color:#fff;">مكالمة صوتية مباشرة</span>
+          <span id="m-call-timer" style="font-family:monospace; font-size:11px; font-weight:700; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:2px 8px; color:#38bdf8;">00:00</span>
         </div>
         <button id="m-call-speaker-btn" title="تبديل صوت المتحدث" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#a7f3d0; border-radius:8px; padding:3px 8px; font-size:11px; cursor:pointer; font-weight:bold; transition:all 0.2s;">
           🎙️ 👨 عثمان
         </button>
       </div>
 
-      <div class="m-call-avatar-wrap">
+      <!-- Instant Interruption Guidance Pill -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); border-radius:14px; padding:4px 10px; font-size:10px; color:#7dd3fc; font-weight:bold;">
+        <span>⚡ مقاطعة فورية: تحدث في أي لحظة ليصمت المعلم ويستمع لك فوراً!</span>
+      </div>
+
+      <div class="m-call-avatar-wrap" style="margin-top:10px;">
         <div class="m-call-pulse-ring" id="m-call-pulse"></div>
         <div class="m-call-avatar" id="m-call-avatar" title="اضغط للمقاطعة والتحدث">👨‍🏫</div>
       </div>
 
       <div style="text-align:center; margin-top:10px; width:100%;">
         <div id="m-call-teacher-name" style="font-size:16px; font-weight:800; color:#fff; margin-bottom:4px;">المعلم عثمان</div>
-        <div id="m-call-status-badge" style="display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.2); border:1px solid rgba(16,185,129,0.4); color:#6ee7b7; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:bold;">
-          <span style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block; animation: mPulseDot 1.5s infinite;"></span>
+        <div id="m-call-status-badge" style="display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.2); border:1px solid rgba(16,185,129,0.4); color:#6ee7b7; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:bold; transition:all 0.3s;">
+          <span id="m-call-status-dot" style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block;"></span>
           <span id="m-call-status-text">المعلم يستمع لصوتك الآن... تفضل</span>
         </div>
 
-        <!-- Live Waveform -->
-        <div class="m-call-waves m-active" id="m-call-waves" style="justify-content:center; margin:12px auto;">
-          <div class="m-call-wave-bar"></div>
-          <div class="m-call-wave-bar"></div>
-          <div class="m-call-wave-bar"></div>
-          <div class="m-call-wave-bar"></div>
-          <div class="m-call-wave-bar"></div>
+        <!-- 7-Bar Dynamic VU Meter Sound Waves -->
+        <div class="m-call-waves m-active" id="m-call-waves" style="justify-content:center; margin:12px auto; display:flex; align-items:flex-end; gap:5px; height:28px;">
+          <div class="m-call-wave-bar" style="width:4px; border-radius:3px; background:#38bdf8; height:6px; transition:height 0.08s ease, background 0.2s;"></div>
+          <div class="m-call-wave-bar" style="width:4px; border-radius:3px; background:#38bdf8; height:10px; transition:height 0.08s ease, background 0.2s;"></div>
+          <div class="m-call-wave-bar" style="width:4px; border-radius:3px; background:#38bdf8; height:18px; transition:height 0.08s ease, background 0.2s;"></div>
+          <div class="m-call-wave-bar" style="width:4px; border-radius:3px; background:#38bdf8; height:24px; transition:height 0.08s ease, background 0.2s;"></div>
+          <div class="m-call-wave-bar" style="width:4px; border-radius:3px; background:#38bdf8; height:18px; transition:height 0.08s ease, background 0.2s;"></div>
+          <div class="m-call-wave-bar" style="width:4px; border-radius:3px; background:#38bdf8; height:10px; transition:height 0.08s ease, background 0.2s;"></div>
+          <div class="m-call-wave-bar" style="width:4px; border-radius:3px; background:#38bdf8; height:6px; transition:height 0.08s ease, background 0.2s;"></div>
         </div>
 
         <!-- Subtitles / Live Transcript -->
-        <div id="m-call-subtitle-box" style="margin-top:6px; min-height:50px; max-height:85px; overflow-y:auto; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:8px 12px; font-size:12px; color:#e2e8f0; line-height:1.5; text-align:center;">
+        <div id="m-call-subtitle-box" style="margin-top:6px; min-height:50px; max-height:85px; overflow-y:auto; background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:8px 12px; font-size:12px; color:#e2e8f0; line-height:1.5; text-align:center; transition:border-color 0.3s;">
           تحدث بصوتك وسيرد عليك المعلم صوتياً بشكل مستمر...
         </div>
       </div>
 
       <!-- Call Action Controls -->
-      <div style="width:100%; display:flex; justify-content:center; align-items:center; gap:12px; margin-top:14px;">
-        <button id="m-call-interrupt-btn" title="مقاطعة المعلم والتحدث فوراً" style="background:#0284c7; border:none; color:#fff; padding:10px 18px; border-radius:14px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 4px 15px rgba(2,132,199,0.4); transition:all 0.2s;">
-          <span>🎙️ تحدث الآن</span>
+      <div style="width:100%; display:flex; justify-content:center; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button id="m-call-mute-btn" title="كتم / تشغيل الميكروفون" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:8px 14px; border-radius:14px; font-size:11px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s;">
+          <span>🎙️ كتم الصوت</span>
         </button>
 
-        <button id="m-call-end-btn" title="إنهاء المكالمة" style="background:#dc2626; border:none; color:#fff; padding:10px 18px; border-radius:14px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 4px 15px rgba(220,38,38,0.4); transition:all 0.2s;">
+        <button id="m-call-interrupt-btn" title="مقاطعة المعلم والتحدث فوراً" style="background:#0284c7; border:none; color:#fff; padding:8px 16px; border-radius:14px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 4px 15px rgba(2,132,199,0.4); transition:all 0.2s;">
+          <span>⚡ تحدث الآن</span>
+        </button>
+
+        <button id="m-call-end-btn" title="إنهاء المكالمة" style="background:#dc2626; border:none; color:#fff; padding:8px 16px; border-radius:14px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 4px 15px rgba(220,38,38,0.4); transition:all 0.2s;">
           <span>🔴 إنهاء المكالمة</span>
         </button>
       </div>
@@ -775,11 +779,11 @@
         ${activeStage === 'kg' ?
           'أهلاً يا عسولنا الحلو وبطلنا الشاطر! 🧸🌟 أنا فرحان جداً إني صديقك الجديد في عالم الحروف والأرقام والألوان المبهجة!<br><br>أنا مساعد ذكاء صناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية، وأنا هنا أحبك وأفرح بيك كل يوم! 🎈<br><br>قولي — عايز نغني أنشودة الحروف سوا؟ ولا نحكي قصة بطل شاطر؟ ولا نتعلم عد الأرقام؟ 🍎🔢🎨' :
           (activeStage === 'chemistry' ?
-          'أهلاً بك يا بطل ويا عالم كيمياء المستقبل! 🧪⚗️ والله فرحان بوجودك معي في رحلة التفوق واكتشاف أسرار الكيمياء.<br><br>أنا مساعد ذكاء صناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية لكيمياء الشهادة الثانوية السودانية (بخت الرضا).<br><br>سواءً كانت مسألة حساب كيميائي، موازنة معادلة�� أو تعليلات الكيمياء العضوية — اطرح سؤالك وهيّا بنا نفككه خطوة بخطوة! 🔬🌟🇸🇩' :
+          'أهلاً بك يا بطل ويا عالم كيمياء المستقبل! 🧪⚗️ والله فرحان بوجودك معي في رحلة التفوق واكتشاف أسرار الكيمياء.<br><br>أنا مساعد ذكاء صناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية لكيمياء الشهادة الثانوية السودانية (بخت الرضا).<br><br>سواءً كانت مسألة حساب كيميائي، موازنة معادلة، أو تعليلات الكيمياء العضوية — اطرح سؤالك وهيّا بنا نفككه خطوة بخطوة! 🔬🌟🇸🇩' :
           (activeStage === 'geography' ?
-          'أهلاً وسهلاً يا بطل الجغرافيا والاستكشاف! 🌍🇸🇩 أنا فرحان شديد إني رفيقك ومعلمك الذكي (الأستاذ نزار) في رحلة التعرف على وطننا الحبيب السودان وبيئاته وتضاريسه وثرواته الطبيعية.<br><br>أنا مساعد ذكاء اصطناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية، لمقرر الجغرافيا للصف الثانوي الابتدائي (بخت الرضا).<br><br>سواءً كان سؤالك عن بيئات السودان (السافانا الفقيرة والغنية)، خزان سنار ومشروع الجزيرة، طق الصمغ العربي، أو خطوط الطول ودوائر العرض — اطرح سؤالك وخلينا نستكشفه سوا خطوة بخطوة! 🗺️🧭🇸🇩' :
-          ((activeStage === 'history' || activeStage === 'history_sec2') ?
-          'أهلاً وسهلاً بك يا باحث التاريخ في المرحلة الثانوية! 🏛️📜 أنا رفيقك ومعلمك الذكي (الأستاذ طارق) في رحلة الإبحار المعرفي والتحليلي في **تاريخ الصف الثاني ثانوي (المنهج السوداني - بخت الرضا)**.<br><br>أنا هنا لمساعدتك في كافة الوحدات: الحكم التركي المصري وثورة 1924م، مسيرة الاستقلال (1956 - 1985م) ومشكلة جنوب السودان، عصر النهضة الأوروبية والثورة الفرنسية، والثورة الصناعية وتوحيد إيطاليا وألمانيا والحربين العالميتين! 📜🏛️🇸🇩' :
+          'أهلاً وسهلاً يا بطل الجغرافيا والاستكشاف! 🌍🇸🇩 أنا فرحان شديد إني رفيقك ومعلمك الذكي (الأستاذ نزار) في رحلة التعرف على وطننا الحبيب السودان وبيئاته وتضاريسه وثرواته الطبيعية.<br><br>أنا مساعد ذكاء اصطناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية، لمقرر الجغرافيا للصف السادس الابتدائي (بخت الرضا).<br><br>سواءً كان سؤالك عن بيئات السودان (السافانا الفقيرة والغنية)، خزان سنار ومشروع الجزيرة، طق الصمغ العربي، أو خطوط الطول ودوائر العرض — اطرح سؤالك وخلينا نستكشفه سوا خطوة بخطوة! 🗺️🧭🇸🇩' :
+          (activeStage === 'history' ?
+          'أهلاً وسهلاً يا بطل التاريخ والاستكشاف! 🏛️📜 أنا فرحان شديد إني رفيقك ومعلمك الذكي (الأستاذ طارق) في رحلة الغوص في أمجاد تاريخ السودان، الحضارة العباسية، ممالك إفريقيا الإسلامية، وعصر النهضة والمواطنة.<br><br>أنا مساعد ذكاء اصطناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية، لمقرر التاريخ والتربية الوطنية للصف السادس الابتدائي (بخت الرضا).<br><br>سواءً كان سؤالك عن حملة 1821م والمك نمر، تخطيط بغداد المدورة، حج منسا موسى الذهبي، الآلة البخارية للثورة الصناعية، أو مقومات الدولة — اطرح سؤالك وخلينا نبحر في التاريخ سوا خطوة بخطوة! 📜🏛️🇸🇩' :
           (activeStage === 'stem' ?
           'أهلاً بعلماء المستقبل وأبطال المختبرات! 🔬⚡ والله فرحان بوجودك معايا في رحلة استكشاف أسرار الطبيعة والعلم الجميل.<br><br>أنا مساعد ذكاء صناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية، ومتخصص في تبسيط القوانين بالأمثلة الحية والرسوم الدقيقة.<br><br>هات سؤالك — فيزياء، كيمياء، رياضيات، أحياء — وهيّا بنا نكشف أسرارها سوا! 🧪🔭💡' :
           'أهلاً وسهلاً يا بطل العلوم! 🌟📚 أنا فرحان شديد إني رفيقك ومعلمك الذكي في رحلة التفوق والفهم.<br><br>أنا مساعد ذكاء اصطناعي مُطوّر من قِبَل منصة نقلة للمناهج الإلكترونية، وأنا هنا عشانك ما تمشي لحدة.<br><br>سواءً كانت مسألة فيزياء مقفلة، معادلة كيمياء محيّرة، مسألة رياضيات، أو درس ما اتمشيّل — اطرح سؤالك وخلينا نفككه سوا خطوة بخطوة! 🔬💡'
@@ -795,7 +799,7 @@
       <input type="file" id="m-cam-file" accept="image/*" capture="environment" style="display:none;" />
       <button class="mentor-cam-btn" id="m-cam-btn" title="📷 التقاط صورة للمسألة بالكاميرا" style="background:#1e293b; border:1px solid #475569; border-radius:10px; color:#fbbf24; padding:8px 12px; cursor:pointer; font-size:16px;">📷</button>
       <button class="mentor-voice-btn" id="m-mic-btn" title="تحدث بالصوت" style="background:#1e293b; border:1px solid #475569; border-radius:10px; color:#e2e8f0; padding:8px 12px; cursor:pointer; font-size:16px;">🎤</button>
-      <input type="text" class="mentor-input" id="mentor-txt" placeholder="${activeStage === 'kg' ? 'اكتب أو تحدث مع معلم البراعم 🧸🎤...' : (activeStage === 'geography' ? 'اسأل الأستاذ نزار عن جغرافيا السودان، الخرائط، أو تحدث بالصوت 🎤...' : ((activeStage === 'history' || activeStage === 'history_sec2') ? 'اسأل الأستاذ طارق عن غزو 1820م، إعلان الاستقلال 1956م، الثورة الفرنسية، أو تحدث بالصوت 🎤...' : 'اكتب، التقط صورة 📷، أو تحدث بالصوت 🎤...'))}" />
+      <input type="text" class="mentor-input" id="mentor-txt" placeholder="${activeStage === 'kg' ? 'اكتب أو تحدث مع معلم البراعم 🧸🎤...' : (activeStage === 'geography' ? 'اسأل الأستاذ نزار عن جغرافيا السودان، الخرائط، أو تحدث بالصوت 🎤...' : (activeStage === 'history' ? 'اسأل الأستاذ طارق عن تاريخ السودان، بغداد، منسا موسى، أو تحدث بالصوت 🎤...' : 'اكتب، التقط صورة 📷، أو تحدث بالصوت 🎤...'))}" />
       <button class="mentor-send" id="mentor-btn">إرسال</button>
     </div>
   `;
@@ -808,10 +812,19 @@
       chipsBox.innerHTML = `
         <div class="mentor-chip" id="m-call-chip" onclick="window.toggleWidgetCall()" style="border-color:#f59e0b; color:#fde68a; font-weight:bold;">📞 مكالمة صوتية مستمرة</div>
         <div class="mentor-chip" onclick="window.sendMentorChip('احكي لي قصة حلوة يا معلمي 🧸')">🧸 احكي لي قصة</div>
-        <div class="mentor-chip" onclick="window.sendMentorChip('علمني ح��ف الألف 🔤')">🔤 حرف الألف</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('علمني حرف الألف 🔤')">🔤 حرف الألف</div>
         <div class="mentor-chip" onclick="window.sendMentorChip('يلا نعد الأرقام 1 2 3 🔢')">🔢 نعد الأرقام</div>
         <div class="mentor-chip" onclick="window.sendMentorChip('علمني الألوان الجميلة 🎨')">🎨 الألوان</div>
         <div class="mentor-chip" onclick="window.sendMentorChip('كيف صوت الأسد والحيوانات؟ 🦁')">🦁 صوت الأسد</div>
+      `;
+        } else if (activeStage === 'arabic') {
+      chipsBox.innerHTML = `
+        <div class="mentor-chip" id="m-call-chip" onclick="window.toggleWidgetCall()" style="border-color:#059669; color:#6ee7b7; font-weight:bold;">📞 مكالمة صوتية مستمرة</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('اشرح لي قواعد النحو وعلامات الإعراب للأفعال والأسماء')">📝 النحو والإعراب</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('كيف أستخرج الفكرة الرئيسة وأفهم معاني الكلمات من النص؟')">📖 القراءة وفهم المقروء</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('ما هي قواعد كتابة الهمزة المتوسطة والمتطرفة؟')">✍️ الإملاء والهمزات</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('اشرح لي أركان التشبيه والفرق بين الاستعارة المكنية والتصريحية')">🎨 البلاغة والبيان</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('اديني الزيت في مادة اللغة العربية وطريقة الإجابة في الامتحانات')">💡 الزيت في العربي!</div>
       `;
     } else if (activeStage === 'chemistry') {
       chipsBox.innerHTML = `
@@ -832,16 +845,16 @@
         <div class="mentor-chip" onclick="window.sendMentorChip('ما هي مخاطر استخدام مادتي الزئبق والسيانيد في التعدين الأهلي للذهب؟')">⚠️ مخاطر تعدين الذهب</div>
         <div class="mentor-chip" onclick="window.sendMentorChip('كيف نحسب الكثافة السكانية لمساحة معينة مع مثال تطبيقي؟')">👥 حساب الكثافة السكانية</div>
       `;
-} else if (activeStage === 'history' || activeStage === 'history_sec2') {
+    } else if (activeStage === 'history') {
       chipsBox.innerHTML = `
         <div class="mentor-chip" id="m-call-chip" onclick="window.toggleWidgetCall()" style="border-color:#8C6239; color:#FAF4ED; background:#5C3A14; font-weight:bold;">📞 مكالمة صوتية مستمرة</div>
-
-
-
-
-
-
-
+        <div class="mentor-chip" onclick="window.sendMentorChip('لماذا غزا محمد علي باشا السودان عام 1821م وما هي مسارات الحملات؟')">⚔️ حملة 1821م ومحمد علي</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('اشرح معركة كورتي وصمود قبيلة الشايقية ودور مهيرة بت عبود')">🛡️ معركة كورتي ومهيرة</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('كيف كانت حيلة المك نمر ومقتل إسماعيل باشا في شندي 1822م؟')">🔥 المك نمر وحريق شندي</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('صف التخطيط الهندسي لمدينة بغداد المدورة التي بناها أبو جعفر المنصور')">🏛️ مدينة بغداد المدورة</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('أخبرني عن إمبراطورية مالي ورحلة حج منسا موسى الذهبي 1324م')">👑 حج منسا موسى ومالي</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('كيف بدأت الثورة الصناعية وما أثر الآلة البخارية لجيمس واط؟')">⚙️ الثورة الصناعية وآلة واط</div>
+        <div class="mentor-chip" onclick="window.sendMentorChip('ما هي مقومات الدولة الأساسية وحقوق وواجبات المواطنة للصف السادس؟')">🇸🇩 مقومات الدولة والمواطنة</div>
       `;
     } else {
       chipsBox.innerHTML = `
@@ -877,23 +890,25 @@
   if (stageBtn) {
     stageBtn.onclick = () => {
       if (activeStage === 'history') {
+        activeStage = 'arabic';
+      } else if (activeStage === 'arabic') {
         activeStage = 'general';
       } else if (activeStage === 'geography') {
         activeStage = 'history';
       } else if (activeStage === 'kg') {
         activeStage = 'geography';
       } else {
-        activeStage = 'history';
+        activeStage = 'arabic';
       }
-      stageBtn.textContent = activeStage === 'kg' ? '🧸 وضع الروضة' : (activeStage === 'geography' ? '🌍 جغرافيا ثانوي' : ((activeStage === 'history' || activeStage === 'history_sec2') ? '🏛️ تاريخ 2 ثانوي' : '🎓 التعليم العام'));
+      stageBtn.textContent = activeStage === 'kg' ? '🧸 وضع الروضة' : (activeStage === 'arabic' ? '📖 لغة عربية' : (activeStage === 'geography' ? '🌍 جغرافيا 6' : (activeStage === 'history' ? '🏛️ تاريخ 6' : '🎓 التعليم العام')));
       const hdrIcon = document.getElementById('m-hdr-icon');
       const hdrSub = document.getElementById('m-hdr-sub');
       const lvl = document.getElementById('m-level');
       const input = document.getElementById('mentor-txt');
-      if (hdrIcon) hdrIcon.textContent = activeStage === 'kg' ? '🧸' : (activeStage === 'geography' ? '🌍' : (activeStage === 'history' ? '🏛️' : '🎓'));
-      if (hdrSub) hdrSub.textContent = activeStage === 'kg' ? 'معلم سوداني • أسلوب البراعم ومرحلة الروضة 🧸🎨' : (activeStage === 'chemistry' ? 'معلم سوداني • كيمياء الشهادة السودانية 🧪' : (activeStage === 'geography' ? 'معلم سوداني • جغرافيا الصف الثاني ثانوي ال��بتدائي 🌍🇸🇩' : ((activeStage === 'history' || activeStage === 'history_sec2') ? 'معلم سوداني • تاريخ الصف الثاني ثانوي 🏛️🇸🇩' : 'معلم سوداني')));
-      if (lvl) lvl.textContent = activeStage === 'kg' ? 'برعم ذكي 🌟' : (activeStage === 'geography' ? 'جغرافي واعد 🌍' : ((activeStage === 'history' || activeStage === 'history_sec2') ? 'باحث تاريخ واعد 🏛️' : 'مبتدئ شغوف 🌟'));
-      if (input) input.placeholder = activeStage === 'kg' ? 'اكتب أو تحدث مع معلم البراعم 🧸🎤...' : (activeStage === 'geography' ? 'اسأل الأستاذ نزار عن جغرافيا السودان، الخرائط، أو تحدث بالصوت 🎤...' : ((activeStage === 'history' || activeStage === 'history_sec2') ? 'اسأل الأستاذ طارق عن غزو 1820م، إعلان الاستقلال 1956م، الثورة الفرنسية، أو تحدث بالصوت 🎤...' : 'اكتب، التقط صورة 📷، أو تحدث بالصوت 🎤...'));
+      if (hdrIcon) hdrIcon.textContent = activeStage === 'kg' ? '🧸' : (activeStage === 'arabic' ? '📖' : (activeStage === 'geography' ? '🌍' : (activeStage === 'history' ? '🏛️' : '🎓')));
+      if (hdrSub) hdrSub.textContent = activeStage === 'kg' ? 'معلم سوداني • أسلوب البراعم ومرحلة الروضة 🧸🎨' : (activeStage === 'chemistry' ? 'معلم سوداني • كيمياء الشهادة السودانية 🧪' : (activeStage === 'geography' ? 'معلم سوداني • جغرافيا الصف السادس الابتدائي 🌍🇸🇩' : (activeStage === 'history' ? 'معلم سوداني • تاريخ الصف السادس الابتدائي 🏛️🇸🇩' : 'معلم سوداني')));
+      if (lvl) lvl.textContent = activeStage === 'kg' ? 'برعم ذكي 🌟' : (activeStage === 'arabic' ? 'فارس لغة الضاد 📖' : (activeStage === 'geography' ? 'جغرافي واعد 🌍' : (activeStage === 'history' ? 'مؤرخ واعد 🏛️' : 'مبتدئ شغوف 🌟')));
+      if (input) input.placeholder = activeStage === 'kg' ? 'اكتب أو تحدث مع معلم البراعم 🧸🎤...' : (activeStage === 'geography' ? 'اسأل الأستاذ نزار عن جغرافيا السودان، الخرائط، أو تحدث بالصوت 🎤...' : (activeStage === 'history' ? 'اسأل الأستاذ طارق عن تاريخ السودان، بغداد، منسا موسى، أو تحدث بالصوت 🎤...' : 'اكتب، التقط صورة 📷، أو تحدث بالصوت 🎤...'));
       renderWidgetChips();
 
       const msgBox = document.getElementById('mentor-msg-box');
@@ -903,10 +918,10 @@
       notice.innerHTML = activeStage === 'kg' ?
         '🧸 <strong>تم تفعيل وضع البراعم ومرحلة الروضة (KG)!</strong><br>أهلاً يا عسولنا الحلو! أنا صديقك الجديد من <strong>منصة نقلة للمناهج الإلكترونية</strong>، ويلا نلعب ونتعلم سوا! 🍼🧸🎈' :
         (activeStage === 'geography' ?
-        '🌍 <strong>تم تفعيل وضع جغرافيا المرحلة الثانوية (بخت الرضا)!</strong><br>أهلاً وسهلاً يا بطل الجغرافيا! 🌟 رفيقك ومعلمك الذكي (الأستاذ نزار) جاهز لمساعدتك في استكشاف بيئات السودان وخرائطه وثرواته الطبيعية. 🗺️🧭🇸🇩' :
-          ((activeStage === 'history' || activeStage === 'history_sec2') ?
-          'أهلاً وسهلاً بك يا باحث التاريخ في المرحلة الثانوية! 🏛️📜 أنا رفيقك ومعلمك الذكي (الأستاذ طارق) في رحلة الإبحار المعرفي والتحليلي في **تاريخ الصف الثاني ثانوي (المنهج السوداني - بخت الرضا)**.<br><br>أنا هنا لمساعدتك في كافة الوحدات: الحكم التركي المصري وثورة 1924م، مسيرة الاستقلال (1956 - 1985م) ومشكلة جنوب السودان، عصر النهضة الأوروبية والثورة الفرنسية، والثورة الصناعية وتوحيد إيطاليا وألمانيا والحربين العالميتين! 📜🏛️🇸🇩' :
-        '🎓 <strong>تم تفعيل وضع التعليم العام للمراحل المتقدمة!</strong><br>أهلاً وسهلاً يا بطل العلوم! 🌟 ��فيقك ومعلمك الذكي من <strong>منصة نقلة للمناهج الإلكترونية</strong> جاهز لمساعدتك وتفوقك خطوة بخطوة. 📚🚀🇸🇩'
+        '🌍 <strong>تم تفعيل وضع جغرافيا الصف السادس الابتدائي (بخت الرضا)!</strong><br>أهلاً وسهلاً يا بطل الجغرافيا! 🌟 رفيقك ومعلمك الذكي (الأستاذ نزار) جاهز لمساعدتك في استكشاف بيئات السودان وخرائطه وثرواته الطبيعية. 🗺️🧭🇸🇩' :
+        (activeStage === 'history' ?
+        '🏛️ <strong>تم تفعيل وضع تاريخ الصف السادس الابتدائي (بخت الرضا)!</strong><br>أهلاً وسهلاً يا بطل التاريخ! 🌟 رفيقك ومعلمك الذكي (الأستاذ طارق) جاهز لمساعدتك في الإبحار في تاريخ السودان والحضارات الإسلامية والإفريقية وعصر النهضة. 📜🏛️🇸🇩' :
+        '🎓 <strong>تم تفعيل وضع التعليم العام للمراحل المتقدمة!</strong><br>أهلاً وسهلاً يا بطل العلوم! 🌟 رفيقك ومعلمك الذكي من <strong>منصة نقلة للمناهج الإلكترونية</strong> جاهز لمساعدتك وتفوقك خطوة بخطوة. 📚🚀🇸🇩'
         ));
       msgBox.appendChild(notice);
       msgBox.scrollTop = msgBox.scrollHeight;
@@ -991,7 +1006,7 @@
         const isMap = norm.includes('خريطه') || norm.includes('map');
 
         if (isPdf || isInteractive || isWorksheet || isExam || isMap || subject) {
-          let type = isPdf ? 'كتاب PDF' : (isInteractive ? 'منصة تفاعلية' : (isWorksheet ? 'ورقة عمل' : (isExam ? 'ا��تحان وتحديات' : (isMap ? 'خريطة تفاعلية' : 'مورد تعليمي'))));
+          let type = isPdf ? 'كتاب PDF' : (isInteractive ? 'منصة تفاعلية' : (isWorksheet ? 'ورقة عمل' : (isExam ? 'امتحان وتحديات' : (isMap ? 'خريطة تفاعلية' : 'مورد تعليمي'))));
 
           let title = rawText;
           if (!title || title.length < 4 || title.includes('تحميل') || title.includes('فتح') || title.includes('عرض') || title.includes('تنزيل')) {
@@ -1257,7 +1272,7 @@
       loadEl.remove();
 
       history.push({ role: 'user', content: text });
-      history.push({ role: 'assistant', content: data.reply || data.text || '' });
+      history.push({ role: 'assistant', content: data.reply || '' });
 
       renderWidgetBotMessage(data, matchedResource);
 
@@ -1381,7 +1396,7 @@
       }
     }
 
-    const formatted = (data.reply || data.text || '')
+    const formatted = (data.reply || '')
       .replace(/\[([^\]]+)\]\(https?:\/\/(?:www\.)?youtube\.com\/watch\?v=example[^\)]*\)/g, '🎬 <strong>$1</strong> (متاح في مشغل الفيديو المرفق أدناه)')
       .replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=example[^\s<]+/g, '')
       .replace(/\n/g, '<br>')
@@ -1463,7 +1478,7 @@
     const spk = bEl.querySelector('.m-spk-btn');
     const stp = bEl.querySelector('.m-stp-btn');
     if (spk && stp) {
-      spk.onclick = () => widgetSpeak(data.reply || data.text || '', spk, stp);
+      spk.onclick = () => widgetSpeak(data.reply || '', spk, stp);
       stp.onclick = () => widgetStopSpeak(spk, stp);
     }
     msgBox.appendChild(bEl);
@@ -1622,12 +1637,22 @@ function safeEncodeWidgetUri(str) {
     window.speechSynthesis.speak(utterance);
   }
 
-  // 📞 Live Continuous Voice-to-Voice Calling Engine (صوت إلى صوت مستمر)
+  // 📞 Live Continuous Voice-to-Voice Calling Engine (صوت إلى صوت مستمر - Enhanced Architecture)
   let isWidgetCallActive = false;
   let isBotSpeaking = false;
   let isProcessingCall = false;
   let callKeepAliveTimer = null;
   let audioContextUnlocked = false;
+  let callTimerInterval = null;
+  let callDurationSeconds = 0;
+  let isCallMuted = false;
+
+  // Web Audio API VAD Analyser for Acoustic Echo Protection & Instant Interruption
+  let micAudioContext = null;
+  let micAnalyser = null;
+  let micStream = null;
+  let micCheckInterval = null;
+  let isUserTalkingInCall = false;
 
   function unlockAudioContext() {
     if (audioContextUnlocked) return;
@@ -1638,47 +1663,204 @@ function safeEncodeWidgetUri(str) {
         ctx.resume();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        gain.gain.value = 0.0001;
+        gain.gain.value = 0.0001; // Silent 50ms pulse to unlock WebKit audio
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(0);
         osc.stop(0.05);
+        setTimeout(() => { try { ctx.close(); } catch(e){} }, 200);
       }
       audioContextUnlocked = true;
     } catch(e) {}
   }
 
+  function formatCallTimer(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function startCallTimer() {
+    callDurationSeconds = 0;
+    const timerEl = document.getElementById('m-call-timer');
+    if (timerEl) timerEl.textContent = '00:00';
+    if (callTimerInterval) clearInterval(callTimerInterval);
+    callTimerInterval = setInterval(() => {
+      callDurationSeconds++;
+      if (timerEl) timerEl.textContent = formatCallTimer(callDurationSeconds);
+    }, 1000);
+  }
+
+  function stopCallTimer() {
+    if (callTimerInterval) {
+      clearInterval(callTimerInterval);
+      callTimerInterval = null;
+    }
+  }
+
+  // ⚡ VAD Microphone Monitor with Dynamic Acoustic Threshold & Echo Cancellation
+  async function startCallMicMonitor() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      micStream = stream;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      micAudioContext = new AudioCtx();
+      const source = micAudioContext.createMediaStreamSource(stream);
+      const analyser = micAudioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.5;
+      source.connect(analyser);
+      micAnalyser = analyser;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      if (micCheckInterval) clearInterval(micCheckInterval);
+      micCheckInterval = setInterval(() => {
+        if (!isWidgetCallActive || !micAnalyser || isCallMuted) return;
+
+        micAnalyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        const avg = sum / dataArray.length;
+        const normalized = Math.min(100, Math.round((avg / 128) * 100));
+
+        // Dynamic threshold: 18 when idle, 45 when bot is speaking to prevent speaker feedback
+        const threshold = isBotSpeaking ? 45 : 18;
+        if (normalized > threshold) {
+          isUserTalkingInCall = true;
+          if (isBotSpeaking) {
+            triggerCallBargeIn();
+          }
+        } else {
+          isUserTalkingInCall = false;
+        }
+
+        updateLiveVuBars(normalized, dataArray);
+      }, 50);
+    } catch(err) {
+      console.warn('[Naqla Mentor] Mic monitor init error:', err);
+    }
+  }
+
+  function stopCallMicMonitor() {
+    if (micCheckInterval) { clearInterval(micCheckInterval); micCheckInterval = null; }
+    if (micStream) {
+      try { micStream.getTracks().forEach(t => t.stop()); } catch(e){}
+      micStream = null;
+    }
+    if (micAudioContext) {
+      try { micAudioContext.close(); } catch(e){}
+      micAudioContext = null;
+    }
+    micAnalyser = null;
+    resetLiveVuBars();
+  }
+
+  function updateLiveVuBars(volume, dataArray) {
+    const waveBox = document.getElementById('m-call-waves');
+    if (!waveBox) return;
+    const bars = waveBox.querySelectorAll('.m-call-wave-bar');
+    if (!bars || bars.length === 0) return;
+
+    if (isBotSpeaking) {
+      bars.forEach(bar => {
+        const randH = Math.max(4, Math.floor(Math.random() * 24) + 4);
+        bar.style.height = `${randH}px`;
+        bar.style.background = '#38bdf8';
+      });
+    } else if (isUserTalkingInCall && volume > 10) {
+      bars.forEach((bar, i) => {
+        const binIndex = Math.floor((i / bars.length) * (dataArray ? dataArray.length : 1));
+        const val = dataArray ? (dataArray[binIndex] || 0) : 0;
+        const h = Math.max(4, Math.round((val / 255) * 26));
+        bar.style.height = `${h}px`;
+        bar.style.background = '#fbbf24';
+      });
+    } else if (isProcessingCall) {
+      bars.forEach((bar, i) => {
+        const h = Math.max(4, Math.floor(Math.sin(Date.now() / 250 + i) * 8) + 12);
+        bar.style.height = `${h}px`;
+        bar.style.background = '#a855f7';
+      });
+    } else {
+      bars.forEach(bar => {
+        bar.style.height = '4px';
+        bar.style.background = '#64748b';
+      });
+    }
+  }
+
+  function resetLiveVuBars() {
+    const waveBox = document.getElementById('m-call-waves');
+    if (!waveBox) return;
+    const bars = waveBox.querySelectorAll('.m-call-wave-bar');
+    bars.forEach(b => { b.style.height = '4px'; b.style.background = '#64748b'; });
+  }
+
+  // ⚡ Instant Barge-in Interruption (مقاطعة فورية)
+  function triggerCallBargeIn() {
+    if (isBotSpeaking) {
+      if (widgetAudioPlayer) {
+        try { widgetAudioPlayer.pause(); widgetAudioPlayer.currentTime = 0; } catch(e){}
+        widgetAudioPlayer = null;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      isBotSpeaking = false;
+      setCallStatus('listening', 'سمعتك! المعلم يستمع لصوتك الآن... 👂✨');
+      setCallSubtitle('I hear you! Listening... 👂✨');
+      startContinuousListening();
+    }
+  }
+
   function setCallStatus(state, statusText) {
     const pulse = document.getElementById('m-call-pulse');
     const avatar = document.getElementById('m-call-avatar');
-    const waves = document.getElementById('m-call-waves');
     const txt = document.getElementById('m-call-status-text');
     const badge = document.getElementById('m-call-status-badge');
+    const dot = document.getElementById('m-call-status-dot');
+    const subtitleBox = document.getElementById('m-call-subtitle-box');
 
     if (txt) txt.textContent = statusText;
 
     if (pulse) {
-      pulse.className = 'm-call-pulse-ring' + (state === 'speaking' ? ' m-speaking' : (state === 'listening' ? ' m-listening' : ''));
+      pulse.className = 'm-call-pulse-ring' + (state === 'speaking' ? ' m-speaking' : (state === 'listening' ? ' m-listening' : (state === 'thinking' ? ' m-thinking' : '')));
     }
     if (avatar) {
       avatar.className = 'm-call-avatar' + (state === 'speaking' ? ' m-speaking' : (state === 'listening' ? ' m-listening' : ''));
     }
-    if (waves) {
-      waves.className = 'm-call-waves m-active' + (state === 'speaking' ? ' m-speaking' : (state === 'listening' ? ' m-listening' : ''));
-    }
+
     if (badge) {
       if (state === 'speaking') {
-        badge.style.background = 'rgba(244,63,94,0.2)';
-        badge.style.borderColor = 'rgba(244,63,94,0.4)';
-        badge.style.color = '#fda4af';
+        badge.style.background = 'rgba(56,189,248,0.2)';
+        badge.style.borderColor = 'rgba(56,189,248,0.5)';
+        badge.style.color = '#7dd3fc';
+        if (dot) dot.style.background = '#38bdf8';
+        if (subtitleBox) subtitleBox.style.borderColor = 'rgba(56,189,248,0.4)';
       } else if (state === 'listening') {
         badge.style.background = 'rgba(16,185,129,0.2)';
-        badge.style.borderColor = 'rgba(16,185,129,0.4)';
+        badge.style.borderColor = 'rgba(16,185,129,0.5)';
         badge.style.color = '#6ee7b7';
+        if (dot) dot.style.background = '#10b981';
+        if (subtitleBox) subtitleBox.style.borderColor = 'rgba(16,185,129,0.4)';
+      } else if (state === 'thinking') {
+        badge.style.background = 'rgba(168,85,247,0.2)';
+        badge.style.borderColor = 'rgba(168,85,247,0.5)';
+        badge.style.color = '#d8b4fe';
+        if (dot) dot.style.background = '#a855f7';
+        if (subtitleBox) subtitleBox.style.borderColor = 'rgba(168,85,247,0.4)';
       } else {
-        badge.style.background = 'rgba(56,189,248,0.2)';
-        badge.style.borderColor = 'rgba(56,189,248,0.4)';
-        badge.style.color = '#7dd3fc';
+        badge.style.background = 'rgba(100,116,139,0.2)';
+        badge.style.borderColor = 'rgba(100,116,139,0.4)';
+        badge.style.color = '#cbd5e1';
+        if (dot) dot.style.background = '#94a3b8';
       }
     }
   }
@@ -1734,6 +1916,14 @@ function safeEncodeWidgetUri(str) {
         chip.style.borderColor = '#34d399';
         chip.textContent = '🟢 مكالمة صوتية نشطة';
       }
+      isCallMuted = false;
+      const muteBtn = document.getElementById('m-call-mute-btn');
+      if (muteBtn) {
+        muteBtn.innerHTML = '<span>🎙️ كتم الصوت</span>';
+        muteBtn.style.background = 'rgba(255,255,255,0.12)';
+      }
+      startCallTimer();
+      startCallMicMonitor();
       updateCallOverlaySpeakerUI();
       playCallGreeting();
     } else {
@@ -1745,6 +1935,8 @@ function safeEncodeWidgetUri(str) {
         chip.textContent = '📞 مكالمة صوتية مستمرة';
       }
       widgetStopSpeak();
+      stopCallTimer();
+      stopCallMicMonitor();
       isBotSpeaking = false;
       isProcessingCall = false;
       if (callKeepAliveTimer) { clearTimeout(callKeepAliveTimer); callKeepAliveTimer = null; }
@@ -1756,8 +1948,16 @@ function safeEncodeWidgetUri(str) {
     let greeting = 'أهلاً بك يا دكتور! أنا معك في المكالمة الصوتية المباشرة، تفضل بسؤالك وسأشرحه لك فوراً.';
     if (activeStage === 'kg') {
       greeting = 'أهلاً يا عسول! أنا سامعك في المكالمة المباشرة، قولي عاوز نلعب أو نتعلم شنو سوا؟';
+    } else if (activeStage === 'arabic') {
+      greeting = 'أهلاً بك يا فارس لغة الضاد وبطل الفصاحة! أنا معك في المكالمة الصوتية المباشرة لمادة اللغة العربية، تفضل بسؤالك في النحو، الإعراب، القراءة، أو البلاغة وسأشرحه لك فوراً وبأبسط أسلوب!';
+    } else if (isEnglishStage(activeStage)) {
+      greeting = 'Hello superstar! I am Naqla Bot, your English tutor! I can hear you clearly. You can speak to me or interrupt me anytime!';
     } else if (activeStage === 'chemistry') {
       greeting = 'أهلاً بك يا بطل! أنا معك في المكالمة الصوتية المباشرة، تفضل بسؤالك أو معادلتك وسأشرحها لك فوراً.';
+    } else if (activeStage === 'geography') {
+      greeting = 'أهلاً يا بطل الجغرافيا! أنا معك في المكالمة المباشرة، اسألني عن بيئات السودان، الخرائط، أو أي درس في الجغرافيا وسأشرحه لك فوراً.';
+    } else if (activeStage === 'history') {
+      greeting = 'أهلاً يا بطل التاريخ! أنا معك في المكالمة المباشرة، اسألني عن تاريخ السودان، الحضارات، أو أي معركة وحدث تاريخي وسأشرحه لك فوراً.';
     }
 
     setCallSubtitle(greeting);
@@ -1777,6 +1977,8 @@ function safeEncodeWidgetUri(str) {
       startContinuousListening();
       return;
     }
+
+    const isEng = isEnglishStage(activeStage);
 
     try {
       const primaryUrl = await resolveTtsUrl(clean, widgetSpeaker);
@@ -1799,7 +2001,7 @@ function safeEncodeWidgetUri(str) {
         URL.revokeObjectURL(blobUrl);
         widgetAudioPlayer = null;
         isBotSpeaking = false;
-        if (isWidgetCallActive) {
+        if (isWidgetCallActive && !isCallMuted) {
           setTimeout(startContinuousListening, 350);
         }
       };
@@ -1807,64 +2009,80 @@ function safeEncodeWidgetUri(str) {
       audio.onerror = () => {
         URL.revokeObjectURL(blobUrl);
         widgetAudioPlayer = null;
-        fallbackCallBrowserSpeak(clean);
+        fallbackCallBrowserSpeak(clean, isEng);
       };
 
       await audio.play();
     } catch(e) {
-      fallbackCallBrowserSpeak(clean);
+      fallbackCallBrowserSpeak(clean, isEng);
     }
   }
 
-  function fallbackCallBrowserSpeak(clean) {
+  function fallbackCallBrowserSpeak(clean, isEng) {
     if (!('speechSynthesis' in window)) {
       isBotSpeaking = false;
-      if (isWidgetCallActive) setTimeout(startContinuousListening, 500);
+      if (isWidgetCallActive && !isCallMuted) setTimeout(startContinuousListening, 500);
       return;
     }
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = 'ar-SA';
-    utterance.rate = 1.0;
+    utterance.lang = isEng ? 'en-US' : 'ar-SA';
+    utterance.rate = isEng ? 0.94 : 1.0;
     utterance.pitch = widgetSpeaker === 'israa' ? 1.15 : 0.95;
 
     const voices = window.speechSynthesis.getVoices();
-    const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
-    if (arVoices.length > 0) {
-      if (widgetSpeaker === 'israa') {
-        const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah'));
-        utterance.voice = f || arVoices[0];
-      } else {
-        const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik'));
-        utterance.voice = m || arVoices[0];
+    if (isEng) {
+      const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.toLowerCase().includes('natural')) ||
+                      voices.find(v => v.lang.startsWith('en-US')) ||
+                      voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utterance.voice = enVoice;
+    } else {
+      const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
+      if (arVoices.length > 0) {
+        if (widgetSpeaker === 'israa') {
+          const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah'));
+          utterance.voice = f || arVoices[0];
+        } else {
+          const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik'));
+          utterance.voice = m || arVoices[0];
+        }
       }
     }
 
     utterance.onend = () => {
       isBotSpeaking = false;
-      if (isWidgetCallActive) setTimeout(startContinuousListening, 350);
+      if (isWidgetCallActive && !isCallMuted) setTimeout(startContinuousListening, 350);
     };
     utterance.onerror = () => {
       isBotSpeaking = false;
-      if (isWidgetCallActive) setTimeout(startContinuousListening, 500);
+      if (isWidgetCallActive && !isCallMuted) setTimeout(startContinuousListening, 500);
     };
     window.speechSynthesis.speak(utterance);
   }
 
   function startContinuousListening() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec || !isWidgetCallActive || isBotSpeaking || isProcessingCall) return;
+    if (!SpeechRec || !isWidgetCallActive || isBotSpeaking || isProcessingCall || isCallMuted) return;
 
     if (wRec) { try { wRec.abort(); } catch(e) {} }
 
-    setCallStatus('listening', 'المعلم يستمع لصوتك الآن... (تحدث بحرية)');
+    const isEng = isEnglishStage(activeStage);
+    setCallStatus('listening', isEng ? 'Naqla Bot is listening... Speak in English! 🎙️' : 'المعلم يستمع لصوتك الآن... (تحدث بحرية)');
 
     wRec = new SpeechRec();
-    wRec.lang = 'ar-SA';
-    wRec.continuous = false;
+    wRec.lang = isEng ? 'en-US' : 'ar-SA';
+    wRec.continuous = false; // Resilient keepalive pattern prevents browser hangs
     wRec.interimResults = true;
 
     let hasReceivedFinal = false;
+
+    wRec.onsoundstart = () => {
+      triggerCallBargeIn();
+    };
+
+    wRec.onspeechstart = () => {
+      triggerCallBargeIn();
+    };
 
     wRec.onstart = () => {
       isWRecording = true;
@@ -1873,6 +2091,8 @@ function safeEncodeWidgetUri(str) {
 
     wRec.onresult = (e) => {
       if (!isWidgetCallActive || isBotSpeaking) return;
+      triggerCallBargeIn();
+
       let interim = '';
       let final = '';
 
@@ -1886,7 +2106,7 @@ function safeEncodeWidgetUri(str) {
 
       const liveText = (final || interim).trim();
       if (liveText) {
-        setCallSubtitle(`🗣️ أنت: "${liveText}"`);
+        setCallSubtitle(`🗣️ "${liveText}"`);
       }
 
       if (final.trim()) {
@@ -1899,13 +2119,13 @@ function safeEncodeWidgetUri(str) {
 
     wRec.onerror = (e) => {
       isWRecording = false;
-      if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall) {
+      if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
         if (e.error === 'no-speech') {
-          setCallStatus('listening', 'المعلم في انتظار سؤالك... (تحدث في أي وقت)');
+          setCallStatus('listening', isEng ? 'Waiting for your question... Speak anytime! 🎙️' : 'المعلم في انتظار سؤالك... (تحدث في أي وقت)');
         }
         if (callKeepAliveTimer) clearTimeout(callKeepAliveTimer);
         callKeepAliveTimer = setTimeout(() => {
-          if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall) {
+          if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
             startContinuousListening();
           }
         }, 500);
@@ -1915,10 +2135,10 @@ function safeEncodeWidgetUri(str) {
     wRec.onend = () => {
       isWRecording = false;
       if (micBtn) micBtn.style.background = '#1e293b';
-      if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !hasReceivedFinal) {
+      if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !hasReceivedFinal && !isCallMuted) {
         if (callKeepAliveTimer) clearTimeout(callKeepAliveTimer);
         callKeepAliveTimer = setTimeout(() => {
-          if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall) {
+          if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
             startContinuousListening();
           }
         }, 400);
@@ -1928,17 +2148,17 @@ function safeEncodeWidgetUri(str) {
     try {
       wRec.start();
     } catch(e) {
-      if (isWidgetCallActive && !isBotSpeaking) {
+      if (isWidgetCallActive && !isBotSpeaking && !isCallMuted) {
         setTimeout(startContinuousListening, 800);
       }
     }
   }
 
   function handleCallUserSpeech(text) {
-    if (!text || !text.trim() || !isWidgetCallActive) return;
+    if (!text || !text.trim() || !isWidgetCallActive || isProcessingCall) return;
 
     isProcessingCall = true;
-    setCallStatus('thinking', 'المعلم يحلل ويفكر في الرد...');
+    setCallStatus('thinking', 'المعلم يحلل ويفكر في الرد... 🤖💭');
     setCallSubtitle(`🗣️ سؤالك: "${text}"`);
 
     sendMessage(text);
@@ -1957,11 +2177,34 @@ function safeEncodeWidgetUri(str) {
   const callInterruptBtn = document.getElementById('m-call-interrupt-btn');
   const callEndBtn = document.getElementById('m-call-end-btn');
   const callSpeakerBtn = document.getElementById('m-call-speaker-btn');
+  const callMuteBtn = document.getElementById('m-call-mute-btn');
   const callAvatar = document.getElementById('m-call-avatar');
 
   if (callInterruptBtn) callInterruptBtn.onclick = interruptCall;
   if (callAvatar) callAvatar.onclick = interruptCall;
   if (callEndBtn) callEndBtn.onclick = () => window.toggleWidgetCall(false);
+
+  if (callMuteBtn) {
+    callMuteBtn.onclick = () => {
+      isCallMuted = !isCallMuted;
+      if (isCallMuted) {
+        if (wRec) { try { wRec.abort(); } catch(e){} }
+        if (callKeepAliveTimer) clearTimeout(callKeepAliveTimer);
+        callMuteBtn.innerHTML = '<span>🔇 تم الكتم</span>';
+        callMuteBtn.style.background = '#dc2626';
+        setCallStatus('idle', 'الميكروفون مكتوم 🔇');
+        setCallSubtitle('الميكروفون مكتوم 🔇 اضغط على الزر لإلغاء الكتم');
+        resetLiveVuBars();
+      } else {
+        callMuteBtn.innerHTML = '<span>🎙️ كتم الصوت</span>';
+        callMuteBtn.style.background = 'rgba(255,255,255,0.12)';
+        setCallStatus('listening', 'المعلم يستمع لصوتك الآن...');
+        setCallSubtitle('تم إلغاء الكتم! تفضل بالحديث 🎙️');
+        startContinuousListening();
+      }
+    };
+  }
+
   if (callSpeakerBtn) {
     callSpeakerBtn.onclick = () => {
       widgetSpeaker = widgetSpeaker === 'osman' ? 'israa' : 'osman';
@@ -1971,7 +2214,6 @@ function safeEncodeWidgetUri(str) {
       if (isBotSpeaking) interruptCall();
     };
   }
-
 
   // 📷 Camera Question Scanner for Widget
   const camBtn = document.getElementById('m-cam-btn');
@@ -1994,7 +2236,7 @@ function safeEncodeWidgetUri(str) {
         const loadEl = document.createElement('div');
         loadEl.className = 'mentor-msg-bot';
         loadEl.style.opacity = '0.7';
-        loadEl.innerHTML = '📷 جاري قراءة السؤال بالكا��يرا...';
+        loadEl.innerHTML = '📷 جاري قراءة السؤال بالكاميرا...';
         msgBox.appendChild(loadEl);
         msgBox.scrollTop = msgBox.scrollHeight;
 
@@ -2018,7 +2260,7 @@ function safeEncodeWidgetUri(str) {
           if (data.extracted_text) {
             history.push({ role: 'user', content: `[سؤال بالكاميرا]: ${data.extracted_text}` });
           }
-          history.push({ role: 'assistant', content: data.reply || data.text || '' });
+          history.push({ role: 'assistant', content: data.reply || '' });
 
           renderWidgetBotMessage(data);
 
