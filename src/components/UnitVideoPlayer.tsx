@@ -157,7 +157,17 @@ export const UnitVideoPlayer: React.FC<UnitVideoPlayerProps> = ({
         {/* Main Video Screen (Takes 2 Columns on Desktop) */}
         <div className="lg:col-span-2 space-y-3">
           <div className="relative bg-slate-950 rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-900/30 group">
-            {youtubeEmbedUrl ? (
+            {!unit.videoUrl ? (
+              <div className="w-full aspect-video flex flex-col items-center justify-center p-6 text-center text-white space-y-3 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/40">
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                  <Video className="w-10 h-10 animate-pulse" />
+                </div>
+                <h4 className="font-bold text-lg text-amber-200">الشرح المرئي قيد الإعداد</h4>
+                <p className="text-xs sm:text-sm text-slate-300 max-w-md font-serif leading-relaxed">
+                  يجري إعداد وتسجيل الحصص المرئية المعتمدة لمنهج تاريخ الصف الثاني ثانوي للشهادة السودانية وستتاح قريباً فور اعتمادها.
+                </p>
+              </div>
+            ) : youtubeEmbedUrl ? (
               <iframe
                 src={youtubeEmbedUrl}
                 title={unit.videoTitle || unit.title}
@@ -190,7 +200,7 @@ export const UnitVideoPlayer: React.FC<UnitVideoPlayerProps> = ({
             )}
 
             {/* Error Message Fallback */}
-            {!youtubeEmbedUrl && hasError && (
+            {unit.videoUrl && !youtubeEmbedUrl && hasError && (
               <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center text-white space-y-3">
                 <Info className="w-10 h-10 text-amber-400" />
                 <h4 className="font-bold text-base">جارٍ تجهيز ملف الفيديو</h4>
@@ -203,7 +213,15 @@ export const UnitVideoPlayer: React.FC<UnitVideoPlayerProps> = ({
 
           {/* Video Control Auxiliary Bar */}
           <div className="bg-white dark:bg-[#141224] rounded-2xl border border-amber-200/90 dark:border-amber-900/40 p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-3 text-slate-800 dark:text-slate-200">
-            {youtubeEmbedUrl ? (
+            {!unit.videoUrl ? (
+              <div className="w-full flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span>المحتوى المرئي قيد التجهيز</span>
+                </span>
+                <span className="text-[11px] text-slate-500">منصة نقلة التعليمية</span>
+              </div>
+            ) : youtubeEmbedUrl ? (
               <div className="w-full flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
