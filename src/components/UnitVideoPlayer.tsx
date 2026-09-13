@@ -10,7 +10,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, 
   Maximize2, BookOpen, Star, FileText, Gamepad2, Award, 
-  Sparkles, Video, Info, CheckCircle2, ArrowRight
+  Sparkles, Video, Info, CheckCircle2, ArrowRight, ExternalLink
 } from "lucide-react";
 import { Unit } from "../types";
 
@@ -23,6 +23,15 @@ interface UnitVideoPlayerProps {
   onSelectLesson?: (lessonIdx: number) => void;
   onPlaySound: (type: "click" | "success" | "levelup") => void;
 }
+
+const getYouTubeEmbedUrl = (url?: string) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11)
+    ? `https://www.youtube-nocookie.com/embed/${match[2]}?rel=0&modestbranding=1`
+    : null;
+};
 
 export const UnitVideoPlayer: React.FC<UnitVideoPlayerProps> = ({
   unit,
@@ -40,6 +49,8 @@ export const UnitVideoPlayer: React.FC<UnitVideoPlayerProps> = ({
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
+
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(unit.videoUrl);
 
   // Sync state with HTML video element
   useEffect(() => {
@@ -146,31 +157,40 @@ export const UnitVideoPlayer: React.FC<UnitVideoPlayerProps> = ({
         {/* Main Video Screen (Takes 2 Columns on Desktop) */}
         <div className="lg:col-span-2 space-y-3">
           <div className="relative bg-slate-950 rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-900/30 group">
-            {/* HTML5 Video Element */}
-            <video
-              ref={videoRef}
-              src={unit.videoUrl}
-              controls
-              playsInline
-              preload="metadata"
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onTimeUpdate={() => {
-                if (videoRef.current) {
-                  setCurrentTime(videoRef.current.currentTime);
-                }
-              }}
-              onLoadedMetadata={() => {
-                if (videoRef.current) {
-                  setDuration(videoRef.current.duration);
-                }
-              }}
-              onError={() => setHasError(true)}
-              className="w-full aspect-video object-contain bg-black"
-            />
+            {youtubeEmbedUrl ? (
+              <iframe
+                src={youtubeEmbedUrl}
+                title={unit.videoTitle || unit.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full aspect-video border-0 bg-black"
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={unit.videoUrl}
+                controls
+                playsInline
+                preload="metadata"
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onTimeUpdate={() => {
+                  if (videoRef.current) {
+                    setCurrentTime(videoRef.current.currentTime);
+                  }
+                }}
+                onLoadedMetadata={() => {
+                  if (videoRef.current) {
+                    setDuration(videoRef.current.duration);
+                  }
+                }}
+                onError={() => setHasError(true)}
+                className="w-full aspect-video object-contain bg-black"
+              />
+            )}
 
             {/* Error Message Fallback */}
-            {hasError && (
+            {!youtubeEmbedUrl && hasError && (
               <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center text-white space-y-3">
                 <Info className="w-10 h-10 text-amber-400" />
                 <h4 className="font-bold text-base">جارٍ تجهيز ملف الفيديو</h4>
@@ -183,69 +203,91 @@ export const UnitVideoPlayer: React.FC<UnitVideoPlayerProps> = ({
 
           {/* Video Control Auxiliary Bar */}
           <div className="bg-white dark:bg-[#141224] rounded-2xl border border-amber-200/90 dark:border-amber-900/40 p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-3 text-slate-800 dark:text-slate-200">
-            {/* Quick Skip Buttons */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handleSkip(-10)}
-                className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition text-xs font-bold flex items-center gap-1 cursor-pointer"
-                title="رجوع 10 ثوانٍ"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="text-[10px]">10 ث</span>
-              </button>
-
-              <button
-                onClick={() => handleSkip(10)}
-                className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition text-xs font-bold flex items-center gap-1 cursor-pointer"
-                title="تقديم 10 ثوانٍ"
-              >
-                <RotateCw className="w-3.5 h-3.5" />
-                <span className="text-[10px]">10 ث</span>
-              </button>
-
-              {/* Time display */}
-              <div className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400 px-2">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </div>
-            </div>
-
-            {/* Playback Speed Controls */}
-            <div className="flex items-center gap-1 bg-amber-50/70 dark:bg-amber-950/30 p-1 rounded-xl border border-amber-200/80">
-              <span className="text-[10px] text-slate-600 font-bold px-1 hidden sm:inline">سرعة التشغيل:</span>
-              {[0.75, 1, 1.25, 1.5].map((speed) => (
-                <button
-                  key={speed}
-                  onClick={() => handleChangeSpeed(speed)}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                    playbackRate === speed
-                      ? "bg-amber-600 text-white shadow-xs"
-                      : "text-slate-700 hover:text-amber-900 hover:bg-amber-100"
-                  }`}
+            {youtubeEmbedUrl ? (
+              <div className="w-full flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    بث مرئي عالي الدقة عبر YouTube
+                  </span>
+                </div>
+                <a
+                  href={unit.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
                 >
-                  {speed}x
-                </button>
-              ))}
-            </div>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>فتح الشرح في تطبيق YouTube</span>
+                </a>
+              </div>
+            ) : (
+              <>
+                {/* Quick Skip Buttons */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handleSkip(-10)}
+                    className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    title="رجوع 10 ثوانٍ"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="text-[10px]">10 ث</span>
+                  </button>
 
-            {/* Fullscreen & Mute */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleToggleMute}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer text-xs"
-                title={isMuted ? "إلغاء كتم الصوت" : "كتم الصوت"}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
-              </button>
+                  <button
+                    onClick={() => handleSkip(10)}
+                    className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    title="تقديم 10 ثوانٍ"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span className="text-[10px]">10 ث</span>
+                  </button>
 
-              <button
-                onClick={handleFullscreen}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer text-xs flex items-center gap-1"
-                title="شاشة كاملة"
-              >
-                <Maximize2 className="w-4 h-4" />
-                <span className="text-[10px] font-bold hidden sm:inline">ملء الشاشة</span>
-              </button>
-            </div>
+                  {/* Time display */}
+                  <div className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400 px-2">
+                    {formatTime(currentTime)} / {formatTime(duration)}
+                  </div>
+                </div>
+
+                {/* Playback Speed Controls */}
+                <div className="flex items-center gap-1 bg-amber-50/70 dark:bg-amber-950/30 p-1 rounded-xl border border-amber-200/80">
+                  <span className="text-[10px] text-slate-600 font-bold px-1 hidden sm:inline">سرعة التشغيل:</span>
+                  {[0.75, 1, 1.25, 1.5].map((speed) => (
+                    <button
+                      key={speed}
+                      onClick={() => handleChangeSpeed(speed)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                        playbackRate === speed
+                          ? "bg-amber-600 text-white shadow-xs"
+                          : "text-slate-700 hover:text-amber-900 hover:bg-amber-100"
+                      }`}
+                    >
+                      {speed}x
+                    </button>
+                  ))}
+                </div>
+
+                {/* Fullscreen & Mute */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleToggleMute}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer text-xs"
+                    title={isMuted ? "إلغاء كتم الصوت" : "كتم الصوت"}
+                  >
+                    {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4" />}
+                  </button>
+
+                  <button
+                    onClick={handleFullscreen}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer text-xs flex items-center gap-1"
+                    title="شاشة كاملة"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                    <span className="text-[10px] font-bold hidden sm:inline">ملء الشاشة</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
