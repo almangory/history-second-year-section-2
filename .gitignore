@@ -10,3 +10,8 @@ coverage/
 *_مستخرج.txt
 شرح مادة التاريخ بالفيديو/
 شرح بالفيديو/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example

@@ -711,6 +711,333 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // ==========================================
+  // 📞 DIRECT LIVE AUDIO CALL ENGINE (الاتصال المباشر)
+  // ==========================================
+  const [isLiveCallActive, setIsLiveCallActive] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [callSubtitle, setCallSubtitle] = useState('جاري الاتصال بنقلة بوت...');
+  const [isBotCallSpeaking, setIsBotCallSpeaking] = useState(false);
+  const [isUserTalkingInCall, setIsUserTalkingInCall] = useState(false);
+  const [isCallMuted, setIsCallMuted] = useState(false);
+  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'listening' | 'speaking' | 'thinking'>('idle');
+  const [vuBars, setVuBars] = useState<number[]>(new Array(9).fill(3));
+
+  const callTimerRef = useRef<any>(null);
+  const callRecognitionRef = useRef<any>(null);
+  const callAudioContextRef = useRef<AudioContext | null>(null);
+  const callAnalyserRef = useRef<AnalyserNode | null>(null);
+  const callMicStreamRef = useRef<MediaStream | null>(null);
+  const callBargeInIntervalRef = useRef<any>(null);
+  const callKeepAliveTimerRef = useRef<any>(null);
+  const callSilenceTimerRef = useRef<any>(null);
+  const callAccumulatedTranscript = useRef<string>('');
+  const callBotSpeakingRef = useRef<boolean>(false);
+  const callActiveRef = useRef<boolean>(false);
+  const callProcessingRef = useRef<boolean>(false);
+  const callMutedRef = useRef<boolean>(false);
+  const callAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => { callBotSpeakingRef.current = isBotCallSpeaking; }, [isBotCallSpeaking]);
+  useEffect(() => { callActiveRef.current = isLiveCallActive; }, [isLiveCallActive]);
+  useEffect(() => { callMutedRef.current = isCallMuted; }, [isCallMuted]);
+
+  // Call Duration Timer
+  useEffect(() => {
+    if (isLiveCallActive) {
+      setCallDuration(0);
+      callTimerRef.current = setInterval(() => setCallDuration(prev => prev + 1), 1000);
+    } else {
+      if (callTimerRef.current) { clearInterval(callTimerRef.current); callTimerRef.current = null; }
+    }
+    return () => { if (callTimerRef.current) clearInterval(callTimerRef.current); };
+  }, [isLiveCallActive]);
+
+  const formatCallTimer = (sec: number) => {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const unlockCallAudioContext = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0.0001;
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(0); osc.stop(0.05);
+      if (ctx.state === 'suspended') ctx.resume();
+      setTimeout(() => { try { ctx.close(); } catch(e) {} }, 200);
+    } catch(e) {}
+  };
+
+  const cleanCallTtsText = (text: string) => {
+    return text.replace(/[*#_~`\[\]()<>]/g, ' ').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  };
+
+  const triggerCallBargeIn = () => {
+    if (callBotSpeakingRef.current) {
+      if (callAudioPlayerRef.current) {
+        try { callAudioPlayerRef.current.pause(); callAudioPlayerRef.current.currentTime = 0; } catch(e) {}
+        callAudioPlayerRef.current = null;
+      }
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      callBotSpeakingRef.current = false;
+      setIsBotCallSpeaking(false);
+      setIsUserTalkingInCall(true);
+      setCallStatus('listening');
+      setCallSubtitle('سمعتك يا مؤرخنا! أنا أستمع إليك الآن... 👂✨');
+    }
+  };
+
+  const startCallMicMonitor = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      callMicStreamRef.current = stream;
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const audioCtx = new AudioCtx();
+      callAudioContextRef.current = audioCtx;
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.5;
+      source.connect(analyser);
+      callAnalyserRef.current = analyser;
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      callBargeInIntervalRef.current = setInterval(() => {
+        if (!callActiveRef.current || !callAnalyserRef.current || callMutedRef.current) return;
+        callAnalyserRef.current.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        const avg = sum / dataArray.length;
+        const normalized = Math.min(100, Math.round((avg / 128) * 100));
+        const threshold = callBotSpeakingRef.current ? 45 : 18;
+        if (normalized > threshold) {
+          setIsUserTalkingInCall(true);
+          if (callBotSpeakingRef.current) triggerCallBargeIn();
+        } else {
+          setIsUserTalkingInCall(false);
+        }
+        if (normalized > 5) {
+          const bars = [];
+          for (let i = 0; i < 9; i++) {
+            const bIdx = Math.floor((i / 9) * dataArray.length);
+            bars.push(Math.max(3, Math.round((dataArray[bIdx] / 255) * 28)));
+          }
+          setVuBars(bars);
+        } else {
+          setVuBars(new Array(9).fill(3));
+        }
+      }, 50);
+    } catch (err) {
+      console.warn('Call mic monitor error:', err);
+    }
+  };
+
+  const stopCallMicMonitor = () => {
+    if (callBargeInIntervalRef.current) { clearInterval(callBargeInIntervalRef.current); callBargeInIntervalRef.current = null; }
+    if (callMicStreamRef.current) { callMicStreamRef.current.getTracks().forEach(t => t.stop()); callMicStreamRef.current = null; }
+    if (callAudioContextRef.current) { try { callAudioContextRef.current.close(); } catch(e) {} callAudioContextRef.current = null; }
+    callAnalyserRef.current = null;
+    setVuBars(new Array(9).fill(3));
+  };
+
+  const speakCallAudio = (text: string, onEndCallback?: () => void) => {
+    if (!callActiveRef.current) { if (onEndCallback) onEndCallback(); return; }
+    const clean = cleanCallTtsText(text);
+    if (!clean) { if (onEndCallback) onEndCallback(); return; }
+    if (callRecognitionRef.current) { try { callRecognitionRef.current.abort(); } catch(e) {} }
+    callBotSpeakingRef.current = true;
+    setIsBotCallSpeaking(true);
+    setCallStatus('speaking');
+
+    const afterSpeechEnds = () => {
+      callBotSpeakingRef.current = false;
+      setIsBotCallSpeaking(false);
+      if (callActiveRef.current && !callMutedRef.current) {
+        setCallStatus('listening');
+        setTimeout(() => {
+          if (callActiveRef.current && !callBotSpeakingRef.current && !callProcessingRef.current) {
+            startCallListeningLoop();
+          }
+        }, 350);
+      }
+      if (onEndCallback) onEndCallback();
+    };
+
+    const ttsUrl = `${CLOUD_TTS_ENDPOINT}?text=${encodeURIComponent(clean.slice(0, 500))}&speaker=${voiceSpeaker}`;
+    fetch(ttsUrl)
+      .then(res => { if (!res.ok) throw new Error('TTS ' + res.status); return res.blob(); })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        const audio = new Audio(blobUrl);
+        callAudioPlayerRef.current = audio;
+        audio.onended = () => { URL.revokeObjectURL(blobUrl); callAudioPlayerRef.current = null; afterSpeechEnds(); };
+        audio.onerror = () => { URL.revokeObjectURL(blobUrl); callAudioPlayerRef.current = null; fallbackCallBrowserSpeech(clean, afterSpeechEnds); };
+        audio.play().catch(() => { URL.revokeObjectURL(blobUrl); callAudioPlayerRef.current = null; fallbackCallBrowserSpeech(clean, afterSpeechEnds); });
+      })
+      .catch(() => fallbackCallBrowserSpeech(clean, afterSpeechEnds));
+  };
+
+  const fallbackCallBrowserSpeech = (text: string, onEndCallback?: () => void) => {
+    if (!('speechSynthesis' in window)) {
+      callBotSpeakingRef.current = false; setIsBotCallSpeaking(false);
+      if (onEndCallback) onEndCallback(); return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'ar-SA'; utter.rate = 0.95;
+    utter.pitch = voiceSpeaker === 'israa' ? 1.15 : 0.92;
+    const voices = window.speechSynthesis.getVoices();
+    const arVoices = voices.filter(v => v.lang.startsWith('ar'));
+    if (arVoices.length > 0) utter.voice = arVoices[0];
+    utter.onend = () => { callBotSpeakingRef.current = false; setIsBotCallSpeaking(false); if (onEndCallback) onEndCallback(); };
+    utter.onerror = () => { callBotSpeakingRef.current = false; setIsBotCallSpeaking(false); if (onEndCallback) onEndCallback(); };
+    window.speechSynthesis.speak(utter);
+  };
+
+  const startCallListeningLoop = () => {
+    if (callMutedRef.current || !callActiveRef.current || callBotSpeakingRef.current || callProcessingRef.current) return;
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) return;
+    try {
+      if (callRecognitionRef.current) { try { callRecognitionRef.current.abort(); } catch(e) {} }
+      const rec = new SpeechRec();
+      rec.continuous = false; rec.interimResults = true; rec.lang = 'ar-SD';
+      let hasReceivedFinal = false;
+      rec.onsoundstart = () => triggerCallBargeIn();
+      rec.onspeechstart = () => { triggerCallBargeIn(); setIsUserTalkingInCall(true); setCallStatus('listening'); };
+      rec.onresult = (e: any) => {
+        triggerCallBargeIn();
+        let interim = ''; let final = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          if (e.results[i].isFinal) final += e.results[i][0].transcript;
+          else interim += e.results[i][0].transcript;
+        }
+        const display = final || interim;
+        if (display) setCallSubtitle(`🗣️ أنت: "${display}"`);
+        if (final.trim()) {
+          callAccumulatedTranscript.current = (callAccumulatedTranscript.current + ' ' + final.trim()).trim();
+          hasReceivedFinal = true;
+          if (callSilenceTimerRef.current) clearTimeout(callSilenceTimerRef.current);
+          callSilenceTimerRef.current = setTimeout(() => {
+            const toSend = callAccumulatedTranscript.current;
+            callAccumulatedTranscript.current = '';
+            if (toSend.trim()) sendCallMessage(toSend.trim());
+          }, 700);
+        }
+      };
+      rec.onerror = (e: any) => {
+        if (callActiveRef.current && !callBotSpeakingRef.current && !callProcessingRef.current) {
+          if (e.error === 'no-speech') { setCallSubtitle('نقلة بوت في انتظار سؤالك في التاريخ... تحدث في أي وقت! 🎙️'); setCallStatus('listening'); }
+          if (callKeepAliveTimerRef.current) clearTimeout(callKeepAliveTimerRef.current);
+          callKeepAliveTimerRef.current = setTimeout(() => {
+            if (callActiveRef.current && !callBotSpeakingRef.current && !callProcessingRef.current) startCallListeningLoop();
+          }, 500);
+        }
+      };
+      rec.onend = () => {
+        setIsUserTalkingInCall(false);
+        if (callActiveRef.current && !callBotSpeakingRef.current && !callProcessingRef.current && !hasReceivedFinal) {
+          if (callKeepAliveTimerRef.current) clearTimeout(callKeepAliveTimerRef.current);
+          callKeepAliveTimerRef.current = setTimeout(() => {
+            if (callActiveRef.current && !callBotSpeakingRef.current && !callProcessingRef.current) startCallListeningLoop();
+          }, 400);
+        }
+      };
+      callRecognitionRef.current = rec;
+      rec.start();
+      setCallStatus('listening');
+      setCallSubtitle('نقلة بوت يستمع لك الآن... اسأل عن أي حدث تاريخي! 🎙️');
+    } catch (e) {
+      console.warn('Call recognition error:', e);
+      if (callActiveRef.current && !callBotSpeakingRef.current) setTimeout(startCallListeningLoop, 800);
+    }
+  };
+
+  const sendCallMessage = async (userText: string) => {
+    if (!userText.trim() || callProcessingRef.current) return;
+    callProcessingRef.current = true;
+    setCallStatus('thinking');
+    setCallSubtitle('نقلة بوت يبحث في صفحات التاريخ... 📜💭');
+    if (callRecognitionRef.current) { try { callRecognitionRef.current.abort(); } catch(e) {} }
+
+    const userMsg: Message = { role: 'user', text: userText };
+    setMessages(prev => [...prev, userMsg]);
+
+    let replyText = '';
+    try {
+      const res = await fetch(CLOUD_MENTOR_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userText,
+          stage: 'history_sec2',
+          is_voice_call: true,
+          history: messages.slice(-4).map(m => ({ role: m.role, content: m.text }))
+        })
+      });
+      if (res.ok) { const d = await res.json(); replyText = d.reply || ''; }
+    } catch(e) { console.warn('Call cloud fetch error:', e); }
+
+    if (!replyText) {
+      const offline = getOfflineHistoryAnswer(userText);
+      replyText = offline.reply;
+    }
+
+    const botMsg: Message = { role: 'assistant', text: replyText };
+    setMessages(prev => [...prev, botMsg]);
+    setCallSubtitle(replyText.length > 130 ? replyText.slice(0, 130) + '...' : replyText);
+    speakCallAudio(replyText);
+    callProcessingRef.current = false;
+  };
+
+  const toggleLiveCall = () => {
+    if (isLiveCallActive) {
+      setIsLiveCallActive(false);
+      setCallStatus('idle');
+      if (callAudioPlayerRef.current) { try { callAudioPlayerRef.current.pause(); } catch(e) {} callAudioPlayerRef.current = null; }
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      callBotSpeakingRef.current = false; setIsBotCallSpeaking(false);
+      callProcessingRef.current = false;
+      stopCallMicMonitor();
+      if (callRecognitionRef.current) { try { callRecognitionRef.current.abort(); } catch(e) {} }
+      if (callKeepAliveTimerRef.current) clearTimeout(callKeepAliveTimerRef.current);
+      if (callSilenceTimerRef.current) clearTimeout(callSilenceTimerRef.current);
+      callAccumulatedTranscript.current = '';
+    } else {
+      unlockCallAudioContext();
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      setIsLiveCallActive(true);
+      setCallStatus('connecting');
+      setCallSubtitle('جاري الاتصال بنقلة بوت... 📞');
+      startCallMicMonitor();
+      const greeting = 'أهلاً بك يا باحث التاريخ 📜⚔️! أنا نقلة بوت، أستاذك الذكي في تاريخ الصف الثاني ثانوي السوداني. تفضل بسؤالك عن أي حدث: من الغزو التركي وكورتي وشندي، إلى الاستقلال وثورة أكتوبر، والثورة الفرنسية، والوحدتين الألمانية والإيطالية، والحربين العالميتين. يمكنك مقاطعتي في أي وقت!';
+      setCallSubtitle(greeting);
+      speakCallAudio(greeting);
+    }
+  };
+
+  const toggleCallMute = () => {
+    const newMuted = !isCallMuted;
+    setIsCallMuted(newMuted); callMutedRef.current = newMuted;
+    if (newMuted) {
+      if (callRecognitionRef.current) { try { callRecognitionRef.current.abort(); } catch(e) {} }
+      if (callKeepAliveTimerRef.current) clearTimeout(callKeepAliveTimerRef.current);
+      setCallSubtitle('الميكروفون مكتوم 🔇 اضغط لإلغاء الكتم'); setCallStatus('idle');
+      setIsUserTalkingInCall(false); setVuBars(new Array(9).fill(3));
+    } else {
+      if (callActiveRef.current && !callBotSpeakingRef.current && !callProcessingRef.current) {
+        setCallSubtitle('تم إلغاء الكتم! تفضل بالحديث 🎙️'); setCallStatus('listening');
+        startCallListeningLoop();
+      }
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -778,33 +1105,30 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
     setIsSpeaking(true);
     setActiveSpeechIdx(msgIndex);
 
-    // 1. Try Cloudflare Edge High-Quality Sudanese Voice Engine
+    // 1. Try Cloudflare Edge TTS (GET → audio blob directly)
     try {
-      const res = await fetch(CLOUD_TTS_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: clean.slice(0, 500),
-          speaker: voiceSpeaker
-        })
-      });
+      const ttsUrl = `${CLOUD_TTS_ENDPOINT}?text=${encodeURIComponent(clean.slice(0, 500))}&speaker=${voiceSpeaker}`;
+      const res = await fetch(ttsUrl);
 
       if (res.ok) {
-        const data = await res.json();
-        if (data.audio_url || data.url) {
-          const audio = new Audio(data.audio_url || data.url);
-          audioRef.current = audio;
-          audio.onended = () => {
-            setIsSpeaking(false);
-            setActiveSpeechIdx(null);
-          };
-          audio.onerror = () => fallbackBrowserSpeech(clean);
-          await audio.play();
-          return;
-        }
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const audio = new Audio(blobUrl);
+        audioRef.current = audio;
+        audio.onended = () => {
+          URL.revokeObjectURL(blobUrl);
+          setIsSpeaking(false);
+          setActiveSpeechIdx(null);
+        };
+        audio.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+          fallbackBrowserSpeech(clean);
+        };
+        await audio.play();
+        return;
       }
     } catch {
-      // Fallback
+      // Fallback to browser speech
     }
 
     // 2. Browser Web Speech Fallback
@@ -1026,6 +1350,16 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
               <span>{streak} 🔥</span>
             </div>
           </div>
+
+          {/* Live Call Button */}
+          <button
+            onClick={toggleLiveCall}
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow-md animate-pulse hover:animate-none transition-all border border-emerald-400/50 cursor-pointer"
+            title="ابدأ اتصالاً مباشراً مع نقلة بوت"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.72A2 2 0 012 0h3a2 2 0 012 1.72c.127 1.003.36 1.99.7 2.94a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.14-1.34a2 2 0 012.11-.45c.95.34 1.937.573 2.94.7A2 2 0 0122 14.92v2z" /></svg>
+            <span>اتصال مباشر</span>
+          </button>
         </div>
       </div>
 
@@ -1484,6 +1818,62 @@ export const AiHistoryTutor: React.FC<AiHistoryTutorProps> = ({
                 <span>{currentQuizIndex < HISTORY_QUIZ_QUESTIONS.length - 1 ? 'السؤال التالي ⬅️' : 'إعادة التحدي 🔄'}</span>
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Live Call Full-Screen Overlay ── */}
+      {isLiveCallActive && (
+        <div className="fixed inset-0 z-[999] bg-slate-950/97 backdrop-blur-md flex items-center justify-center p-4" style={{ direction: 'rtl' }}>
+          <div className="w-full max-w-md bg-gradient-to-b from-[#1a1228] via-[#1a0f2e] to-[#0f0820] border-2 border-amber-600/50 rounded-[36px] p-6 shadow-[0_25px_70px_rgba(180,83,9,0.4)] flex flex-col items-center text-white relative overflow-hidden">
+            <div className="w-full flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+              <div className="flex items-center gap-2">
+                <span className={`w-3 h-3 rounded-full ${callStatus === 'speaking' ? 'bg-amber-400 animate-pulse' : callStatus === 'listening' ? 'bg-emerald-400 animate-pulse' : callStatus === 'thinking' ? 'bg-violet-400 animate-ping' : 'bg-amber-400 animate-pulse'}`} />
+                <span className={`text-xs font-black tracking-wider ${callStatus === 'speaking' ? 'text-amber-300' : callStatus === 'listening' ? 'text-emerald-300' : callStatus === 'thinking' ? 'text-violet-300' : 'text-amber-300'}`}>
+                  {callStatus === 'speaking' ? 'نقلة بوت يتحدث...' : callStatus === 'listening' ? 'يستمع إليك...' : callStatus === 'thinking' ? 'يفكر...' : 'اتصال مباشر'}
+                </span>
+              </div>
+              <div className="text-xs font-mono font-bold bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                {formatCallTimer(callDuration)}
+              </div>
+            </div>
+            <div className="mb-4 bg-amber-500/10 border border-amber-400/30 text-amber-200 text-[10px] font-bold px-3 py-1 rounded-full">
+              يمكنك مقاطعة نقلة بوت في أي لحظة!
+            </div>
+            <div className="relative flex flex-col items-center mb-4">
+              <div className={`absolute w-44 h-44 rounded-full blur-xl transition-all duration-500 ${callStatus === 'speaking' ? 'bg-amber-500/25 animate-ping' : callStatus === 'thinking' ? 'bg-violet-500/20 animate-pulse' : 'bg-amber-500/10'}`} />
+              <div className={`relative w-32 h-32 rounded-full border-4 flex items-center justify-center overflow-hidden transition-all duration-300 ${callStatus === 'speaking' ? 'border-amber-400' : callStatus === 'thinking' ? 'border-violet-400' : callStatus === 'listening' ? 'border-emerald-400' : 'border-amber-600/50'}`}>
+                <img
+                  src="/assets/naqla_bot_avatar.png"
+                  alt="نقلة بوت"
+                  className={`w-full h-full object-contain ${callStatus === 'speaking' ? 'animate-bounce' : callStatus === 'thinking' ? 'scale-95 opacity-80' : ''}`}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/icon.svg'; }}
+                />
+              </div>
+              <div className="mt-5 flex items-center gap-1.5 h-8">
+                {vuBars.map((height, i) => (
+                  <span key={i} className={`w-1.5 rounded-full transition-all duration-75 ${isUserTalkingInCall ? 'bg-amber-400' : callStatus === 'speaking' ? 'bg-amber-500' : callStatus === 'thinking' ? 'bg-violet-400' : 'bg-slate-600 opacity-40'}`}
+                    style={{ height: `${height}px` }} />
+                ))}
+              </div>
+              <h3 className="text-lg font-black mt-3">نقلة بوت <span className="text-xs bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full">التاريخ ثانوي ٢</span></h3>
+            </div>
+            <div className={`w-full border rounded-2xl p-4 min-h-[80px] flex items-center justify-center text-center mb-6 transition-all duration-300 ${callStatus === 'speaking' ? 'bg-amber-500/10 border-amber-400/30' : callStatus === 'thinking' ? 'bg-violet-500/10 border-violet-400/30' : callStatus === 'listening' ? 'bg-emerald-500/10 border-emerald-400/30' : 'bg-white/10 border-white/20'}`}>
+              <p className="text-xs sm:text-sm font-medium text-amber-100 italic leading-relaxed text-right">{callSubtitle}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={toggleCallMute} className={`p-4 rounded-full border-2 transition-all cursor-pointer shadow-lg hover:scale-110 ${isCallMuted ? 'bg-rose-600 border-rose-400 text-white' : 'bg-white/10 hover:bg-white/20 border-white/30 text-white'}`} title={isCallMuted ? 'إلغاء الكتم' : 'كتم'}>
+                {isCallMuted ? (
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="1" y1="1" x2="23" y2="23" /><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6" /><path d="M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23M12 19v4M8 23h8" /></svg>
+                ) : (
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+                )}
+              </button>
+              <button onClick={toggleLiveCall} className="bg-rose-600 hover:bg-rose-700 text-white font-black text-sm px-6 py-4 rounded-full shadow-[0_10px_25px_rgba(225,29,72,0.5)] border-2 border-rose-400 flex items-center gap-2 hover:scale-110 active:scale-95 transition-all cursor-pointer">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.72A2 2 0 012 0h3a2 2 0 012 1.72c.127 1.003.36 1.99.7 2.94a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.14-1.34a2 2 0 012.11-.45c.95.34 1.937.573 2.94.7A2 2 0 0122 14.92v2z" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                <span>إنهاء المكالمة</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
