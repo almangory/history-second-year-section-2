@@ -19,6 +19,10 @@
 
     const custom = currentScript ? currentScript.getAttribute('data-api-url') : null;
     if (custom && custom !== 'auto' && custom.trim() !== '' && !custom.includes('xxxx.') && !custom.includes('something.')) {
+      // If custom is relative (e.g. /api/chat) on Vercel/Workers where backend is absent, use 24/7 Cloudflare Edge!
+      if (!custom.startsWith('http://') && !custom.startsWith('https://')) {
+        return CLOUD_FALLBACK_ENDPOINT;
+      }
       return custom.replace(/\/+$/, '') + (custom.includes('/api/mentor/chat') || custom.includes('/api/chat') ? '' : '/api/mentor/chat');
     }
 
@@ -1231,6 +1235,14 @@
       const endpoint = await resolveMentorEndpoint();
       let res = null;
 
+      const payload = {
+        message: text,
+        history: history.slice(-6),
+        stage: activeStage,
+        speaker: widgetSpeaker,
+        host_context: hostContextPayload
+      };
+
       // 1. 💻 Sovereign Primary Engine: Local AI Arsenal (الترسانة المحلية أولاً)
       const isLocalOrTunnel = endpoint && (
         endpoint.includes('trycloudflare.com') ||
@@ -1734,24 +1746,28 @@ function safeEncodeWidgetUri(str) {
     setCallSubtitle(modeTitles[nearVoiceMode]);
   }
 
-  function unlockAudioContext() {
-    if (audioContextUnlocked) return;
+  let liveCallAudioContext = null;
+  let activeBufferSource = null;
+
+  function getOrCreateCallAudioContext() {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        const ctx = new AudioCtx();
-        ctx.resume();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        gain.gain.value = 0.0001; // Silent 50ms pulse to unlock WebKit audio
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(0);
-        osc.stop(0.05);
-        setTimeout(() => { try { ctx.close(); } catch(e){} }, 200);
+      if (!AudioCtx) return null;
+      if (!liveCallAudioContext || liveCallAudioContext.state === 'closed') {
+        liveCallAudioContext = new AudioCtx();
       }
-      audioContextUnlocked = true;
-    } catch(e) {}
+      if (liveCallAudioContext.state === 'suspended') {
+        liveCallAudioContext.resume();
+      }
+      return liveCallAudioContext;
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function unlockAudioContext() {
+    getOrCreateCallAudioContext();
+    audioContextUnlocked = true;
   }
 
   function formatCallTimer(sec) {
@@ -1999,6 +2015,10 @@ function safeEncodeWidgetUri(str) {
       }
       isAudioActuallyPlaying = false;
       widgetStopSpeak();
+      if (activeBufferSource) {
+        try { activeBufferSource.stop(); } catch(e){}
+        activeBufferSource = null;
+      }
       if (callAudioElement) {
         try { callAudioElement.pause(); callAudioElement.currentTime = 0; } catch(e){}
       }
@@ -2261,44 +2281,61 @@ function safeEncodeWidgetUri(str) {
       if (!ctype.includes('audio') && !ctype.includes('mpeg') && !ctype.includes('octet-stream')) {
         throw new Error('Expected audio MIME but got ' + ctype);
       }
-      const blob = await res.blob();
-      if (blob.size < 400) throw new Error('Audio blob too small (' + blob.size + ' bytes)');
-      const blobUrl = URL.createObjectURL(blob);
-      
-      const audio = callAudioElement || new Audio();
-      callAudioElement = audio;
-      widgetAudioPlayer = audio;
-      audio.volume = 1.0;
-      audio.muted = false;
-      audio.src = blobUrl;
+      const arrayBuffer = await res.arrayBuffer();
+      if (arrayBuffer.byteLength < 400) throw new Error('Audio data too small');
 
-      audio.onplay = () => {
-        isAudioActuallyPlaying = true;
-        setCallStatus('speaking', isEng ? 'Naqla Bot is speaking...' : 'المعلم يشرح لك صوتياً الآن...');
-      };
+      const ctx = getOrCreateCallAudioContext();
+      if (ctx) {
+        try {
+          const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+          if (activeBufferSource) {
+            try { activeBufferSource.stop(); } catch(e){}
+            activeBufferSource = null;
+          }
 
-      audio.onended = () => {
-        isAudioActuallyPlaying = false;
-        URL.revokeObjectURL(blobUrl);
-        widgetAudioPlayer = null;
-        finishBotSpeech();
-      };
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
 
-      audio.onerror = (aErr) => {
-        console.warn('[Naqla Live Call] Audio element error, falling back:', aErr);
-        isAudioActuallyPlaying = false;
-        URL.revokeObjectURL(blobUrl);
-        widgetAudioPlayer = null;
-        fallbackCallBrowserSpeak(clean, isEng);
-      };
+          const gainNode = ctx.createGain();
+          gainNode.gain.value = 1.7; // 1.7x crystal clear volume amplification
+          source.connect(gainNode);
+          gainNode.connect(ctx.destination);
 
-      await audio.play().catch(playErr => {
-        console.warn('[Naqla Live Call] Audio autoplay blocked or failed, falling back to browser speech:', playErr);
-        isAudioActuallyPlaying = false;
-        URL.revokeObjectURL(blobUrl);
-        widgetAudioPlayer = null;
-        fallbackCallBrowserSpeak(clean, isEng);
-      });
+          activeBufferSource = source;
+          isAudioActuallyPlaying = true;
+          setCallStatus('speaking', isEng ? 'Naqla Bot is speaking...' : 'المعلم يشرح لك صوتياً الآن...');
+
+          source.onended = () => {
+            isAudioActuallyPlaying = false;
+            activeBufferSource = null;
+            finishBotSpeech();
+          };
+
+          source.start(0);
+          console.log('[Naqla Live Call] Playing via Web Audio API (Guaranteed Audio Output)');
+        } catch(decodeErr) {
+          console.warn('[Naqla Live Call] Web Audio decode failed, falling back to HTML5 audio:', decodeErr);
+          const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+          const blobUrl = URL.createObjectURL(blob);
+          const audio = new Audio(blobUrl);
+          audio.volume = 1.0;
+          audio.muted = false;
+          widgetAudioPlayer = audio;
+          audio.onplay = () => { isAudioActuallyPlaying = true; };
+          audio.onended = () => { isAudioActuallyPlaying = false; finishBotSpeech(); };
+          await audio.play().catch(() => fallbackCallBrowserSpeak(clean, isEng));
+        }
+      } else {
+        const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+        const blobUrl = URL.createObjectURL(blob);
+        const audio = new Audio(blobUrl);
+        audio.volume = 1.0;
+        audio.muted = false;
+        widgetAudioPlayer = audio;
+        audio.onplay = () => { isAudioActuallyPlaying = true; };
+        audio.onended = () => { isAudioActuallyPlaying = false; finishBotSpeech(); };
+        await audio.play().catch(() => fallbackCallBrowserSpeak(clean, isEng));
+      }
     } catch(e) {
       fallbackCallBrowserSpeak(clean, isEng);
     }
