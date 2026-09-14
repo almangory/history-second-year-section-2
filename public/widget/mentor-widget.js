@@ -719,14 +719,19 @@
           <span style="font-weight:700; font-size:13px; color:#fff;">مكالمة صوتية مباشرة</span>
           <span id="m-call-timer" style="font-family:monospace; font-size:11px; font-weight:700; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:2px 8px; color:#38bdf8;">00:00</span>
         </div>
-        <button id="m-call-speaker-btn" title="تبديل صوت المتحدث" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#a7f3d0; border-radius:8px; padding:3px 8px; font-size:11px; cursor:pointer; font-weight:bold; transition:all 0.2s;">
-          🎙️ 👨 عثمان
-        </button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button id="m-call-nearvoice-btn" title="تبديل وضع عزل الصوت القريب والضوضاء المحيطة" style="background:rgba(16,185,129,0.18); border:1px solid rgba(16,185,129,0.4); color:#6ee7b7; border-radius:8px; padding:3px 8px; font-size:11px; cursor:pointer; font-weight:bold; transition:all 0.2s;">
+            🎯 عزل الصوت: ذكي
+          </button>
+          <button id="m-call-speaker-btn" title="تبديل صوت المتحدث" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#a7f3d0; border-radius:8px; padding:3px 8px; font-size:11px; cursor:pointer; font-weight:bold; transition:all 0.2s;">
+            🎙️ 👨 عثمان
+          </button>
+        </div>
       </div>
 
-      <!-- Instant Interruption Guidance Pill -->
-      <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25); border-radius:14px; padding:4px 10px; font-size:10px; color:#7dd3fc; font-weight:bold;">
-        <span>⚡ مقاطعة فورية: تحدث في أي لحظة ليصمت المعلم ويستمع لك فوراً!</span>
+      <!-- Near Voice & Instant Interruption Guidance Pill -->
+      <div id="m-call-guidance-pill" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:4px 10px; font-size:10px; color:#6ee7b7; font-weight:bold; transition:all 0.3s;">
+        <span>🎯 عزل الصوت القريب مفعّل: يتجاهل أصوات المحيط ويستمع لصوتك المباشر</span>
       </div>
 
       <div class="m-call-avatar-wrap" style="margin-top:10px;">
@@ -1231,40 +1236,52 @@
       const endpoint = await resolveMentorEndpoint();
       let res = null;
 
-      // 1. Try primary endpoint (Local Tunnel if active) with quick abort timeout
+      // 1. 🌐 Primary: Fast 24/7 Cloud Edge AI
+      const payload = {
+        message: text,
+        history: history.slice(-6),
+        stage: activeStage,
+        is_voice_call: isWidgetCallActive,
+        host_context: hostContextPayload
+      };
+
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
-        res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': '69420'
-          },
-          body: JSON.stringify({
-            message: text,
-            history: history.slice(-6),
-            stage: activeStage,
-            is_voice_call: isWidgetCallActive,
-            host_context: hostContextPayload
-          }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        if (!res.ok) throw new Error('Local status ' + res.status);
-      } catch (localErr) {
-        // 2. 🌐 Seamless 24/7 Cloud Edge Fallback (When PC is OFF or tunnel is down)
+        const cloudController = new AbortController();
+        const cloudTimeoutId = setTimeout(() => cloudController.abort(), 6500);
         res = await fetch(CLOUD_FALLBACK_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            history: history.slice(-6),
-            stage: activeStage,
-            is_voice_call: isWidgetCallActive,
-            host_context: hostContextPayload
-          })
+          body: JSON.stringify(payload),
+          signal: cloudController.signal
         });
+        clearTimeout(cloudTimeoutId);
+
+        if (res && res.status === 429) {
+          throw new Error('CLOUD_QUOTA_EXCEEDED');
+        }
+        if (!res.ok) throw new Error('Cloud HTTP ' + res.status);
+      } catch (cloudErr) {
+        console.warn('[Widget Router] Cloud unavailable or quota reached:', cloudErr.message);
+
+        // 2. 💻 Fallback to Local AI Arsenal (Unlimited Local Engine via Tunnel / Localhost)
+        if (endpoint && endpoint !== CLOUD_FALLBACK_ENDPOINT) {
+          try {
+            const localController = new AbortController();
+            const localTimeoutId = setTimeout(() => localController.abort(), 14000);
+            res = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': '69420'
+              },
+              body: JSON.stringify(payload),
+              signal: localController.signal
+            });
+            clearTimeout(localTimeoutId);
+          } catch (localErr) {
+            console.warn('[Widget Router] Local engine also failed:', localErr);
+          }
+        }
       }
 
       if (!res || !res.ok) throw new Error('فشل الاتصال بالمعلم السحابي والمحلي');
@@ -1647,12 +1664,64 @@ function safeEncodeWidgetUri(str) {
   let callDurationSeconds = 0;
   let isCallMuted = false;
 
-  // Web Audio API VAD Analyser for Acoustic Echo Protection & Instant Interruption
+  // 🎯 Web Audio API Near-Field Voice Isolation & Intelligent VAD Engine
+  let nearVoiceMode = localStorage.getItem('mentor_near_voice_mode') || 'smart'; // 'smart', 'aggressive', 'normal'
+  let ambientNoiseFloor = 14; // Adaptive baseline of room background noise
+  let isNearVoiceActive = false;
+  let lastNearVoiceTime = Date.now();
+  let nearVoiceSustainCount = 0;
+  let callSpeechBuffer = '';
+  let speechDebounceTimer = null;
   let micAudioContext = null;
   let micAnalyser = null;
   let micStream = null;
   let micCheckInterval = null;
   let isUserTalkingInCall = false;
+  let micHighPass = null;
+  let micLowPass = null;
+  let micPeaking = null;
+
+  function updateNearVoiceUI() {
+    const btn = document.getElementById('m-call-nearvoice-btn');
+    if (!btn) return;
+    if (nearVoiceMode === 'aggressive') {
+      btn.innerHTML = '🛡️ عزل فائق';
+      btn.style.background = 'rgba(239,68,68,0.2)';
+      btn.style.borderColor = 'rgba(239,68,68,0.5)';
+      btn.style.color = '#fca5a5';
+      btn.title = 'عزل فائق: للمحيط الصاخب جداً (مروحة، تلفاز، حركة)';
+    } else if (nearVoiceMode === 'normal') {
+      btn.innerHTML = '🎙️ حساسية عادية';
+      btn.style.background = 'rgba(148,163,184,0.18)';
+      btn.style.borderColor = 'rgba(148,163,184,0.35)';
+      btn.style.color = '#cbd5e1';
+      btn.title = 'حساسية عادية: للغرف الهادئة';
+    } else {
+      btn.innerHTML = '🎯 عزل ذكي';
+      btn.style.background = 'rgba(16,185,129,0.2)';
+      btn.style.borderColor = 'rgba(16,185,129,0.45)';
+      btn.style.color = '#6ee7b7';
+      btn.title = 'عزل ذكي: يتكيف تلقائياً مع مستوى ضوضاء محيط الطالب (موصى به)';
+    }
+  }
+
+  function cycleNearVoiceMode() {
+    if (nearVoiceMode === 'smart') {
+      nearVoiceMode = 'aggressive';
+    } else if (nearVoiceMode === 'aggressive') {
+      nearVoiceMode = 'normal';
+    } else {
+      nearVoiceMode = 'smart';
+    }
+    localStorage.setItem('mentor_near_voice_mode', nearVoiceMode);
+    updateNearVoiceUI();
+    const modeTitles = {
+      smart: '🎯 تم تفعيل (العزل الذكي): عزل ضوضاء الغرفة والتركيز التام على صوت الطالب القريب',
+      aggressive: '🛡️ تم تفعيل (العزل الفائق): حماية قصوى ضد ضوضاء المراوح والأصوات المحيطية الصاخبة',
+      normal: '🎙️ تم تفعيل (الحساسية العادية): مناسبة للغرف الهادئة والتحدث الهامس'
+    };
+    setCallSubtitle(modeTitles[nearVoiceMode]);
+  }
 
   function unlockAudioContext() {
     if (audioContextUnlocked) return;
@@ -1688,7 +1757,7 @@ function safeEncodeWidgetUri(str) {
     callTimerInterval = setInterval(() => {
       callDurationSeconds++;
       if (timerEl) timerEl.textContent = formatCallTimer(callDurationSeconds);
-    }, 1000);
+    }, 750);
   }
 
   function stopCallTimer() {
@@ -1698,24 +1767,52 @@ function safeEncodeWidgetUri(str) {
     }
   }
 
-  // ⚡ VAD Microphone Monitor with Dynamic Acoustic Threshold & Echo Cancellation
+  // ⚡ VAD Microphone Monitor with Near-Field DSP Filter Graph & Noise Floor Tracking
   async function startCallMicMonitor() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
+          autoGainControl: true,
+          channelCount: 1
         }
       });
       micStream = stream;
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       micAudioContext = new AudioCtx();
+      if (micAudioContext.state === 'suspended') {
+        try { await micAudioContext.resume(); } catch(e){}
+      }
+
       const source = micAudioContext.createMediaStreamSource(stream);
+
+      // Filter 1: Highpass 160Hz (Cut low frequency fans, desk thumps, AC rumble)
+      micHighPass = micAudioContext.createBiquadFilter();
+      micHighPass.type = 'highpass';
+      micHighPass.frequency.value = 160;
+
+      // Filter 2: Lowpass 3600Hz (Cut ambient hiss, room squeaks, high frequency background)
+      micLowPass = micAudioContext.createBiquadFilter();
+      micLowPass.type = 'lowpass';
+      micLowPass.frequency.value = 3600;
+
+      // Filter 3: Peaking 1800Hz (+3.5dB boost at primary human voice intelligibility band)
+      micPeaking = micAudioContext.createBiquadFilter();
+      micPeaking.type = 'peaking';
+      micPeaking.frequency.value = 1800;
+      micPeaking.Q.value = 1.2;
+      micPeaking.gain.value = 3.5;
+
       const analyser = micAudioContext.createAnalyser();
       analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.5;
-      source.connect(analyser);
+      analyser.smoothingTimeConstant = 0.45;
+
+      // Connect DSP chain: source -> HighPass -> LowPass -> Peaking -> Analyser
+      source.connect(micHighPass);
+      micHighPass.connect(micLowPass);
+      micLowPass.connect(micPeaking);
+      micPeaking.connect(analyser);
       micAnalyser = analyser;
 
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -1725,23 +1822,64 @@ function safeEncodeWidgetUri(str) {
         if (!isWidgetCallActive || !micAnalyser || isCallMuted) return;
 
         micAnalyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-        const avg = sum / dataArray.length;
-        const normalized = Math.min(100, Math.round((avg / 128) * 100));
 
-        // Dynamic threshold: 18 when idle, 45 when bot is speaking to prevent speaker feedback
-        const threshold = isBotSpeaking ? 45 : 18;
-        if (normalized > threshold) {
-          isUserTalkingInCall = true;
-          if (isBotSpeaking) {
-            triggerCallBargeIn();
-          }
-        } else {
-          isUserTalkingInCall = false;
+        // Focus energy analysis strictly on human vocal formants (~200Hz - 3400Hz, bins 1 to 19)
+        let voiceSum = 0;
+        let voiceBins = 0;
+        const maxBin = Math.min(19, dataArray.length);
+        for (let i = 1; i < maxBin; i++) {
+          voiceSum += dataArray[i];
+          voiceBins++;
+        }
+        const voiceAvg = voiceSum / Math.max(1, voiceBins);
+        const normalized = Math.min(100, Math.round((voiceAvg / 128) * 100));
+
+        // Adaptive Noise Floor Calibration: tracks ambient floor when user is not actively speaking
+        if (!isNearVoiceActive && !isBotSpeaking) {
+          ambientNoiseFloor = (ambientNoiseFloor * 0.96) + (normalized * 0.04);
+          ambientNoiseFloor = Math.max(6, Math.min(42, ambientNoiseFloor));
         }
 
-        updateLiveVuBars(normalized, dataArray);
+        // Determine near-voice threshold based on mode and adaptive background noise
+        let requiredMargin = 12;
+        let minFloorGate = 22;
+        let botBargeInGate = 28;
+
+        if (nearVoiceMode === 'aggressive') {
+          requiredMargin = 18;
+          minFloorGate = 30;
+          botBargeInGate = 35;
+        } else if (nearVoiceMode === 'normal') {
+          requiredMargin = 8;
+          minFloorGate = 16;
+          botBargeInGate = 24;
+        }
+
+        const snr = normalized - ambientNoiseFloor;
+        const isNearVoiceFrame = (normalized >= minFloorGate) && (snr >= requiredMargin);
+
+        if (isNearVoiceFrame) {
+          nearVoiceSustainCount++;
+          if (nearVoiceSustainCount >= 3) { // Require sustained speech (>150ms) to ignore transient clicks
+            isNearVoiceActive = true;
+            lastNearVoiceTime = Date.now();
+            isUserTalkingInCall = true;
+
+            // Controlled barge-in: only if bot is speaking AND energy is loud & sustained (>250ms)
+            if (isBotSpeaking && normalized >= Math.max(ambientNoiseFloor + 22, botBargeInGate) && nearVoiceSustainCount >= 2) {
+              triggerCallBargeIn();
+            }
+          }
+        } else {
+          nearVoiceSustainCount = Math.max(0, nearVoiceSustainCount - 1);
+          // 400ms hangover to prevent gate chatter between speech syllables
+          if (Date.now() - lastNearVoiceTime > 400) {
+            isNearVoiceActive = false;
+            isUserTalkingInCall = false;
+          }
+        }
+
+        updateLiveVuBars(normalized, dataArray, isNearVoiceActive);
       }, 50);
     } catch(err) {
       console.warn('[Naqla Mentor] Mic monitor init error:', err);
@@ -1750,6 +1888,8 @@ function safeEncodeWidgetUri(str) {
 
   function stopCallMicMonitor() {
     if (micCheckInterval) { clearInterval(micCheckInterval); micCheckInterval = null; }
+    if (speechDebounceTimer) { clearTimeout(speechDebounceTimer); speechDebounceTimer = null; }
+    callSpeechBuffer = '';
     if (micStream) {
       try { micStream.getTracks().forEach(t => t.stop()); } catch(e){}
       micStream = null;
@@ -1759,10 +1899,13 @@ function safeEncodeWidgetUri(str) {
       micAudioContext = null;
     }
     micAnalyser = null;
+    micHighPass = null;
+    micLowPass = null;
+    micPeaking = null;
     resetLiveVuBars();
   }
 
-  function updateLiveVuBars(volume, dataArray) {
+  function updateLiveVuBars(volume, dataArray, isNearVoice) {
     const waveBox = document.getElementById('m-call-waves');
     if (!waveBox) return;
     const bars = waveBox.querySelectorAll('.m-call-wave-bar');
@@ -1774,13 +1917,20 @@ function safeEncodeWidgetUri(str) {
         bar.style.height = `${randH}px`;
         bar.style.background = '#38bdf8';
       });
-    } else if (isUserTalkingInCall && volume > 10) {
+    } else if (isNearVoice && volume > 10) {
+      // Confirmed near-field student voice: vibrant golden amber waves!
       bars.forEach((bar, i) => {
         const binIndex = Math.floor((i / bars.length) * (dataArray ? dataArray.length : 1));
         const val = dataArray ? (dataArray[binIndex] || 0) : 0;
-        const h = Math.max(4, Math.round((val / 255) * 26));
+        const h = Math.max(6, Math.round((val / 255) * 26));
         bar.style.height = `${h}px`;
         bar.style.background = '#fbbf24';
+      });
+    } else if (volume > (ambientNoiseFloor + 3)) {
+      // Ambient noise detected but rejected (filtered out): calm muted slate bars
+      bars.forEach(bar => {
+        bar.style.height = '6px';
+        bar.style.background = '#475569';
       });
     } else if (isProcessingCall) {
       bars.forEach((bar, i) => {
@@ -1791,7 +1941,7 @@ function safeEncodeWidgetUri(str) {
     } else {
       bars.forEach(bar => {
         bar.style.height = '4px';
-        bar.style.background = '#64748b';
+        bar.style.background = '#334155';
       });
     }
   }
@@ -1800,22 +1950,43 @@ function safeEncodeWidgetUri(str) {
     const waveBox = document.getElementById('m-call-waves');
     if (!waveBox) return;
     const bars = waveBox.querySelectorAll('.m-call-wave-bar');
-    bars.forEach(b => { b.style.height = '4px'; b.style.background = '#64748b'; });
+    bars.forEach(b => { b.style.height = '4px'; b.style.background = '#334155'; });
   }
 
-  // ⚡ Instant Barge-in Interruption (مقاطعة فورية)
-  function triggerCallBargeIn() {
-    if (isBotSpeaking) {
+  let callSpeakingWatchdog = null;
+
+  function finishBotSpeech() {
+    if (callSpeakingWatchdog) {
+      clearTimeout(callSpeakingWatchdog);
+      callSpeakingWatchdog = null;
+    }
+    isBotSpeaking = false;
+    if (isWidgetCallActive && !isCallMuted) {
+      setCallStatus('listening', isEnglishStage(activeStage) ? 'Naqla Bot is listening... Speak anytime! 🎙️' : 'المعلم يستمع لصوتك الآن... تفضل بسؤالك 👂✨');
+      setTimeout(startContinuousListening, 300);
+    }
+  }
+
+  // ⚡ Instant Barge-in Interruption (مقاطعة فورية مع حماية ضد الضوضاء)
+  function triggerCallBargeIn(force = false) {
+    if (isBotSpeaking || force) {
+      if (callSpeakingWatchdog) {
+        clearTimeout(callSpeakingWatchdog);
+        callSpeakingWatchdog = null;
+      }
+      widgetStopSpeak();
       if (widgetAudioPlayer) {
         try { widgetAudioPlayer.pause(); widgetAudioPlayer.currentTime = 0; } catch(e){}
         widgetAudioPlayer = null;
       }
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+        try { window.speechSynthesis.cancel(); } catch(e){}
       }
+      window.__naqlaActiveUtterance = null;
       isBotSpeaking = false;
-      setCallStatus('listening', 'سمعتك! المعلم يستمع لصوتك الآن... 👂✨');
-      setCallSubtitle('I hear you! Listening... 👂✨');
+      isProcessingCall = false;
+      setCallStatus('listening', 'سمعتك يا بطل! المعلم يستمع لصوتك الآن... 👂✨');
+      setCallSubtitle('تفضل بسؤالك، أنا استمع إليك باهتمام... 👂✨');
       startContinuousListening();
     }
   }
@@ -1917,6 +2088,11 @@ function safeEncodeWidgetUri(str) {
         chip.textContent = '🟢 مكالمة صوتية نشطة';
       }
       isCallMuted = false;
+      callSpeechBuffer = '';
+      lastNearVoiceTime = Date.now();
+      nearVoiceSustainCount = 0;
+      isNearVoiceActive = false;
+      ambientNoiseFloor = 14;
       const muteBtn = document.getElementById('m-call-mute-btn');
       if (muteBtn) {
         muteBtn.innerHTML = '<span>🎙️ كتم الصوت</span>';
@@ -1925,6 +2101,7 @@ function safeEncodeWidgetUri(str) {
       startCallTimer();
       startCallMicMonitor();
       updateCallOverlaySpeakerUI();
+      updateNearVoiceUI();
       playCallGreeting();
     } else {
       if (overlay) overlay.style.display = 'none';
@@ -1973,22 +2150,39 @@ function safeEncodeWidgetUri(str) {
 
     const clean = safeCleanWidgetTtsText(text);
     if (!clean) {
-      isBotSpeaking = false;
-      startContinuousListening();
+      finishBotSpeech();
       return;
     }
 
     const isEng = isEnglishStage(activeStage);
 
+    // Watchdog safety timer: Guarantees the bot will NEVER stay stuck in "المعلم يشرح لك"
+    if (callSpeakingWatchdog) clearTimeout(callSpeakingWatchdog);
+    const maxSpeechTime = Math.max(4000, Math.min(25000, clean.length * 110 + 2500));
+    callSpeakingWatchdog = setTimeout(() => {
+      if (isBotSpeaking) {
+        console.warn('[Naqla Live Call] Speech watchdog fired: auto-releasing bot to listening');
+        finishBotSpeech();
+      }
+    }, maxSpeechTime);
+
     try {
       const primaryUrl = await resolveTtsUrl(clean, widgetSpeaker);
+      const controller = new AbortController();
+      const fetchTimer = setTimeout(() => controller.abort(), 6000);
+
       let res = null;
       try {
-        res = await fetch(primaryUrl);
+        res = await fetch(primaryUrl, { signal: controller.signal });
+        clearTimeout(fetchTimer);
         if (!res.ok) throw new Error('Status ' + res.status);
       } catch(primaryErr) {
+        clearTimeout(fetchTimer);
         const fallbackUrl = 'https://local-ai-arsenal.pages.dev/api/tts?text=' + safeEncodeWidgetUri(clean) + '&speaker=' + safeEncodeWidgetUri(widgetSpeaker);
-        res = await fetch(fallbackUrl);
+        const fallbackCtrl = new AbortController();
+        const fallbackTimer = setTimeout(() => fallbackCtrl.abort(), 6000);
+        res = await fetch(fallbackUrl, { signal: fallbackCtrl.signal });
+        clearTimeout(fallbackTimer);
         if (!res || !res.ok) throw primaryErr;
       }
 
@@ -2000,10 +2194,7 @@ function safeEncodeWidgetUri(str) {
       audio.onended = () => {
         URL.revokeObjectURL(blobUrl);
         widgetAudioPlayer = null;
-        isBotSpeaking = false;
-        if (isWidgetCallActive && !isCallMuted) {
-          setTimeout(startContinuousListening, 350);
-        }
+        finishBotSpeech();
       };
 
       audio.onerror = () => {
@@ -2012,7 +2203,12 @@ function safeEncodeWidgetUri(str) {
         fallbackCallBrowserSpeak(clean, isEng);
       };
 
-      await audio.play();
+      await audio.play().catch(playErr => {
+        console.warn('[Naqla Live Call] Audio autoplay blocked or failed, falling back to browser speech:', playErr);
+        URL.revokeObjectURL(blobUrl);
+        widgetAudioPlayer = null;
+        fallbackCallBrowserSpeak(clean, isEng);
+      });
     } catch(e) {
       fallbackCallBrowserSpeak(clean, isEng);
     }
@@ -2020,44 +2216,54 @@ function safeEncodeWidgetUri(str) {
 
   function fallbackCallBrowserSpeak(clean, isEng) {
     if (!('speechSynthesis' in window)) {
-      isBotSpeaking = false;
-      if (isWidgetCallActive && !isCallMuted) setTimeout(startContinuousListening, 500);
+      finishBotSpeech();
       return;
     }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = isEng ? 'en-US' : 'ar-SA';
-    utterance.rate = isEng ? 0.94 : 1.0;
-    utterance.pitch = widgetSpeaker === 'israa' ? 1.15 : 0.95;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(clean);
+      window.__naqlaActiveUtterance = utterance; // Keep global ref to prevent GC in Chrome!
 
-    const voices = window.speechSynthesis.getVoices();
-    if (isEng) {
-      const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.toLowerCase().includes('natural')) ||
-                      voices.find(v => v.lang.startsWith('en-US')) ||
-                      voices.find(v => v.lang.startsWith('en'));
-      if (enVoice) utterance.voice = enVoice;
-    } else {
-      const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
-      if (arVoices.length > 0) {
-        if (widgetSpeaker === 'israa') {
-          const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah'));
-          utterance.voice = f || arVoices[0];
-        } else {
-          const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik'));
-          utterance.voice = m || arVoices[0];
+      utterance.lang = isEng ? 'en-US' : 'ar-SA';
+      utterance.rate = isEng ? 0.94 : 1.0;
+      utterance.pitch = widgetSpeaker === 'israa' ? 1.15 : 0.95;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (isEng) {
+        const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.toLowerCase().includes('natural')) ||
+                        voices.find(v => v.lang.startsWith('en-US')) ||
+                        voices.find(v => v.lang.startsWith('en'));
+        if (enVoice) utterance.voice = enVoice;
+      } else {
+        const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
+        if (arVoices.length > 0) {
+          if (widgetSpeaker === 'israa') {
+            const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah'));
+            utterance.voice = f || arVoices[0];
+          } else {
+            const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik'));
+            utterance.voice = m || arVoices[0];
+          }
         }
       }
-    }
 
-    utterance.onend = () => {
-      isBotSpeaking = false;
-      if (isWidgetCallActive && !isCallMuted) setTimeout(startContinuousListening, 350);
-    };
-    utterance.onerror = () => {
-      isBotSpeaking = false;
-      if (isWidgetCallActive && !isCallMuted) setTimeout(startContinuousListening, 500);
-    };
-    window.speechSynthesis.speak(utterance);
+      utterance.onend = () => {
+        window.__naqlaActiveUtterance = null;
+        finishBotSpeech();
+      };
+      utterance.onerror = () => {
+        window.__naqlaActiveUtterance = null;
+        finishBotSpeech();
+      };
+      utterance.onpause = () => {
+        try { window.speechSynthesis.resume(); } catch(e){}
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch(err) {
+      console.warn('[Naqla Live Call] Browser speech synthesis error:', err);
+      finishBotSpeech();
+    }
   }
 
   function startContinuousListening() {
@@ -2077,11 +2283,13 @@ function safeEncodeWidgetUri(str) {
     let hasReceivedFinal = false;
 
     wRec.onsoundstart = () => {
-      triggerCallBargeIn();
+      if (isBotSpeaking) triggerCallBargeIn();
     };
 
     wRec.onspeechstart = () => {
-      triggerCallBargeIn();
+      if (isBotSpeaking) triggerCallBargeIn();
+      isUserTalkingInCall = true;
+      setCallStatus('listening', isEng ? 'Naqla Bot is listening... 🎙️' : 'المعلم يستمع لصوتك الآن... 👂✨');
     };
 
     wRec.onstart = () => {
@@ -2090,8 +2298,14 @@ function safeEncodeWidgetUri(str) {
     };
 
     wRec.onresult = (e) => {
-      if (!isWidgetCallActive || isBotSpeaking) return;
-      triggerCallBargeIn();
+      if (!isWidgetCallActive) return;
+      // If bot is speaking and student talks close to mic, trigger barge-in!
+      if (isBotSpeaking) {
+        if (isNearVoiceActive || isUserTalkingInCall) {
+          triggerCallBargeIn();
+        }
+        return;
+      }
 
       let interim = '';
       let final = '';
@@ -2105,15 +2319,36 @@ function safeEncodeWidgetUri(str) {
       }
 
       const liveText = (final || interim).trim();
-      if (liveText) {
-        setCallSubtitle(`🗣️ "${liveText}"`);
+      const currentCombined = (callSpeechBuffer ? (callSpeechBuffer + ' ' + liveText) : liveText).trim();
+      if (currentCombined) {
+        setCallSubtitle(`🗣️ "${currentCombined}"`);
       }
 
       if (final.trim()) {
-        hasReceivedFinal = true;
-        isWRecording = false;
-        try { wRec.abort(); } catch(err) {}
-        handleCallUserSpeech(final.trim());
+        const timeSinceNearVoice = Date.now() - lastNearVoiceTime;
+        // Near-Field Verification: Only reject ambient speech in 'aggressive' isolation mode
+        // In 'smart' and 'normal' modes, always accept speech (the DSP filters handle noise)
+        if (nearVoiceMode === 'aggressive' && timeSinceNearVoice > 2500 && !isNearVoiceActive) {
+          console.log('[Naqla Mentor] Aggressive mode: Ignored distant ambient speech:', final.trim());
+          return;
+        }
+
+        // Accumulate in buffer
+        callSpeechBuffer = (callSpeechBuffer ? (callSpeechBuffer + ' ' + final.trim()) : final.trim());
+        setCallSubtitle(`🗣️ "${callSpeechBuffer}"`);
+
+        // Smart Debounce Window (1000ms): Allow student to pause, think, and complete sentence without premature cutoff
+        if (speechDebounceTimer) clearTimeout(speechDebounceTimer);
+        speechDebounceTimer = setTimeout(() => {
+          if (callSpeechBuffer && isWidgetCallActive && !isProcessingCall && !isBotSpeaking) {
+            const textToSend = callSpeechBuffer.trim();
+            callSpeechBuffer = '';
+            hasReceivedFinal = true;
+            isWRecording = false;
+            try { wRec.abort(); } catch(err) {}
+            handleCallUserSpeech(textToSend);
+          }
+        }, 750);
       }
     };
 
@@ -2135,6 +2370,20 @@ function safeEncodeWidgetUri(str) {
     wRec.onend = () => {
       isWRecording = false;
       if (micBtn) micBtn.style.background = '#1e293b';
+
+      // If we have buffered speech waiting, let the debounce timer finish or dispatch if silence passed
+      if (callSpeechBuffer && !hasReceivedFinal && isWidgetCallActive && !isProcessingCall && !isBotSpeaking) {
+        if (!speechDebounceTimer) {
+          speechDebounceTimer = setTimeout(() => {
+            if (callSpeechBuffer && isWidgetCallActive && !isProcessingCall && !isBotSpeaking) {
+              const textToSend = callSpeechBuffer.trim();
+              callSpeechBuffer = '';
+              handleCallUserSpeech(textToSend);
+            }
+          }, 800);
+        }
+      }
+
       if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !hasReceivedFinal && !isCallMuted) {
         if (callKeepAliveTimer) clearTimeout(callKeepAliveTimer);
         callKeepAliveTimer = setTimeout(() => {
@@ -2157,6 +2406,12 @@ function safeEncodeWidgetUri(str) {
   function handleCallUserSpeech(text) {
     if (!text || !text.trim() || !isWidgetCallActive || isProcessingCall) return;
 
+    if (speechDebounceTimer) {
+      clearTimeout(speechDebounceTimer);
+      speechDebounceTimer = null;
+    }
+    callSpeechBuffer = '';
+
     isProcessingCall = true;
     setCallStatus('thinking', 'المعلم يحلل ويفكر في الرد... 🤖💭');
     setCallSubtitle(`🗣️ سؤالك: "${text}"`);
@@ -2166,19 +2421,33 @@ function safeEncodeWidgetUri(str) {
 
   function interruptCall() {
     if (!isWidgetCallActive) return;
-    widgetStopSpeak();
-    isBotSpeaking = false;
-    isProcessingCall = false;
-    setCallSubtitle('تمت المقاطعة. تفضل بالتحدث الآن 🎙️');
-    startContinuousListening();
+    if (speechDebounceTimer) {
+      clearTimeout(speechDebounceTimer);
+      speechDebounceTimer = null;
+    }
+    // Instant submission: If user was accumulating speech in buffer, dispatch it immediately!
+    if (callSpeechBuffer && callSpeechBuffer.trim()) {
+      const textToSend = callSpeechBuffer.trim();
+      callSpeechBuffer = '';
+      if (wRec) { try { wRec.abort(); } catch(e){} }
+      handleCallUserSpeech(textToSend);
+      return;
+    }
+    triggerCallBargeIn(true);
   }
 
   // Setup Call Overlay Event Listeners
   const callInterruptBtn = document.getElementById('m-call-interrupt-btn');
   const callEndBtn = document.getElementById('m-call-end-btn');
   const callSpeakerBtn = document.getElementById('m-call-speaker-btn');
+  const callNearVoiceBtn = document.getElementById('m-call-nearvoice-btn');
   const callMuteBtn = document.getElementById('m-call-mute-btn');
   const callAvatar = document.getElementById('m-call-avatar');
+
+  if (callNearVoiceBtn) {
+    callNearVoiceBtn.onclick = cycleNearVoiceMode;
+    updateNearVoiceUI();
+  }
 
   if (callInterruptBtn) callInterruptBtn.onclick = interruptCall;
   if (callAvatar) callAvatar.onclick = interruptCall;
@@ -2190,6 +2459,8 @@ function safeEncodeWidgetUri(str) {
       if (isCallMuted) {
         if (wRec) { try { wRec.abort(); } catch(e){} }
         if (callKeepAliveTimer) clearTimeout(callKeepAliveTimer);
+        if (speechDebounceTimer) clearTimeout(speechDebounceTimer);
+        callSpeechBuffer = '';
         callMuteBtn.innerHTML = '<span>🔇 تم الكتم</span>';
         callMuteBtn.style.background = '#dc2626';
         setCallStatus('idle', 'الميكروفون مكتوم 🔇');
