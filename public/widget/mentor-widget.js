@@ -12,23 +12,18 @@
   const PRIMARY_COLOR = currentScript && currentScript.getAttribute('data-color') ? currentScript.getAttribute('data-color') : (activeStage === 'kg' ? '#f59e0b' : (activeStage === 'chemistry' ? '#0284c7' : (activeStage === 'geography' ? '#4A6741' : (activeStage === 'history' ? '#8C6239' : '#4f46e5'))));
 
   async function resolveMentorEndpoint() {
-    const custom = currentScript ? currentScript.getAttribute('data-api-url') : null;
-    if (custom && custom !== 'auto' && custom.trim() !== '' && !custom.includes('xxxx.') && !custom.includes('something.')) {
-      return custom.replace(/\/+$/, '') + (custom.includes('/api/mentor/chat') ? '' : '/api/mentor/chat');
+    // 1. Direct Localhost Connection (if on local dev or testing)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://127.0.0.1:8000/api/mentor/chat';
     }
 
-    try {
-      const res = await fetch('https://local-ai-arsenal.pages.dev/static/tunnel_status.json?t=' + Date.now(), { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.status === 'online' && data.tunnel_url && data.tunnel_url.startsWith('http') && !data.tunnel_url.includes('something.') && !data.tunnel_url.includes('xxxx.') && !data.tunnel_url.includes('solving-wide') && !data.tunnel_url.includes('rail-pick')) {
-          cachedApiEndpoint = data.tunnel_url.replace(/\/+$/, '') + '/api/mentor/chat';
-          return cachedApiEndpoint;
-        }
-      }
-    } catch (e) {}
+    const custom = currentScript ? currentScript.getAttribute('data-api-url') : null;
+    if (custom && custom !== 'auto' && custom.trim() !== '' && !custom.includes('xxxx.') && !custom.includes('something.')) {
+      return custom.replace(/\/+$/, '') + (custom.includes('/api/mentor/chat') || custom.includes('/api/chat') ? '' : '/api/mentor/chat');
+    }
 
-    return cachedApiEndpoint || CLOUD_FALLBACK_ENDPOINT;
+    // 2. ⚡ 24/7 Autonomous Cloudflare Edge AI (Primary Sovereign Engine with GPT-OSS-120B / Qwen-27B Curriculum RAG)
+    return CLOUD_FALLBACK_ENDPOINT;
   }
 
   // Inject Styles
@@ -1236,55 +1231,54 @@
       const endpoint = await resolveMentorEndpoint();
       let res = null;
 
-      // 1. 🌐 Primary: Fast 24/7 Cloud Edge AI
-      const payload = {
-        message: text,
-        history: history.slice(-6),
-        stage: activeStage,
-        is_voice_call: isWidgetCallActive,
-        host_context: hostContextPayload
-      };
+      // 1. 💻 Sovereign Primary Engine: Local AI Arsenal (الترسانة المحلية أولاً)
+      const isLocalOrTunnel = endpoint && (
+        endpoint.includes('trycloudflare.com') ||
+        endpoint.includes('127.0.0.1') ||
+        endpoint.includes('localhost') ||
+        !endpoint.includes('local-ai-arsenal.pages.dev')
+      );
 
-      try {
-        const cloudController = new AbortController();
-        const cloudTimeoutId = setTimeout(() => cloudController.abort(), 6500);
-        res = await fetch(CLOUD_FALLBACK_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: cloudController.signal
-        });
-        clearTimeout(cloudTimeoutId);
-
-        if (res && res.status === 429) {
-          throw new Error('CLOUD_QUOTA_EXCEEDED');
-        }
-        if (!res.ok) throw new Error('Cloud HTTP ' + res.status);
-      } catch (cloudErr) {
-        console.warn('[Widget Router] Cloud unavailable or quota reached:', cloudErr.message);
-
-        // 2. 💻 Fallback to Local AI Arsenal (Unlimited Local Engine via Tunnel / Localhost)
-        if (endpoint && endpoint !== CLOUD_FALLBACK_ENDPOINT) {
-          try {
-            const localController = new AbortController();
-            const localTimeoutId = setTimeout(() => localController.abort(), 14000);
-            res = await fetch(endpoint, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': '69420'
-              },
-              body: JSON.stringify(payload),
-              signal: localController.signal
-            });
-            clearTimeout(localTimeoutId);
-          } catch (localErr) {
-            console.warn('[Widget Router] Local engine also failed:', localErr);
-          }
+      if (isLocalOrTunnel) {
+        try {
+          const localController = new AbortController();
+          const localTimeoutId = setTimeout(() => localController.abort(), 12000);
+          res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': '69420'
+            },
+            body: JSON.stringify(payload),
+            signal: localController.signal
+          });
+          clearTimeout(localTimeoutId);
+          if (!res || !res.ok) throw new Error('Local server status ' + (res ? res.status : 'null'));
+        } catch (localErr) {
+          console.warn('[Widget Router] Local AI Arsenal unreachable, falling back to Cloud Edge:', localErr.message);
+          res = null;
         }
       }
 
-      if (!res || !res.ok) throw new Error('فشل الاتصال بالمعلم السحابي والمحلي');
+      // 2. 🌐 Secondary Backup Engine: Cloud Edge AI (احتياطي فقط عند غياب السيرفر المحلي)
+      if (!res || !res.ok) {
+        try {
+          const cloudController = new AbortController();
+          const cloudTimeoutId = setTimeout(() => cloudController.abort(), 7000);
+          res = await fetch(CLOUD_FALLBACK_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: cloudController.signal
+          });
+          clearTimeout(cloudTimeoutId);
+          if (!res.ok) throw new Error('Cloud HTTP ' + res.status);
+        } catch (cloudErr) {
+          console.warn('[Widget Router] Cloud Edge failed too:', cloudErr.message);
+        }
+      }
+
+      if (!res || !res.ok) throw new Error('فشل الاتصال بالمعلم المحلي والسحابي');
       const data = await res.json();
       loadEl.remove();
 
@@ -1529,18 +1523,12 @@ function safeEncodeWidgetUri(str) {
 }
 
   async function resolveTtsUrl(cleanText, speaker) {
-    let baseUrl = 'https://local-ai-arsenal.pages.dev';
-    try {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        baseUrl = window.location.origin;
-      } else {
-        const ep = await resolveMentorEndpoint();
-        if (ep && !ep.includes('local-ai-arsenal.pages.dev')) {
-          baseUrl = ep.replace(/\/api\/mentor\/chat$/, '').replace(/\/api\/chat$/, '');
-        }
-      }
-    } catch(e) {}
-    return baseUrl + '/api/tts?text=' + safeEncodeWidgetUri(cleanText) + '&speaker=' + safeEncodeWidgetUri(speaker);
+    const encText = safeEncodeWidgetUri(cleanText);
+    const encSpeaker = safeEncodeWidgetUri(speaker);
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://127.0.0.1:8000/api/tts?text=' + encText + '&speaker=' + encSpeaker;
+    }
+    return 'https://local-ai-arsenal.pages.dev/api/tts?text=' + encText + '&speaker=' + encSpeaker;
   }
 
   let widgetAudioPlayer = null;
@@ -1588,9 +1576,13 @@ function safeEncodeWidgetUri(str) {
         throw new Error('Expected audio but got ' + ctype);
       }
 
+      if (!res || !res.ok) throw new Error('TTS response not ok: ' + (res ? res.status : 'null'));
       const blob = await res.blob();
+      if (blob.size < 500) throw new Error('Audio blob too small (' + blob.size + ' bytes)');
       const blobUrl = URL.createObjectURL(blob);
       const audio = new Audio(blobUrl);
+      audio.volume = 1.0;
+      audio.muted = false;
       widgetAudioPlayer = audio;
 
       audio.onplay = () => {
@@ -1619,20 +1611,36 @@ function safeEncodeWidgetUri(str) {
       widgetStopSpeak(spk, stp);
       return;
     }
+    try {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    } catch(e) {}
     const utterance = new SpeechSynthesisUtterance(clean);
     utterance.lang = 'ar-SA';
-    utterance.rate = 1.0;
-    utterance.pitch = widgetSpeaker === 'israa' ? 1.15 : 0.95;
+    utterance.volume = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
     const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
-    if (arVoices.length > 0) {
-      if (widgetSpeaker === 'israa') {
-        const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah'));
+    if (widgetSpeaker === 'israa') {
+      utterance.pitch = 1.15;
+      utterance.rate = 1.0;
+      if (arVoices.length > 0) {
+        const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah') || v.name.includes('Laila') || v.name.includes('Muna'));
         utterance.voice = f || arVoices[0];
+      }
+    } else {
+      // Osman: Strict Male Baritone Voice Guarantee
+      const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik') || v.name.includes('Naayf') || v.name.includes('Hamid') || v.name.includes('Omar') || v.name.includes('Bassam'));
+      if (m) {
+        utterance.voice = m;
+        utterance.pitch = 0.95;
+        utterance.rate = 1.0;
+      } else if (arVoices.length > 0) {
+        utterance.voice = arVoices[0];
+        utterance.pitch = 0.58; // Formant pitch-shift transforms female voice into deep dignified male voice!
+        utterance.rate = 0.92;
       } else {
-        const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik'));
-        utterance.voice = m || arVoices[0];
+        utterance.pitch = 0.58;
+        utterance.rate = 0.92;
       }
     }
 
@@ -1657,6 +1665,9 @@ function safeEncodeWidgetUri(str) {
   // 📞 Live Continuous Voice-to-Voice Calling Engine (صوت إلى صوت مستمر - Enhanced Architecture)
   let isWidgetCallActive = false;
   let isBotSpeaking = false;
+  let isAudioActuallyPlaying = false;
+  let callStartTime = 0;
+  let callAudioElement = null;
   let isProcessingCall = false;
   let callKeepAliveTimer = null;
   let audioContextUnlocked = false;
@@ -1865,9 +1876,11 @@ function safeEncodeWidgetUri(str) {
             lastNearVoiceTime = Date.now();
             isUserTalkingInCall = true;
 
-            // Controlled barge-in: only if bot is speaking AND energy is loud & sustained (>250ms)
-            if (isBotSpeaking && normalized >= Math.max(ambientNoiseFloor + 22, botBargeInGate) && nearVoiceSustainCount >= 2) {
-              triggerCallBargeIn();
+            // Controlled barge-in: ONLY if audio is ACTUALLY playing sound AND energy is loud & sustained (>250ms)
+            if (isAudioActuallyPlaying && Date.now() - callStartTime >= 3500) {
+              if (normalized >= Math.max(ambientNoiseFloor + 26, botBargeInGate + 4) && nearVoiceSustainCount >= 3) {
+                triggerCallBargeIn();
+              }
             }
           }
         } else {
@@ -1961,6 +1974,7 @@ function safeEncodeWidgetUri(str) {
       callSpeakingWatchdog = null;
     }
     isBotSpeaking = false;
+    isAudioActuallyPlaying = false;
     if (isWidgetCallActive && !isCallMuted) {
       setCallStatus('listening', isEnglishStage(activeStage) ? 'Naqla Bot is listening... Speak anytime! 🎙️' : 'المعلم يستمع لصوتك الآن... تفضل بسؤالك 👂✨');
       setTimeout(startContinuousListening, 300);
@@ -1969,12 +1983,25 @@ function safeEncodeWidgetUri(str) {
 
   // ⚡ Instant Barge-in Interruption (مقاطعة فورية مع حماية ضد الضوضاء)
   function triggerCallBargeIn(force = false) {
+    // Safety Guard 1: Never interrupt during the first 3.5 seconds of call start (let greeting be heard!)
+    if (!force && Date.now() - callStartTime < 3500) {
+      return;
+    }
+    // Safety Guard 2: Never interrupt while audio is still downloading / preparing (sound not yet emitting)
+    if (!force && !isAudioActuallyPlaying) {
+      return;
+    }
+
     if (isBotSpeaking || force) {
       if (callSpeakingWatchdog) {
         clearTimeout(callSpeakingWatchdog);
         callSpeakingWatchdog = null;
       }
+      isAudioActuallyPlaying = false;
       widgetStopSpeak();
+      if (callAudioElement) {
+        try { callAudioElement.pause(); callAudioElement.currentTime = 0; } catch(e){}
+      }
       if (widgetAudioPlayer) {
         try { widgetAudioPlayer.pause(); widgetAudioPlayer.currentTime = 0; } catch(e){}
         widgetAudioPlayer = null;
@@ -2098,6 +2125,24 @@ function safeEncodeWidgetUri(str) {
         muteBtn.innerHTML = '<span>🎙️ كتم الصوت</span>';
         muteBtn.style.background = 'rgba(255,255,255,0.12)';
       }
+      callStartTime = Date.now();
+      isAudioActuallyPlaying = false;
+      if (!callAudioElement) {
+        try { callAudioElement = new Audio(); } catch(e){}
+      }
+      if (callAudioElement) {
+        try {
+          callAudioElement.volume = 1.0;
+          callAudioElement.muted = false;
+          // Pre-warm audio pipeline with silent wav on user click to unlock mobile/desktop autoplay
+          callAudioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+          const p = callAudioElement.play();
+          if (p) p.catch(() => {});
+        } catch(e){}
+      }
+      if ('speechSynthesis' in window) {
+        try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch(e){}
+      }
       startCallTimer();
       startCallMicMonitor();
       updateCallOverlaySpeakerUI();
@@ -2144,6 +2189,7 @@ function safeEncodeWidgetUri(str) {
   async function speakCallAudio(text) {
     if (!isWidgetCallActive) return;
     isBotSpeaking = true;
+    isAudioActuallyPlaying = false;
     if (wRec) { try { wRec.abort(); } catch(e) {} }
 
     setCallStatus('speaking', 'المعلم يشرح لك صوتياً الآن...');
@@ -2156,9 +2202,24 @@ function safeEncodeWidgetUri(str) {
 
     const isEng = isEnglishStage(activeStage);
 
+    // In live voice call: Speak concise, direct pedagogical summary (~220 chars) for instant audio response
+    let speechSnippet = clean;
+    if (speechSnippet.length > 250) {
+      const sentences = speechSnippet.split(/(?<=[.!\?؟\n])\s+/);
+      let acc = '';
+      for (const s of sentences) {
+        if ((acc + ' ' + s).length <= 260) {
+          acc += (acc ? ' ' : '') + s;
+        } else {
+          break;
+        }
+      }
+      speechSnippet = acc || speechSnippet.slice(0, 220) + '... وتفضل بمراجعة كامل الشرح والمخطط على الشاشة!';
+    }
+
     // Watchdog safety timer: Guarantees the bot will NEVER stay stuck in "المعلم يشرح لك"
     if (callSpeakingWatchdog) clearTimeout(callSpeakingWatchdog);
-    const maxSpeechTime = Math.max(4000, Math.min(25000, clean.length * 110 + 2500));
+    const maxSpeechTime = Math.max(4000, Math.min(25000, speechSnippet.length * 110 + 2500));
     callSpeakingWatchdog = setTimeout(() => {
       if (isBotSpeaking) {
         console.warn('[Naqla Live Call] Speech watchdog fired: auto-releasing bot to listening');
@@ -2167,7 +2228,7 @@ function safeEncodeWidgetUri(str) {
     }, maxSpeechTime);
 
     try {
-      const primaryUrl = await resolveTtsUrl(clean, widgetSpeaker);
+      const primaryUrl = await resolveTtsUrl(speechSnippet, widgetSpeaker);
       const controller = new AbortController();
       const fetchTimer = setTimeout(() => controller.abort(), 6000);
 
@@ -2178,26 +2239,54 @@ function safeEncodeWidgetUri(str) {
         if (!res.ok) throw new Error('Status ' + res.status);
       } catch(primaryErr) {
         clearTimeout(fetchTimer);
-        const fallbackUrl = 'https://local-ai-arsenal.pages.dev/api/tts?text=' + safeEncodeWidgetUri(clean) + '&speaker=' + safeEncodeWidgetUri(widgetSpeaker);
-        const fallbackCtrl = new AbortController();
-        const fallbackTimer = setTimeout(() => fallbackCtrl.abort(), 6000);
-        res = await fetch(fallbackUrl, { signal: fallbackCtrl.signal });
-        clearTimeout(fallbackTimer);
-        if (!res || !res.ok) throw primaryErr;
+        const fallbackVercelUrl = 'https://sudan-interactive-curricula.vercel.app/api/tts?text=' + safeEncodeWidgetUri(clean) + '&speaker=' + safeEncodeWidgetUri(widgetSpeaker);
+        try {
+          const fallbackCtrl = new AbortController();
+          const fallbackTimer = setTimeout(() => fallbackCtrl.abort(), 6000);
+          res = await fetch(fallbackVercelUrl, { signal: fallbackCtrl.signal });
+          clearTimeout(fallbackTimer);
+          if (!res || !res.ok) throw new Error('Vercel status ' + (res ? res.status : 'none'));
+        } catch(vercelErr) {
+          const fallbackCfUrl = 'https://local-ai-arsenal.pages.dev/api/tts?text=' + safeEncodeWidgetUri(clean) + '&speaker=' + safeEncodeWidgetUri(widgetSpeaker);
+          const cfCtrl = new AbortController();
+          const cfTimer = setTimeout(() => cfCtrl.abort(), 6000);
+          res = await fetch(fallbackCfUrl, { signal: cfCtrl.signal });
+          clearTimeout(cfTimer);
+          if (!res || !res.ok) throw primaryErr;
+        }
       }
 
+      if (!res || !res.ok) throw new Error('TTS response not ok: ' + (res ? res.status : 'null'));
+      const ctype = res.headers.get('content-type') || '';
+      if (!ctype.includes('audio') && !ctype.includes('mpeg') && !ctype.includes('octet-stream')) {
+        throw new Error('Expected audio MIME but got ' + ctype);
+      }
       const blob = await res.blob();
+      if (blob.size < 400) throw new Error('Audio blob too small (' + blob.size + ' bytes)');
       const blobUrl = URL.createObjectURL(blob);
-      const audio = new Audio(blobUrl);
+      
+      const audio = callAudioElement || new Audio();
+      callAudioElement = audio;
       widgetAudioPlayer = audio;
+      audio.volume = 1.0;
+      audio.muted = false;
+      audio.src = blobUrl;
+
+      audio.onplay = () => {
+        isAudioActuallyPlaying = true;
+        setCallStatus('speaking', isEng ? 'Naqla Bot is speaking...' : 'المعلم يشرح لك صوتياً الآن...');
+      };
 
       audio.onended = () => {
+        isAudioActuallyPlaying = false;
         URL.revokeObjectURL(blobUrl);
         widgetAudioPlayer = null;
         finishBotSpeech();
       };
 
-      audio.onerror = () => {
+      audio.onerror = (aErr) => {
+        console.warn('[Naqla Live Call] Audio element error, falling back:', aErr);
+        isAudioActuallyPlaying = false;
         URL.revokeObjectURL(blobUrl);
         widgetAudioPlayer = null;
         fallbackCallBrowserSpeak(clean, isEng);
@@ -2205,6 +2294,7 @@ function safeEncodeWidgetUri(str) {
 
       await audio.play().catch(playErr => {
         console.warn('[Naqla Live Call] Audio autoplay blocked or failed, falling back to browser speech:', playErr);
+        isAudioActuallyPlaying = false;
         URL.revokeObjectURL(blobUrl);
         widgetAudioPlayer = null;
         fallbackCallBrowserSpeak(clean, isEng);
@@ -2225,33 +2315,55 @@ function safeEncodeWidgetUri(str) {
       window.__naqlaActiveUtterance = utterance; // Keep global ref to prevent GC in Chrome!
 
       utterance.lang = isEng ? 'en-US' : 'ar-SA';
-      utterance.rate = isEng ? 0.94 : 1.0;
-      utterance.pitch = widgetSpeaker === 'israa' ? 1.15 : 0.95;
+      utterance.volume = 1.0;
 
       const voices = window.speechSynthesis.getVoices();
       if (isEng) {
+        utterance.rate = 0.94;
+        utterance.pitch = 1.0;
         const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.toLowerCase().includes('natural')) ||
                         voices.find(v => v.lang.startsWith('en-US')) ||
                         voices.find(v => v.lang.startsWith('en'));
         if (enVoice) utterance.voice = enVoice;
       } else {
         const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
-        if (arVoices.length > 0) {
-          if (widgetSpeaker === 'israa') {
-            const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah'));
+        if (widgetSpeaker === 'israa') {
+          utterance.pitch = 1.15;
+          utterance.rate = 1.0;
+          if (arVoices.length > 0) {
+            const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah') || v.name.includes('Laila') || v.name.includes('Muna'));
             utterance.voice = f || arVoices[0];
+          }
+        } else {
+          // Osman: Strict Male Baritone Voice Guarantee
+          const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik') || v.name.includes('Naayf') || v.name.includes('Hamid') || v.name.includes('Omar') || v.name.includes('Bassam'));
+          if (m) {
+            utterance.voice = m;
+            utterance.pitch = 0.95;
+            utterance.rate = 1.0;
+          } else if (arVoices.length > 0) {
+            utterance.voice = arVoices[0];
+            utterance.pitch = 0.58; // Formant pitch-shift transforms female voice into deep dignified male voice!
+            utterance.rate = 0.92;
           } else {
-            const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik'));
-            utterance.voice = m || arVoices[0];
+            utterance.pitch = 0.58;
+            utterance.rate = 0.92;
           }
         }
       }
 
+      utterance.onstart = () => {
+        isAudioActuallyPlaying = true;
+        setCallStatus('speaking', isEng ? 'Naqla Bot is speaking...' : 'المعلم يشرح لك صوتياً الآن...');
+      };
       utterance.onend = () => {
+        isAudioActuallyPlaying = false;
         window.__naqlaActiveUtterance = null;
         finishBotSpeech();
       };
-      utterance.onerror = () => {
+      utterance.onerror = (uErr) => {
+        console.warn('[Naqla Live Call] Utterance error:', uErr);
+        isAudioActuallyPlaying = false;
         window.__naqlaActiveUtterance = null;
         finishBotSpeech();
       };
@@ -2259,7 +2371,14 @@ function safeEncodeWidgetUri(str) {
         try { window.speechSynthesis.resume(); } catch(e){}
       };
 
-      window.speechSynthesis.speak(utterance);
+      setTimeout(() => {
+        try {
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+          window.speechSynthesis.speak(utterance);
+        } catch(e) {
+          finishBotSpeech();
+        }
+      }, 50);
     } catch(err) {
       console.warn('[Naqla Live Call] Browser speech synthesis error:', err);
       finishBotSpeech();
