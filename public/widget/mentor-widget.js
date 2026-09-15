@@ -7,6 +7,12 @@
   const urlParamStage = (new URLSearchParams(window.location.search)).get('stage');
   let activeStage = (scriptStage || urlParamStage || 'general').toLowerCase();
 
+  function isEnglishStage(stage) {
+    if (!stage) return false;
+    const s = String(stage).toLowerCase();
+    return s.includes('english') || s.includes('eng') || s === 'en';
+  }
+
   const defaultTitle = activeStage === 'kg' ? 'المعلّم الذكي للبراعم والروضة 🧸' : (activeStage === 'chemistry' ? '🧪 معلّم كيمياء الشهادة السودانية الذكي ⚗️' : (activeStage === 'geography' ? '🌍 معلم جغرافيا الصف السادس الذكي 🇸🇩' : (activeStage === 'history' ? '🏛️ معلم تاريخ الصف السادس الذكي 🇸🇩' : 'المعلّم والمدرّب الذاتي الذكي 🎓')));
   const TITLE = currentScript && currentScript.getAttribute('data-title') ? currentScript.getAttribute('data-title') : defaultTitle;
   const PRIMARY_COLOR = currentScript && currentScript.getAttribute('data-color') ? currentScript.getAttribute('data-color') : (activeStage === 'kg' ? '#f59e0b' : (activeStage === 'chemistry' ? '#0284c7' : (activeStage === 'geography' ? '#4A6741' : (activeStage === 'history' ? '#8C6239' : '#4f46e5'))));
@@ -768,6 +774,10 @@
           <span>🎙️ كتم الصوت</span>
         </button>
 
+        <button id="m-call-replay-btn" type="button" title="استمع للمعلم مجدداً" onclick="if(window.replayCallTeacherAudio)window.replayCallTeacherAudio();" style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.3); color:#38bdf8; padding:8px 14px; border-radius:14px; font-size:11px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s;">
+          <span>🔊 اسمع المعلم</span>
+        </button>
+
         <button id="m-call-interrupt-btn" title="مقاطعة المعلم والتحدث فوراً" style="background:#0284c7; border:none; color:#fff; padding:8px 16px; border-radius:14px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 4px 15px rgba(2,132,199,0.4); transition:all 0.2s;">
           <span>⚡ تحدث الآن</span>
         </button>
@@ -1184,6 +1194,9 @@
   document.getElementById('mentor-close-btn').onclick = () => {
     isOpen = false;
     modal.style.display = 'none';
+    if (isWidgetCallActive && typeof window.toggleWidgetCall === 'function') {
+      window.toggleWidgetCall(false);
+    }
   };
 
   const history = [];
@@ -1681,11 +1694,13 @@ function safeEncodeWidgetUri(str) {
   let callStartTime = 0;
   let callAudioElement = null;
   let isProcessingCall = false;
+  let callProcessingWatchdog = null;
   let callKeepAliveTimer = null;
   let audioContextUnlocked = false;
   let callTimerInterval = null;
   let callDurationSeconds = 0;
   let isCallMuted = false;
+  let activeCallTtsAbortController = null;
 
   // 🎯 Web Audio API Near-Field Voice Isolation & Intelligent VAD Engine
   let nearVoiceMode = localStorage.getItem('mentor_near_voice_mode') || 'smart'; // 'smart', 'aggressive', 'normal'
@@ -1745,7 +1760,6 @@ function safeEncodeWidgetUri(str) {
     };
     setCallSubtitle(modeTitles[nearVoiceMode]);
   }
-
   let liveCallAudioContext = null;
   let activeBufferSource = null;
 
@@ -1784,7 +1798,7 @@ function safeEncodeWidgetUri(str) {
     callTimerInterval = setInterval(() => {
       callDurationSeconds++;
       if (timerEl) timerEl.textContent = formatCallTimer(callDurationSeconds);
-    }, 750);
+    }, 1000);
   }
 
   function stopCallTimer() {
@@ -1794,125 +1808,8 @@ function safeEncodeWidgetUri(str) {
     }
   }
 
-  // ⚡ VAD Microphone Monitor with Near-Field DSP Filter Graph & Noise Floor Tracking
   async function startCallMicMonitor() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          channelCount: 1
-        }
-      });
-      micStream = stream;
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      micAudioContext = new AudioCtx();
-      if (micAudioContext.state === 'suspended') {
-        try { await micAudioContext.resume(); } catch(e){}
-      }
-
-      const source = micAudioContext.createMediaStreamSource(stream);
-
-      // Filter 1: Highpass 160Hz (Cut low frequency fans, desk thumps, AC rumble)
-      micHighPass = micAudioContext.createBiquadFilter();
-      micHighPass.type = 'highpass';
-      micHighPass.frequency.value = 160;
-
-      // Filter 2: Lowpass 3600Hz (Cut ambient hiss, room squeaks, high frequency background)
-      micLowPass = micAudioContext.createBiquadFilter();
-      micLowPass.type = 'lowpass';
-      micLowPass.frequency.value = 3600;
-
-      // Filter 3: Peaking 1800Hz (+3.5dB boost at primary human voice intelligibility band)
-      micPeaking = micAudioContext.createBiquadFilter();
-      micPeaking.type = 'peaking';
-      micPeaking.frequency.value = 1800;
-      micPeaking.Q.value = 1.2;
-      micPeaking.gain.value = 3.5;
-
-      const analyser = micAudioContext.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.45;
-
-      // Connect DSP chain: source -> HighPass -> LowPass -> Peaking -> Analyser
-      source.connect(micHighPass);
-      micHighPass.connect(micLowPass);
-      micLowPass.connect(micPeaking);
-      micPeaking.connect(analyser);
-      micAnalyser = analyser;
-
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-      if (micCheckInterval) clearInterval(micCheckInterval);
-      micCheckInterval = setInterval(() => {
-        if (!isWidgetCallActive || !micAnalyser || isCallMuted) return;
-
-        micAnalyser.getByteFrequencyData(dataArray);
-
-        // Focus energy analysis strictly on human vocal formants (~200Hz - 3400Hz, bins 1 to 19)
-        let voiceSum = 0;
-        let voiceBins = 0;
-        const maxBin = Math.min(19, dataArray.length);
-        for (let i = 1; i < maxBin; i++) {
-          voiceSum += dataArray[i];
-          voiceBins++;
-        }
-        const voiceAvg = voiceSum / Math.max(1, voiceBins);
-        const normalized = Math.min(100, Math.round((voiceAvg / 128) * 100));
-
-        // Adaptive Noise Floor Calibration: tracks ambient floor when user is not actively speaking
-        if (!isNearVoiceActive && !isBotSpeaking) {
-          ambientNoiseFloor = (ambientNoiseFloor * 0.96) + (normalized * 0.04);
-          ambientNoiseFloor = Math.max(6, Math.min(42, ambientNoiseFloor));
-        }
-
-        // Determine near-voice threshold based on mode and adaptive background noise
-        let requiredMargin = 12;
-        let minFloorGate = 22;
-        let botBargeInGate = 28;
-
-        if (nearVoiceMode === 'aggressive') {
-          requiredMargin = 18;
-          minFloorGate = 30;
-          botBargeInGate = 35;
-        } else if (nearVoiceMode === 'normal') {
-          requiredMargin = 8;
-          minFloorGate = 16;
-          botBargeInGate = 24;
-        }
-
-        const snr = normalized - ambientNoiseFloor;
-        const isNearVoiceFrame = (normalized >= minFloorGate) && (snr >= requiredMargin);
-
-        if (isNearVoiceFrame) {
-          nearVoiceSustainCount++;
-          if (nearVoiceSustainCount >= 3) { // Require sustained speech (>150ms) to ignore transient clicks
-            isNearVoiceActive = true;
-            lastNearVoiceTime = Date.now();
-            isUserTalkingInCall = true;
-
-            // Controlled barge-in: ONLY if audio is ACTUALLY playing sound AND energy is loud & sustained (>250ms)
-            if (isAudioActuallyPlaying && Date.now() - callStartTime >= 3500) {
-              if (normalized >= Math.max(ambientNoiseFloor + 26, botBargeInGate + 4) && nearVoiceSustainCount >= 3) {
-                triggerCallBargeIn();
-              }
-            }
-          }
-        } else {
-          nearVoiceSustainCount = Math.max(0, nearVoiceSustainCount - 1);
-          // 400ms hangover to prevent gate chatter between speech syllables
-          if (Date.now() - lastNearVoiceTime > 400) {
-            isNearVoiceActive = false;
-            isUserTalkingInCall = false;
-          }
-        }
-
-        updateLiveVuBars(normalized, dataArray, isNearVoiceActive);
-      }, 50);
-    } catch(err) {
-      console.warn('[Naqla Mentor] Mic monitor init error:', err);
-    }
+    return;
   }
 
   function stopCallMicMonitor() {
@@ -1927,14 +1824,13 @@ function safeEncodeWidgetUri(str) {
       try { micAudioContext.close(); } catch(e){}
       micAudioContext = null;
     }
-    micAnalyser = null;
-    micHighPass = null;
-    micLowPass = null;
-    micPeaking = null;
     resetLiveVuBars();
   }
 
-  function updateLiveVuBars(volume, dataArray, isNearVoice) {
+    function animateLiveVu(isActive) {
+    const waveBox = document.getElementById('m-call-waves');
+    if (!waveBox) return;
+  function resetLiveVuBars() {
     const waveBox = document.getElementById('m-call-waves');
     if (!waveBox) return;
     const bars = waveBox.querySelectorAll('.m-call-wave-bar');
@@ -1943,28 +1839,19 @@ function safeEncodeWidgetUri(str) {
     if (isBotSpeaking) {
       bars.forEach(bar => {
         const randH = Math.max(4, Math.floor(Math.random() * 24) + 4);
-        bar.style.height = `${randH}px`;
+        bar.style.height = randH + 'px';
         bar.style.background = '#38bdf8';
       });
-    } else if (isNearVoice && volume > 10) {
-      // Confirmed near-field student voice: vibrant golden amber waves!
-      bars.forEach((bar, i) => {
-        const binIndex = Math.floor((i / bars.length) * (dataArray ? dataArray.length : 1));
-        const val = dataArray ? (dataArray[binIndex] || 0) : 0;
-        const h = Math.max(6, Math.round((val / 255) * 26));
-        bar.style.height = `${h}px`;
-        bar.style.background = '#fbbf24';
-      });
-    } else if (volume > (ambientNoiseFloor + 3)) {
-      // Ambient noise detected but rejected (filtered out): calm muted slate bars
+    } else if (isActive) {
       bars.forEach(bar => {
-        bar.style.height = '6px';
-        bar.style.background = '#475569';
+        const randH = Math.max(6, Math.floor(Math.random() * 26) + 4);
+        bar.style.height = randH + 'px';
+        bar.style.background = '#fbbf24';
       });
     } else if (isProcessingCall) {
       bars.forEach((bar, i) => {
         const h = Math.max(4, Math.floor(Math.sin(Date.now() / 250 + i) * 8) + 12);
-        bar.style.height = `${h}px`;
+        bar.style.height = h + 'px';
         bar.style.background = '#a855f7';
       });
     } else {
@@ -1975,9 +1862,6 @@ function safeEncodeWidgetUri(str) {
     }
   }
 
-  function resetLiveVuBars() {
-    const waveBox = document.getElementById('m-call-waves');
-    if (!waveBox) return;
     const bars = waveBox.querySelectorAll('.m-call-wave-bar');
     bars.forEach(b => { b.style.height = '4px'; b.style.background = '#334155'; });
   }
@@ -2012,6 +1896,10 @@ function safeEncodeWidgetUri(str) {
       if (callSpeakingWatchdog) {
         clearTimeout(callSpeakingWatchdog);
         callSpeakingWatchdog = null;
+      }
+      if (activeCallTtsAbortController) {
+        try { activeCallTtsAbortController.abort(); } catch(e){}
+        activeCallTtsAbortController = null;
       }
       isAudioActuallyPlaying = false;
       widgetStopSpeak();
@@ -2108,6 +1996,18 @@ function safeEncodeWidgetUri(str) {
     }
   }
 
+  window.sendCallQuickPrompt = (promptText) => {
+    if (!isWidgetCallActive) return;
+    isProcessingCall = false;
+    handleCallUserSpeech(promptText);
+  };
+
+  window.replayCallTeacherAudio = () => {
+    if (!isWidgetCallActive) return;
+    unlockAudioContext();
+    playCallGreeting();
+  };
+
   window.toggleWidgetCall = (forceState) => {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) {
@@ -2163,11 +2063,15 @@ function safeEncodeWidgetUri(str) {
       if ('speechSynthesis' in window) {
         try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch(e){}
       }
-      startCallTimer();
-      startCallMicMonitor();
-      updateCallOverlaySpeakerUI();
-      updateNearVoiceUI();
-      playCallGreeting();
+      try { startCallTimer(); } catch(e) { console.warn('Timer error:', e); }
+      try { updateCallOverlaySpeakerUI(); } catch(e) { console.warn('Speaker UI error:', e); }
+      try { updateNearVoiceUI(); } catch(e) { console.warn('NearVoice UI error:', e); }
+      try { playCallGreeting(); } catch(e) { console.error('Play greeting error:', e); }
+      try {
+        startCallMicMonitor().catch(e => console.warn('Mic monitor async error:', e));
+      } catch(e) {
+        console.warn('Mic monitor sync error:', e);
+      }
     } else {
       if (overlay) overlay.style.display = 'none';
       if (chip) {
@@ -2176,13 +2080,64 @@ function safeEncodeWidgetUri(str) {
         chip.style.borderColor = '#6366f1';
         chip.textContent = '📞 مكالمة صوتية مستمرة';
       }
+
+      // 🛑 1. Instantly silence and destroy Web Audio Buffer Source
+      if (activeBufferSource) {
+        try { activeBufferSource.stop(); } catch(e){}
+        try { activeBufferSource.disconnect(); } catch(e){}
+        activeBufferSource = null;
+      }
+
+      // 🛑 2. Instantly silence and reset HTML5 Audio element
+      if (callAudioElement) {
+        try {
+          callAudioElement.pause();
+          callAudioElement.currentTime = 0;
+          callAudioElement.src = '';
+        } catch(e){}
+      }
+      if (widgetAudioPlayer) {
+        try {
+          widgetAudioPlayer.pause();
+          widgetAudioPlayer.currentTime = 0;
+          widgetAudioPlayer.src = '';
+        } catch(e){}
+        widgetAudioPlayer = null;
+      }
+
+      // 🛑 3. Suspend Web Audio Context immediately to freeze all output
+      if (liveCallAudioContext && liveCallAudioContext.state === 'running') {
+        try { liveCallAudioContext.suspend(); } catch(e){}
+      }
+
+      // 🛑 4. Instantly abort in-flight TTS download
+      if (activeCallTtsAbortController) {
+        try { activeCallTtsAbortController.abort(); } catch(e){}
+        activeCallTtsAbortController = null;
+      }
+
+      // 🛑 5. Instantly kill browser speech synthesis & cancel all utterances
       widgetStopSpeak();
+      if ('speechSynthesis' in window) {
+        try { window.speechSynthesis.cancel(); } catch(e){}
+      }
+      window.__naqlaActiveUtterance = null;
+
+      // 🛑 6. Stop all timers, speech debouncers, and recognition loops
       stopCallTimer();
       stopCallMicMonitor();
       isBotSpeaking = false;
+      isAudioActuallyPlaying = false;
       isProcessingCall = false;
+      if (callSpeakingWatchdog) { clearTimeout(callSpeakingWatchdog); callSpeakingWatchdog = null; }
+      if (callProcessingWatchdog) { clearTimeout(callProcessingWatchdog); callProcessingWatchdog = null; }
       if (callKeepAliveTimer) { clearTimeout(callKeepAliveTimer); callKeepAliveTimer = null; }
-      if (wRec) { try { wRec.abort(); } catch(e) {} }
+      if (speechDebounceTimer) { clearTimeout(speechDebounceTimer); speechDebounceTimer = null; }
+      if (wRec) { try { wRec.abort(); } catch(e) {} wRec = null; }
+
+      // 🛑 7. Reset live VU meters & status
+      resetLiveVuBars();
+      setCallStatus('idle', 'المكالمة منتهية');
     }
   };
 
@@ -2225,7 +2180,7 @@ function safeEncodeWidgetUri(str) {
     // In live voice call: Speak concise, direct pedagogical summary (~220 chars) for instant audio response
     let speechSnippet = clean;
     if (speechSnippet.length > 250) {
-      const sentences = speechSnippet.split(/(?<=[.!\?؟\n])\s+/);
+      const sentences = speechSnippet.split(/(?<=[.!?؟\n])\s+/);
       let acc = '';
       for (const s of sentences) {
         if ((acc + ' ' + s).length <= 260) {
@@ -2248,8 +2203,16 @@ function safeEncodeWidgetUri(str) {
     }, maxSpeechTime);
 
     try {
-      const primaryUrl = await resolveTtsUrl(speechSnippet, widgetSpeaker);
+      if (!isWidgetCallActive) return;
+      if (activeCallTtsAbortController) {
+        try { activeCallTtsAbortController.abort(); } catch(e){}
+      }
       const controller = new AbortController();
+      activeCallTtsAbortController = controller;
+
+      const primaryUrl = await resolveTtsUrl(speechSnippet, widgetSpeaker);
+      if (!isWidgetCallActive) return;
+
       const fetchTimer = setTimeout(() => controller.abort(), 6000);
 
       let res = null;
@@ -2259,16 +2222,20 @@ function safeEncodeWidgetUri(str) {
         if (!res.ok) throw new Error('Status ' + res.status);
       } catch(primaryErr) {
         clearTimeout(fetchTimer);
+        if (!isWidgetCallActive) return;
         const fallbackVercelUrl = 'https://sudan-interactive-curricula.vercel.app/api/tts?text=' + safeEncodeWidgetUri(clean) + '&speaker=' + safeEncodeWidgetUri(widgetSpeaker);
         try {
           const fallbackCtrl = new AbortController();
+          activeCallTtsAbortController = fallbackCtrl;
           const fallbackTimer = setTimeout(() => fallbackCtrl.abort(), 6000);
           res = await fetch(fallbackVercelUrl, { signal: fallbackCtrl.signal });
           clearTimeout(fallbackTimer);
           if (!res || !res.ok) throw new Error('Vercel status ' + (res ? res.status : 'none'));
         } catch(vercelErr) {
+          if (!isWidgetCallActive) return;
           const fallbackCfUrl = 'https://local-ai-arsenal.pages.dev/api/tts?text=' + safeEncodeWidgetUri(clean) + '&speaker=' + safeEncodeWidgetUri(widgetSpeaker);
           const cfCtrl = new AbortController();
+          activeCallTtsAbortController = cfCtrl;
           const cfTimer = setTimeout(() => cfCtrl.abort(), 6000);
           res = await fetch(fallbackCfUrl, { signal: cfCtrl.signal });
           clearTimeout(cfTimer);
@@ -2276,18 +2243,29 @@ function safeEncodeWidgetUri(str) {
         }
       }
 
+      activeCallTtsAbortController = null;
+      if (!isWidgetCallActive) return;
+
       if (!res || !res.ok) throw new Error('TTS response not ok: ' + (res ? res.status : 'null'));
       const ctype = res.headers.get('content-type') || '';
       if (!ctype.includes('audio') && !ctype.includes('mpeg') && !ctype.includes('octet-stream')) {
         throw new Error('Expected audio MIME but got ' + ctype);
       }
       const arrayBuffer = await res.arrayBuffer();
+      if (!isWidgetCallActive) return;
       if (arrayBuffer.byteLength < 400) throw new Error('Audio data too small');
 
       const ctx = getOrCreateCallAudioContext();
       if (ctx) {
         try {
+          if (!isWidgetCallActive) return;
+          if (ctx.state === 'suspended') {
+            try { await ctx.resume(); } catch(e){}
+          }
+          if (!isWidgetCallActive) return;
           const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+          if (!isWidgetCallActive) return;
+
           if (activeBufferSource) {
             try { activeBufferSource.stop(); } catch(e){}
             activeBufferSource = null;
@@ -2297,7 +2275,7 @@ function safeEncodeWidgetUri(str) {
           source.buffer = audioBuffer;
 
           const gainNode = ctx.createGain();
-          gainNode.gain.value = 1.7; // 1.7x crystal clear volume amplification
+          gainNode.gain.value = 1.8; // 1.8x crystal clear volume amplification
           source.connect(gainNode);
           gainNode.connect(ctx.destination);
 
@@ -2308,40 +2286,54 @@ function safeEncodeWidgetUri(str) {
           source.onended = () => {
             isAudioActuallyPlaying = false;
             activeBufferSource = null;
-            finishBotSpeech();
+            if (isWidgetCallActive) finishBotSpeech();
           };
 
+          if (!isWidgetCallActive) {
+            try { source.stop(); } catch(e){}
+            return;
+          }
           source.start(0);
           console.log('[Naqla Live Call] Playing via Web Audio API (Guaranteed Audio Output)');
         } catch(decodeErr) {
+          if (!isWidgetCallActive) return;
           console.warn('[Naqla Live Call] Web Audio decode failed, falling back to HTML5 audio:', decodeErr);
           const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
           const blobUrl = URL.createObjectURL(blob);
-          const audio = new Audio(blobUrl);
+          const audio = callAudioElement || new Audio();
+          audio.src = blobUrl;
           audio.volume = 1.0;
           audio.muted = false;
           widgetAudioPlayer = audio;
           audio.onplay = () => { isAudioActuallyPlaying = true; };
-          audio.onended = () => { isAudioActuallyPlaying = false; finishBotSpeech(); };
-          await audio.play().catch(() => fallbackCallBrowserSpeak(clean, isEng));
+          audio.onended = () => { isAudioActuallyPlaying = false; if (isWidgetCallActive) finishBotSpeech(); };
+          await audio.play().catch(() => {
+            if (isWidgetCallActive) fallbackCallBrowserSpeak(clean, isEng);
+          });
         }
       } else {
+        if (!isWidgetCallActive) return;
         const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
         const blobUrl = URL.createObjectURL(blob);
-        const audio = new Audio(blobUrl);
+        const audio = callAudioElement || new Audio();
+        audio.src = blobUrl;
         audio.volume = 1.0;
         audio.muted = false;
         widgetAudioPlayer = audio;
         audio.onplay = () => { isAudioActuallyPlaying = true; };
-        audio.onended = () => { isAudioActuallyPlaying = false; finishBotSpeech(); };
-        await audio.play().catch(() => fallbackCallBrowserSpeak(clean, isEng));
+        audio.onended = () => { isAudioActuallyPlaying = false; if (isWidgetCallActive) finishBotSpeech(); };
+        await audio.play().catch(() => {
+          if (isWidgetCallActive) fallbackCallBrowserSpeak(clean, isEng);
+        });
       }
     } catch(e) {
+      if (!isWidgetCallActive) return;
       fallbackCallBrowserSpeak(clean, isEng);
     }
   }
 
   function fallbackCallBrowserSpeak(clean, isEng) {
+    if (!isWidgetCallActive) return;
     if (!('speechSynthesis' in window)) {
       finishBotSpeech();
       return;
@@ -2367,10 +2359,9 @@ function safeEncodeWidgetUri(str) {
         if (widgetSpeaker === 'israa') {
           utterance.pitch = 1.15;
           utterance.rate = 1.0;
-          if (arVoices.length > 0) {
-            const f = arVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Hoda') || v.name.includes('Salma') || v.name.includes('Zariyah') || v.name.includes('Laila') || v.name.includes('Muna'));
-            utterance.voice = f || arVoices[0];
-          }
+          const fVoice = arVoices.find(v => v.name.includes('Zari') || v.name.includes('Salma') || v.name.includes('Fatima') || v.name.includes('Mona') || v.name.includes('Female'));
+          if (fVoice) utterance.voice = fVoice;
+          else if (arVoices.length) utterance.voice = arVoices[0];
         } else {
           // Osman: Strict Male Baritone Voice Guarantee
           const m = arVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Hamed') || v.name.includes('Shakir') || v.name.includes('Tarik') || v.name.includes('Naayf') || v.name.includes('Hamid') || v.name.includes('Omar') || v.name.includes('Bassam'));
@@ -2390,127 +2381,121 @@ function safeEncodeWidgetUri(str) {
       }
 
       utterance.onstart = () => {
+        if (!isWidgetCallActive) {
+          try { window.speechSynthesis.cancel(); } catch(e){}
+          return;
+        }
         isAudioActuallyPlaying = true;
         setCallStatus('speaking', isEng ? 'Naqla Bot is speaking...' : 'المعلم يشرح لك صوتياً الآن...');
       };
       utterance.onend = () => {
         isAudioActuallyPlaying = false;
         window.__naqlaActiveUtterance = null;
-        finishBotSpeech();
+        if (isWidgetCallActive) finishBotSpeech();
       };
       utterance.onerror = (uErr) => {
         console.warn('[Naqla Live Call] Utterance error:', uErr);
         isAudioActuallyPlaying = false;
         window.__naqlaActiveUtterance = null;
-        finishBotSpeech();
+        if (isWidgetCallActive) finishBotSpeech();
       };
       utterance.onpause = () => {
         try { window.speechSynthesis.resume(); } catch(e){}
       };
 
       setTimeout(() => {
+        if (!isWidgetCallActive) return;
         try {
           if (window.speechSynthesis.paused) window.speechSynthesis.resume();
           window.speechSynthesis.speak(utterance);
         } catch(e) {
-          finishBotSpeech();
+          if (isWidgetCallActive) finishBotSpeech();
         }
       }, 50);
     } catch(err) {
       console.warn('[Naqla Live Call] Browser speech synthesis error:', err);
-      finishBotSpeech();
+      if (isWidgetCallActive) finishBotSpeech();
     }
   }
 
   function startContinuousListening() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec || !isWidgetCallActive || isBotSpeaking || isProcessingCall || isCallMuted) return;
+    if (!SpeechRec || !isWidgetCallActive || isBotSpeaking || isCallMuted) return;
 
-    if (wRec) { try { wRec.abort(); } catch(e) {} }
+    if (isProcessingCall) {
+      console.log('[Naqla Live Call] Still processing, waiting to listen...');
+      return;
+    }
+
+    if (wRec) {
+      try { wRec.abort(); } catch(e) {}
+      wRec = null;
+    }
 
     const isEng = isEnglishStage(activeStage);
-    setCallStatus('listening', isEng ? 'Naqla Bot is listening... Speak in English! 🎙️' : 'المعلم يستمع لصوتك الآن... (تحدث بحرية)');
+    setCallStatus('listening', isEng ? 'Naqla Bot is listening... Speak in English! 🎙️' : 'المعلم يستمع لصوتك الآن... تفضل بسؤالك 👂✨');
 
-    wRec = new SpeechRec();
-    wRec.lang = isEng ? 'en-US' : 'ar-SA';
-    wRec.continuous = false; // Resilient keepalive pattern prevents browser hangs
-    wRec.interimResults = true;
+    try {
+      wRec = new SpeechRec();
+      wRec.lang = isEng ? 'en-US' : 'ar-SA';
+      wRec.continuous = false; // Single utterance with immediate restart is vastly more stable on Chrome mobile/desktop
+      wRec.interimResults = true;
 
-    let hasReceivedFinal = false;
+      let speechDebounceTimer = null;
+      let lastSpeechText = '';
 
-    wRec.onsoundstart = () => {
-      if (isBotSpeaking) triggerCallBargeIn();
-    };
+      wRec.onsoundstart = () => {
+        if (isBotSpeaking) triggerCallBargeIn();
+        animateLiveVu(true);
+      };
 
-    wRec.onspeechstart = () => {
-      if (isBotSpeaking) triggerCallBargeIn();
-      isUserTalkingInCall = true;
-      setCallStatus('listening', isEng ? 'Naqla Bot is listening... 🎙️' : 'المعلم يستمع لصوتك الآن... 👂✨');
-    };
+      wRec.onspeechstart = () => {
+        if (isBotSpeaking) triggerCallBargeIn();
+        isUserTalkingInCall = true;
+        setCallStatus('listening', isEng ? 'Naqla Bot is listening... 🎙️' : 'المعلم يستمع لصوتك الآن... 👂✨');
+        animateLiveVu(true);
+      };
 
-    wRec.onstart = () => {
-      isWRecording = true;
-      if (micBtn) micBtn.style.background = '#e11d48';
-    };
-
-    wRec.onresult = (e) => {
-      if (!isWidgetCallActive) return;
-      // If bot is speaking and student talks close to mic, trigger barge-in!
-      if (isBotSpeaking) {
-        if (isNearVoiceActive || isUserTalkingInCall) {
+      wRec.onresult = (e) => {
+        if (!isWidgetCallActive) return;
+        if (isBotSpeaking) {
           triggerCallBargeIn();
-        }
-        return;
-      }
-
-      let interim = '';
-      let final = '';
-
-      for (let i = e.resultIndex; i < e.results.length; ++i) {
-        if (e.results[i].isFinal) {
-          final += e.results[i][0].transcript;
-        } else {
-          interim += e.results[i][0].transcript;
-        }
-      }
-
-      const liveText = (final || interim).trim();
-      const currentCombined = (callSpeechBuffer ? (callSpeechBuffer + ' ' + liveText) : liveText).trim();
-      if (currentCombined) {
-        setCallSubtitle(`🗣️ "${currentCombined}"`);
-      }
-
-      if (final.trim()) {
-        const timeSinceNearVoice = Date.now() - lastNearVoiceTime;
-        // Near-Field Verification: Only reject ambient speech in 'aggressive' isolation mode
-        // In 'smart' and 'normal' modes, always accept speech (the DSP filters handle noise)
-        if (nearVoiceMode === 'aggressive' && timeSinceNearVoice > 2500 && !isNearVoiceActive) {
-          console.log('[Naqla Mentor] Aggressive mode: Ignored distant ambient speech:', final.trim());
           return;
         }
 
-        // Accumulate in buffer
-        callSpeechBuffer = (callSpeechBuffer ? (callSpeechBuffer + ' ' + final.trim()) : final.trim());
-        setCallSubtitle(`🗣️ "${callSpeechBuffer}"`);
+        let interim = '';
+        let final = '';
 
-        // Smart Debounce Window (1000ms): Allow student to pause, think, and complete sentence without premature cutoff
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          if (e.results[i].isFinal) {
+            final += e.results[i][0].transcript;
+          } else {
+            interim += e.results[i][0].transcript;
+          }
+        }
+
+        const liveText = (final || interim).trim();
+        if (liveText) {
+          lastSpeechText = liveText;
+          setCallSubtitle(`🗣️ "${liveText}"`);
+          animateLiveVu(true);
+        }
+
+        // Smart Debounce Window (750ms): Dispatches as soon as user completes sentence or pauses
         if (speechDebounceTimer) clearTimeout(speechDebounceTimer);
         speechDebounceTimer = setTimeout(() => {
-          if (callSpeechBuffer && isWidgetCallActive && !isProcessingCall && !isBotSpeaking) {
-            const textToSend = callSpeechBuffer.trim();
-            callSpeechBuffer = '';
-            hasReceivedFinal = true;
-            isWRecording = false;
+          if (lastSpeechText && isWidgetCallActive && !isBotSpeaking && !isProcessingCall) {
+            const textToSend = lastSpeechText.trim();
+            lastSpeechText = '';
             try { wRec.abort(); } catch(err) {}
             handleCallUserSpeech(textToSend);
           }
         }, 750);
-      }
-    };
+      };
 
-    wRec.onerror = (e) => {
-      isWRecording = false;
-      if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
+      wRec.onerror = (e) => {
+        animateLiveVu(false);
+        console.warn('[Naqla Live Call] Speech rec error:', e.error);
         if (e.error === 'no-speech') {
           setCallStatus('listening', isEng ? 'Waiting for your question... Speak anytime! 🎙️' : 'المعلم في انتظار سؤالك... (تحدث في أي وقت)');
         }
@@ -2519,40 +2504,32 @@ function safeEncodeWidgetUri(str) {
           if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
             startContinuousListening();
           }
-        }, 500);
-      }
-    };
-
-    wRec.onend = () => {
-      isWRecording = false;
-      if (micBtn) micBtn.style.background = '#1e293b';
-
-      // If we have buffered speech waiting, let the debounce timer finish or dispatch if silence passed
-      if (callSpeechBuffer && !hasReceivedFinal && isWidgetCallActive && !isProcessingCall && !isBotSpeaking) {
-        if (!speechDebounceTimer) {
-          speechDebounceTimer = setTimeout(() => {
-            if (callSpeechBuffer && isWidgetCallActive && !isProcessingCall && !isBotSpeaking) {
-              const textToSend = callSpeechBuffer.trim();
-              callSpeechBuffer = '';
-              handleCallUserSpeech(textToSend);
-            }
-          }, 800);
-        }
-      }
-
-      if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !hasReceivedFinal && !isCallMuted) {
-        if (callKeepAliveTimer) clearTimeout(callKeepAliveTimer);
-        callKeepAliveTimer = setTimeout(() => {
-          if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
-            startContinuousListening();
-          }
         }, 400);
-      }
-    };
+      };
 
-    try {
+      wRec.onend = () => {
+        animateLiveVu(false);
+        // If we captured speech that didn't get sent by debounce yet, send it now!
+        if (lastSpeechText && isWidgetCallActive && !isBotSpeaking && !isProcessingCall) {
+          const textToSend = lastSpeechText.trim();
+          lastSpeechText = '';
+          handleCallUserSpeech(textToSend);
+          return;
+        }
+
+        if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
+          if (callKeepAliveTimer) clearTimeout(callKeepAliveTimer);
+          callKeepAliveTimer = setTimeout(() => {
+            if (isWidgetCallActive && !isBotSpeaking && !isProcessingCall && !isCallMuted) {
+              startContinuousListening();
+            }
+          }, 350);
+        }
+      };
+
       wRec.start();
     } catch(e) {
+      console.warn('[Naqla Live Call] Rec start failed:', e);
       if (isWidgetCallActive && !isBotSpeaking && !isCallMuted) {
         setTimeout(startContinuousListening, 800);
       }
@@ -2560,17 +2537,22 @@ function safeEncodeWidgetUri(str) {
   }
 
   function handleCallUserSpeech(text) {
-    if (!text || !text.trim() || !isWidgetCallActive || isProcessingCall) return;
-
-    if (speechDebounceTimer) {
-      clearTimeout(speechDebounceTimer);
-      speechDebounceTimer = null;
-    }
-    callSpeechBuffer = '';
+    if (!text || !text.trim() || !isWidgetCallActive) return;
+    if (isProcessingCall) return;
 
     isProcessingCall = true;
     setCallStatus('thinking', 'المعلم يحلل ويفكر في الرد... 🤖💭');
     setCallSubtitle(`🗣️ سؤالك: "${text}"`);
+
+    // Safety processing watchdog: auto-unlocks after 14s if network or API hangs
+    if (callProcessingWatchdog) clearTimeout(callProcessingWatchdog);
+    callProcessingWatchdog = setTimeout(() => {
+      if (isProcessingCall) {
+        console.warn('[Naqla Live Call] Processing watchdog fired, unlocking state');
+        isProcessingCall = false;
+        finishBotSpeech();
+      }
+    }, 14000);
 
     sendMessage(text);
   }
@@ -2608,6 +2590,24 @@ function safeEncodeWidgetUri(str) {
   if (callInterruptBtn) callInterruptBtn.onclick = interruptCall;
   if (callAvatar) callAvatar.onclick = interruptCall;
   if (callEndBtn) callEndBtn.onclick = () => window.toggleWidgetCall(false);
+
+    const callQuickInput = document.getElementById('m-call-quick-input');
+    const callSendBtn = document.getElementById('m-call-send-btn');
+    if (callSendBtn && callQuickInput) {
+      const doSend = () => {
+        const val = callQuickInput.value.trim();
+        if (!val || isProcessingCall) return;
+        callQuickInput.value = '';
+        handleCallUserSpeech(val);
+      };
+      callSendBtn.onclick = doSend;
+      callQuickInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          doSend();
+        }
+      };
+    }
 
   if (callMuteBtn) {
     callMuteBtn.onclick = () => {
